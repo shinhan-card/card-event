@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경쟁사 카드 이벤트 인텔리전스</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif}
+.c-samsung{--cc:#6ec6ff}.c-shinhan{--cc:#0057ff}.c-hyundai{--cc:#111111}.c-kb{--cc:#ffb300}.c-default{--cc:#455a64}
+.pill-samsung{background:#6ec6ff;color:#0b1f33}.pill-shinhan{background:#0057ff;color:#fff}.pill-hyundai{background:#111111;color:#fff}.pill-kb{background:#ffb300;color:#2b1d00}.pill-default{background:#455a64;color:#fff}
+.card-co{border-left:5px solid var(--cc);border-top:3px solid var(--cc)}
+.row-co{border-left:4px solid var(--cc);background:color-mix(in srgb,var(--cc) 6%,white)}
+.tab-btn{padding:.5rem 1rem;font-size:.875rem;font-weight:500;border-bottom:2px solid transparent;color:#64748b;cursor:pointer}
+.tab-btn.active{border-color:#2563eb;color:#2563eb}
+.section-card{background:#fff;border:1px solid #e2e8f0;border-radius:.75rem;padding:1.25rem}
+.kpi{text-align:center}.kpi .val{font-size:1.5rem;font-weight:700}.kpi .lbl{font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+.badge-hi{background:#dc2626;color:#fff}.badge-mid{background:#f59e0b;color:#fff}.badge-lo{background:#10b981;color:#fff}
+.badge-sm{font-size:.65rem;padding:2px 6px;border-radius:9999px;font-weight:600}
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<!-- 헤더 -->
+<header class="bg-slate-800 text-white shadow-lg">
+<div class="max-w-[1400px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-lg sm:text-xl font-bold tracking-tight">경쟁사 카드 이벤트 인텔리전스</h1>
+    <p class="text-slate-400 text-xs mt-0.5">신한카드 마케팅 담당자용 — 매일 아침 5분 브리핑</p>
+  </div>
+  <div class="flex items-center gap-2 text-sm">
+    <button onclick="triggerPipeline()" id="btnPipe" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-bolt mr-1"></i>전체 파이프라인</button>
+    <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-file-excel mr-1"></i>엑셀</button>
+    <button onclick="location.reload()" class="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-sync-alt mr-1"></i>새로고침</button>
+  </div>
+</div>
+</header>
+
+<!-- 탭 네비게이션 -->
+<nav class="max-w-[1400px] mx-auto px-4 pt-4 flex gap-1 border-b border-slate-200 overflow-x-auto">
+  <button class="tab-btn active" data-tab="executive">경영 요약</button>
+  <button class="tab-btn" data-tab="compare">카드사 비교</button>
+  <button class="tab-btn" data-tab="benchmark">혜택 벤치마크</button>
+  <button class="tab-btn" data-tab="strategy">전략 맵</button>
+  <button class="tab-btn" data-tab="events">이벤트 목록</button>
+</nav>
+
+<main class="max-w-[1400px] mx-auto px-4 py-5">
+
+<!-- ========== 1. 경영 요약 ========== -->
+<section id="tab-executive" class="space-y-5">
+  <!-- KPI -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="section-card kpi"><div class="val" id="kTotal">0</div><div class="lbl">전체 이벤트</div></div>
+    <div class="section-card kpi"><div class="val text-emerald-600" id="kActive">0</div><div class="lbl">진행중</div></div>
+    <div class="section-card kpi"><div class="val text-slate-500" id="kEnded">0</div><div class="lbl">종료</div></div>
+    <div class="section-card kpi"><div class="val text-blue-600" id="kInsight">0</div><div class="lbl">인사이트 완료</div></div>
+    <div class="section-card kpi"><div class="val text-amber-600" id="kExtRate">0%</div><div class="lbl">추출률</div></div>
+    <div class="section-card kpi"><div class="val text-purple-600" id="kCompanies">0</div><div class="lbl">수집 카드사</div></div>
+  </div>
+  <!-- 커버리지 차트 + 주목 이벤트 -->
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 수집/추출/인사이트 커버리지</h3><div style="height:220px"><canvas id="chartCoverage"></canvas></div></div>
+    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">주목할 이벤트 (위협도 High)</h3><div id="topThreats" class="space-y-2 text-sm"></div></div>
+  </div>
+  <div class="section-card">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <h3 class="text-sm font-bold text-slate-700">카드사별 현재 상태 개요 (Gemini)</h3>
+      <button
+        id="btnBriefRefresh"
+        onclick="refreshCompanyBriefings(true)"
+        class="text-xs bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg"
+      >
+        <i class="fas fa-wand-magic-sparkles mr-1"></i>Gemini 재생성
+      </button>
+    </div>
+    <p id="briefMeta" class="text-xs text-slate-500 mb-3"></p>
+    <div id="companyBriefings" class="grid md:grid-cols-2 gap-3"></div>
+  </div>
+  <div class="section-card bg-slate-950 text-slate-100 border-slate-800">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <h3 class="text-lg font-extrabold tracking-tight">카드 4사 비교 요약 (정성 + 정량)</h3>
+      <button
+        id="btnQualRefresh"
+        onclick="refreshQualitativeComparison(true)"
+        class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg"
+      >
+        <i class="fas fa-chart-simple mr-1"></i>비교 재추론
+      </button>
+    </div>
+    <p id="qualMeta" class="text-xs text-slate-400 mb-3"></p>
+    <div id="qualitativeMatrix" class="overflow-x-auto"></div>
+  </div>
+</section>
+
+<!-- ========== 2. 카드사 비교 ========== -->
+<section id="tab-compare" class="hidden space-y-5">
+  <div id="companyCards" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">혜택 수준 분포 (카드사별)</h3><div style="height:250px"><canvas id="chartBenefitDist"></canvas></div></div>
+</section>
+
+<!-- ========== 3. 혜택 벤치마크 ========== -->
+<section id="tab-benchmark" class="hidden space-y-5">
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 평균 혜택 금액</h3><div style="height:250px"><canvas id="chartBenefitAmount"></canvas></div></div>
+    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 평균 할인율</h3><div style="height:250px"><canvas id="chartBenefitPct"></canvas></div></div>
+  </div>
+  <div class="section-card" id="benchmarkTable"></div>
+</section>
+
+<!-- ========== 4. 전략 맵 ========== -->
+<section id="tab-strategy" class="hidden space-y-5">
+  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">프로모션 목적 히트맵 (카드사 x 목적)</h3><div id="heatmapContainer" class="overflow-x-auto"></div></div>
+  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">이벤트 추세 (주별 시작/종료)</h3><div style="height:250px"><canvas id="chartTrends"></canvas></div></div>
+</section>
+
+<!-- ========== 5. 이벤트 목록 ========== -->
+<section id="tab-events" class="hidden space-y-4">
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="flex-1 min-w-[180px]"><label class="text-xs text-slate-500 block mb-1">키워드</label><input id="searchKw" placeholder="할인, 캐시백, 삼성…" class="w-full border rounded-lg px-3 py-1.5 text-sm"></div>
+    <select id="fCompany" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 카드사</option></select>
+    <select id="fCat" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 카테고리</option></select>
+    <select id="fStatus" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 상태</option><option value="active">진행중</option><option value="ended">종료</option></select>
+  </div>
+  <div class="bg-white rounded-xl border overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-100 text-slate-600 font-semibold"><tr>
+        <th class="px-3 py-2 text-left">카드사</th><th class="px-3 py-2 text-left">제목</th><th class="px-3 py-2 text-left">혜택</th><th class="px-3 py-2 text-left">기간</th><th class="px-3 py-2 text-left">위협도</th><th class="px-3 py-2 w-16"></th>
+      </tr></thead>
+      <tbody id="eventsTbody" class="divide-y"></tbody>
+    </table>
+    <div id="eventsEmpty" class="hidden text-center py-12 text-slate-400">조건에 맞는 이벤트가 없습니다.</div>
+  </div>
+</section>
+
+</main>
+
+<!-- ========== 상세 모달 ========== -->
+<div id="detailModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none">
+<div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+  <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-50 rounded-t-xl">
+    <div class="min-w-0 flex-1"><h2 class="font-bold text-slate-800 truncate" id="mdTitle"></h2><p class="text-xs text-slate-500 mt-0.5" id="mdSummary"></p></div>
+    <div class="flex items-center gap-2 ml-3">
+      <a id="mdNewTab" href="#" target="_blank" class="text-xs text-blue-600 hover:underline"><i class="fas fa-external-link-alt mr-1"></i>원본</a>
+      <button onclick="extractOne()" id="mdExtractBtn" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"><i class="fas fa-sync-alt mr-1"></i>추출</button>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 p-1"><i class="fas fa-times text-lg"></i></button>
+    </div>
+  </div>
+  <div class="flex border-b text-sm">
+    <button class="tab-btn active" data-mtab="intelligence">AI 분석</button>
+    <button class="tab-btn" data-mtab="sections">추출 내용</button>
+    <button class="tab-btn" data-mtab="iframe">원본 페이지</button>
+  </div>
+  <div class="flex-1 min-h-0 overflow-hidden">
+    <div id="mp-intelligence" class="h-full overflow-y-auto p-5"></div>
+    <div id="mp-sections" class="h-full overflow-y-auto p-5 hidden"></div>
+    <div id="mp-iframe" class="h-full p-2 bg-slate-100 hidden"><iframe id="mdFrame" class="w-full h-full rounded border-0 bg-white"></iframe></div>
+  </div>
+</div>
+</div>
+
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>

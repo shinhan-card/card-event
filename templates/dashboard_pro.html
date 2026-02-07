@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드사 이벤트 인텔리전스 시스템 - 전문가용</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shinhan: {
+                            blue: '#0046FF',
+                            darkblue: '#0033CC',
+                            lightblue: '#E6EEFF',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        body { font-family: 'Pretendard', -apple-system, sans-serif; }
+        .status-active { background: #10B981; color: white; }
+        .status-ended { background: #6B7280; color: white; }
+        .threat-high { background: #FEE2E2; color: #991B1B; }
+        .threat-mid { background: #FEF3C7; color: #92400E; }
+        .threat-low { background: #D1FAE5; color: #065F46; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 헤더 -->
+    <header class="bg-shinhan-blue text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-chart-line text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">카드사 이벤트 인텔리전스 시스템</h1>
+                        <p class="text-sm text-shinhan-lightblue">전사 마케팅 담당자용 모니터링 대시보드</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="exportToExcel()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-file-excel mr-2"></i>엑셀 다운로드
+                    </button>
+                    <button onclick="refreshData()" class="bg-white text-shinhan-blue px-4 py-2 rounded-lg hover:bg-shinhan-lightblue">
+                        <i class="fas fa-sync-alt mr-2"></i>새로고침
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- 통계 카드 -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-shinhan-blue">
+                <p class="text-gray-500 text-sm font-medium">전체 이벤트</p>
+                <h3 class="text-3xl font-bold text-gray-800 mt-1" id="total-events">0</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm font-medium">진행중</p>
+                <h3 class="text-3xl font-bold text-green-600 mt-1" id="active-events">0</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-500">
+                <p class="text-gray-500 text-sm font-medium">종료됨</p>
+                <h3 class="text-3xl font-bold text-gray-600 mt-1" id="ended-events">0</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                <p class="text-gray-500 text-sm font-medium">High 위협</p>
+                <h3 class="text-3xl font-bold text-red-600 mt-1" id="high-threat">0</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
+                <p class="text-gray-500 text-sm font-medium">Mid 위협</p>
+                <h3 class="text-3xl font-bold text-yellow-600 mt-1" id="mid-threat">0</h3>
+            </div>
+        </div>
+
+        <!-- 필터 영역 (전문가용) -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-filter mr-2 text-shinhan-blue"></i>필터 & 검색
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">카드사</label>
+                    <select id="filter-company" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">전체</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                    <select id="filter-category" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">전체</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">위협도</label>
+                    <select id="filter-threat" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">전체</option>
+                        <option value="High">High</option>
+                        <option value="Mid">Mid</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">진행 상태</label>
+                    <select id="filter-status" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">전체</option>
+                        <option value="active">진행중</option>
+                        <option value="ended">종료됨</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">기간 (2026년)</label>
+                    <select id="filter-month" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">전체</option>
+                        <option value="01">1월</option>
+                        <option value="02" selected>2월</option>
+                        <option value="03">3월</option>
+                        <option value="04">4월</option>
+                        <option value="05">5월</option>
+                        <option value="06">6월</option>
+                        <option value="07">7월</option>
+                        <option value="08">8월</option>
+                        <option value="09">9월</option>
+                        <option value="10">10월</option>
+                        <option value="11">11월</option>
+                        <option value="12">12월</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="applyFilters()" class="bg-shinhan-blue text-white px-6 py-2 rounded-lg hover:bg-shinhan-darkblue">
+                    <i class="fas fa-search mr-2"></i>검색
+                </button>
+                <button onclick="resetFilters()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">
+                    <i class="fas fa-redo mr-2"></i>초기화
+                </button>
+            </div>
+        </div>
+
+        <!-- 이벤트 테이블 -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-table mr-2 text-shinhan-blue"></i>이벤트 목록 (2026년)
+                </h2>
+                <p class="text-sm text-gray-500" id="event-count">총 0개</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-shinhan-lightblue">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">카드사</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">제목</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">카테고리</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">기간</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">상태</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">위협도</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">수집일</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase">링크</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-table-body" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="no-data" class="text-center py-20 hidden">
+                <i class="fas fa-inbox text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500 text-lg">조건에 맞는 이벤트가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allEvents = [];
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+        
+        async function loadData() {
+            try {
+                const statsRes = await fetch('/api/stats');
+                const stats = await statsRes.json();
+                updateStats(stats);
+                
+                const eventsRes = await fetch('/api/events');
+                allEvents = await eventsRes.json();
+                renderEvents(allEvents);
+                
+                await loadFilterOptions();
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+            }
+        }
+        
+        function updateStats(stats) {
+            document.getElementById('total-events').textContent = stats.total_events || 0;
+            document.getElementById('high-threat').textContent = stats.threat_stats?.High || 0;
+            document.getElementById('mid-threat').textContent = stats.threat_stats?.Mid || 0;
+            
+            // 진행중/종료 계산
+            const today = new Date();
+            let active = 0, ended = 0;
+            allEvents.forEach(e => {
+                if (isEventActive(e.period)) active++;
+                else ended++;
+            });
+            document.getElementById('active-events').textContent = active;
+            document.getElementById('ended-events').textContent = ended;
+        }
+        
+        function isEventActive(period) {
+            if (!period || period === '정보 없음') return true;
+            const today = new Date();
+            const parts = period.split('~');
+            if (parts.length < 2) return true;
+            
+            try {
+                const endDateStr = parts[1].trim().replace(/\./g, '-');
+                const endDate = new Date(endDateStr);
+                return endDate >= today;
+            } catch {
+                return true;
+            }
+        }
+        
+        function renderEvents(events) {
+            const tbody = document.getElementById('event-table-body');
+            const noData = document.getElementById('no-data');
+            const count = document.getElementById('event-count');
+            
+            if (events.length === 0) {
+                tbody.innerHTML = '';
+                noData.classList.remove('hidden');
+                count.textContent = '총 0개';
+                return;
+            }
+            
+            noData.classList.add('hidden');
+            count.textContent = `총 ${events.length}개`;
+            
+            const today = new Date();
+            
+            tbody.innerHTML = events.map(e => {
+                const isActive = isEventActive(e.period);
+                const statusClass = isActive ? 'status-active' : 'status-ended';
+                const statusText = isActive ? '진행중' : '종료';
+                
+                // 수집일 포맷팅
+                const createdDate = new Date(e.created_at);
+                const createdStr = createdDate.toLocaleDateString('ko-KR');
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${e.company}</td>
+                        <td class="px-4 py-3">
+                            <div class="text-sm font-medium text-gray-900 max-w-md">${e.title}</div>
+                            ${e.one_line_summary && e.one_line_summary !== e.title ? 
+                                `<div class="text-xs text-gray-500 mt-1">${e.one_line_summary}</div>` : ''}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${e.category || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${e.period || '-'}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded ${statusClass}">${statusText}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full threat-${(e.threat_level || 'low').toLowerCase()}">
+                                ${e.threat_level || 'Low'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500">${createdStr}</td>
+                        <td class="px-4 py-3">
+                            <a href="${e.url}" target="_blank" class="text-shinhan-blue hover:text-shinhan-darkblue">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        async function loadFilterOptions() {
+            const [companiesRes, categoriesRes] = await Promise.all([
+                fetch('/api/companies'),
+                fetch('/api/categories')
+            ]);
+            
+            const companies = await companiesRes.json();
+            const categories = await categoriesRes.json();
+            
+            const companySelect = document.getElementById('filter-company');
+            companies.companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                companySelect.appendChild(option);
+            });
+            
+            const categorySelect = document.getElementById('filter-category');
+            categories.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+        
+        async function applyFilters() {
+            const company = document.getElementById('filter-company').value;
+            const category = document.getElementById('filter-category').value;
+            const threat = document.getElementById('filter-threat').value;
+            const status = document.getElementById('filter-status').value;
+            const month = document.getElementById('filter-month').value;
+            
+            const params = new URLSearchParams();
+            if (company) params.append('company', company);
+            if (category) params.append('category', category);
+            if (threat) params.append('threat_level', threat);
+            
+            const response = await fetch(`/api/events?${params.toString()}`);
+            let events = await response.json();
+            
+            // 상태 필터 (클라이언트 사이드)
+            if (status === 'active') {
+                events = events.filter(e => isEventActive(e.period));
+            } else if (status === 'ended') {
+                events = events.filter(e => !isEventActive(e.period));
+            }
+            
+            // 기간 필터 (2026년 특정 월)
+            if (month) {
+                events = events.filter(e => {
+                    return e.period && e.period.includes(`2026.${month}`);
+                });
+            }
+            
+            renderEvents(events);
+        }
+        
+        function resetFilters() {
+            document.getElementById('filter-company').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-threat').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-month').value = '';
+            renderEvents(allEvents);
+        }
+        
+        function refreshData() {
+            location.reload();
+        }
+        
+        function exportToExcel() {
+            const ws_data = [
+                ['카드사', '제목', '카테고리', '기간', '상태', '위협도', '수집일', 'URL']
+            ];
+            
+            allEvents.forEach(e => {
+                const isActive = isEventActive(e.period);
+                const createdDate = new Date(e.created_at).toLocaleDateString('ko-KR');
+                
+                ws_data.push([
+                    e.company,
+                    e.title,
+                    e.category || '-',
+                    e.period || '-',
+                    isActive ? '진행중' : '종료',
+                    e.threat_level || 'Low',
+                    createdDate,
+                    e.url
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "카드사 이벤트");
+            
+            const filename = `카드사_이벤트_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+    </script>
+</body>
+</html>

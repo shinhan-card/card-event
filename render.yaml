@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: card-event-intelligence
+    env: docker
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        value: sqlite:////var/data/events.db
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL_PRIORITY
+        value: gemini-2.5-flash-lite,gemini-2.5-flash
+      - key: GEMINI_MAX_RPM
+        value: "5"
+      - key: GEMINI_WINDOW_SEC
+        value: "60"
+      - key: GEMINI_RATE_MODE
+        value: wait
+      - key: GEMINI_COOLDOWN_SEC
+        value: "65"
+    disk:
+      name: events-data
+      mountPath: /var/data
+      sizeGB: 1

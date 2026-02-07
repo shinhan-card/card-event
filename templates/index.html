@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드 이벤트 인텔리전스 시스템</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Configuration (신한카드 컬러) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shinhan: {
+                            blue: '#0046FF',      // 신한 메인 블루
+                            darkblue: '#0033CC',  // 신한 다크 블루
+                            lightblue: '#E6EEFF', // 신한 라이트 블루
+                            gray: '#F5F7FA',      // 신한 그레이
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+        
+        .threat-high {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .threat-mid {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .threat-low {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .loading {
+            border-top-color: #0046FF;
+            animation: spinner 0.6s linear infinite;
+        }
+        
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 헤더 (신한카드 스타일) -->
+    <header class="bg-shinhan-blue text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-chart-line text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">카드 이벤트 인텔리전스 시스템</h1>
+                        <p class="text-sm text-shinhan-lightblue">Card Event Intelligence Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="refreshData()" class="bg-white text-shinhan-blue px-4 py-2 rounded-lg hover:bg-shinhan-lightblue transition">
+                        <i class="fas fa-sync-alt mr-2"></i>새로고침
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- 통계 대시보드 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- 전체 이벤트 수 -->
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-shinhan-blue">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">전체 이벤트</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-1" id="total-events">0</h3>
+                    </div>
+                    <div class="bg-shinhan-lightblue p-3 rounded-full">
+                        <i class="fas fa-list text-shinhan-blue text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- High 위협도 -->
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">High 위협</p>
+                        <h3 class="text-3xl font-bold text-red-600 mt-1" id="high-threat">0</h3>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mid 위협도 -->
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Mid 위협</p>
+                        <h3 class="text-3xl font-bold text-yellow-600 mt-1" id="mid-threat">0</h3>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-exclamation-circle text-yellow-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Low 위협도 -->
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Low 위협</p>
+                        <h3 class="text-3xl font-bold text-green-600 mt-1" id="low-threat">0</h3>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 필터 영역 -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-filter mr-2 text-shinhan-blue"></i>필터
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- 카드사 필터 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">카드사</label>
+                    <select id="filter-company" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-shinhan-blue focus:border-transparent">
+                        <option value="">전체</option>
+                        <!-- 동적으로 추가됨 -->
+                    </select>
+                </div>
+                
+                <!-- 카테고리 필터 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                    <select id="filter-category" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-shinhan-blue focus:border-transparent">
+                        <option value="">전체</option>
+                        <!-- 동적으로 추가됨 -->
+                    </select>
+                </div>
+                
+                <!-- 위협도 필터 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">위협도</label>
+                    <select id="filter-threat" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-shinhan-blue focus:border-transparent">
+                        <option value="">전체</option>
+                        <option value="High">High</option>
+                        <option value="Mid">Mid</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4 flex space-x-3">
+                <button onclick="applyFilters()" class="bg-shinhan-blue text-white px-6 py-2 rounded-lg hover:bg-shinhan-darkblue transition">
+                    <i class="fas fa-search mr-2"></i>적용
+                </button>
+                <button onclick="resetFilters()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fas fa-redo mr-2"></i>초기화
+                </button>
+            </div>
+        </div>
+
+        <!-- 이벤트 테이블 -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-table mr-2 text-shinhan-blue"></i>이벤트 목록
+                </h2>
+                <p class="text-sm text-gray-500" id="event-count">총 0개</p>
+            </div>
+            
+            <!-- 로딩 상태 -->
+            <div id="loading" class="flex justify-center items-center py-20 hidden">
+                <div class="loading border-4 border-gray-200 rounded-full w-12 h-12"></div>
+            </div>
+            
+            <!-- 테이블 -->
+            <div id="event-table-container" class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-shinhan-lightblue">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">카드사</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">카테고리</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">제목</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">혜택</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">기간</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">위협도</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-shinhan-darkblue uppercase tracking-wider">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- 동적으로 추가됨 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 데이터 없음 -->
+            <div id="no-data" class="text-center py-20 hidden">
+                <i class="fas fa-inbox text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500 text-lg">등록된 이벤트가 없습니다.</p>
+                <p class="text-gray-400 text-sm mt-2">크롤링을 실행하여 이벤트를 수집하세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let allEvents = [];
+        
+        // 페이지 로드 시 데이터 가져오기
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+        
+        // 데이터 로드
+        async function loadData() {
+            showLoading(true);
+            
+            try {
+                // 통계 데이터
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                updateStats(stats);
+                
+                // 이벤트 데이터
+                const eventsResponse = await fetch('/api/events');
+                allEvents = await eventsResponse.json();
+                renderEvents(allEvents);
+                
+                // 필터 옵션 로드
+                await loadFilterOptions();
+                
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 통계 업데이트
+        function updateStats(stats) {
+            document.getElementById('total-events').textContent = stats.total_events || 0;
+            document.getElementById('high-threat').textContent = stats.threat_stats?.High || 0;
+            document.getElementById('mid-threat').textContent = stats.threat_stats?.Mid || 0;
+            document.getElementById('low-threat').textContent = stats.threat_stats?.Low || 0;
+        }
+        
+        // 이벤트 렌더링
+        function renderEvents(events) {
+            const tbody = document.getElementById('event-table-body');
+            const noData = document.getElementById('no-data');
+            const tableContainer = document.getElementById('event-table-container');
+            const eventCount = document.getElementById('event-count');
+            
+            if (events.length === 0) {
+                tableContainer.classList.add('hidden');
+                noData.classList.remove('hidden');
+                eventCount.textContent = '총 0개';
+                return;
+            }
+            
+            tableContainer.classList.remove('hidden');
+            noData.classList.add('hidden');
+            eventCount.textContent = `총 ${events.length}개`;
+            
+            tbody.innerHTML = events.map(event => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm font-medium text-gray-900">${event.company || '-'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-600">${event.category || '-'}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900 max-w-md truncate" title="${event.title}">
+                            ${event.title}
+                        </div>
+                        ${event.one_line_summary ? `<div class="text-xs text-gray-500 mt-1">${event.one_line_summary}</div>` : ''}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">${event.benefit_type || '-'}</div>
+                        <div class="text-xs text-gray-500">${event.benefit_value || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${event.period || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full threat-${(event.threat_level || 'low').toLowerCase()}">
+                            ${event.threat_level || 'Low'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <a href="${event.url}" target="_blank" class="text-shinhan-blue hover:text-shinhan-darkblue mr-3" title="원문 보기">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button onclick="viewDetails(${event.id})" class="text-gray-600 hover:text-gray-900" title="상세 보기">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 필터 옵션 로드
+        async function loadFilterOptions() {
+            try {
+                const [companiesRes, categoriesRes] = await Promise.all([
+                    fetch('/api/companies'),
+                    fetch('/api/categories')
+                ]);
+                
+                const companies = await companiesRes.json();
+                const categories = await categoriesRes.json();
+                
+                // 카드사 옵션
+                const companySelect = document.getElementById('filter-company');
+                companies.companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    companySelect.appendChild(option);
+                });
+                
+                // 카테고리 옵션
+                const categorySelect = document.getElementById('filter-category');
+                categories.categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('필터 옵션 로드 오류:', error);
+            }
+        }
+        
+        // 필터 적용
+        async function applyFilters() {
+            const company = document.getElementById('filter-company').value;
+            const category = document.getElementById('filter-category').value;
+            const threat = document.getElementById('filter-threat').value;
+            
+            const params = new URLSearchParams();
+            if (company) params.append('company', company);
+            if (category) params.append('category', category);
+            if (threat) params.append('threat_level', threat);
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/events?${params.toString()}`);
+                const events = await response.json();
+                renderEvents(events);
+            } catch (error) {
+                console.error('필터 적용 오류:', error);
+                alert('필터 적용 중 오류가 발생했습니다.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 필터 초기화
+        function resetFilters() {
+            document.getElementById('filter-company').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-threat').value = '';
+            renderEvents(allEvents);
+        }
+        
+        // 데이터 새로고침
+        function refreshData() {
+            loadData();
+        }
+        
+        // 로딩 상태 표시
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const tableContainer = document.getElementById('event-table-container');
+            const noData = document.getElementById('no-data');
+            
+            if (show) {
+                loading.classList.remove('hidden');
+                tableContainer.classList.add('hidden');
+                noData.classList.add('hidden');
+            } else {
+                loading.classList.add('hidden');
+            }
+        }
+        
+        // 상세 보기 (모달 구현 가능)
+        function viewDetails(eventId) {
+            alert(`이벤트 ID ${eventId}의 상세 정보를 표시합니다.\n(모달 UI는 추가 구현 필요)`);
+        }
+    </script>
+</body>
+</html>
