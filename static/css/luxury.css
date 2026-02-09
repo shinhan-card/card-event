@@ -1,0 +1,166 @@
+:root {
+    --bg-color: #0c1220;
+    --card-bg: rgba(20, 28, 45, 0.6);
+    --card-border: rgba(59, 130, 246, 0.3);
+    --shinhan-blue: #0046FF;
+    --shinhan-light: #5B8DFF;
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --accent-glow: 0 0 15px rgba(0, 70, 255, 0.4);
+    --glass-blur: blur(12px);
+}
+
+body {
+    background: radial-gradient(circle at top right, #1e293b, #0f172a 40%, #020617);
+    color: var(--text-primary);
+    font-family: 'Pretendard', sans-serif;
+    min-height: 100vh;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.glass-header {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--card-border);
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.02em;
+}
+
+.text-shinhan {
+    color: var(--shinhan-light);
+    text-shadow: 0 0 10px rgba(0, 70, 255, 0.3);
+}
+
+/* Custom Table Styles */
+.luxury-table th {
+    background-color: rgba(30, 41, 59, 0.5);
+    color: var(--shinhan-light);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.luxury-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+}
+
+.luxury-table tr:hover td {
+    background-color: rgba(59, 130, 246, 0.05);
+    color: white;
+}
+
+/* Stats Cards */
+.stat-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--shinhan-blue), transparent);
+    opacity: 0.5;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--accent-glow);
+    border-color: var(--shinhan-blue);
+}
+
+/* Form Elements */
+select {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid var(--card-border) !important;
+    color: white !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+}
+
+/* Status Badges */
+.badge-active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-ended {
+    background: rgba(107, 114, 128, 0.1);
+    color: #9CA3AF;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.threat-high {
+    background: rgba(239, 68, 68, 0.1);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
+}
+
+.threat-mid {
+    background: rgba(245, 158, 11, 0.1);
+    color: #FBBF24;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.threat-low {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, var(--shinhan-blue), #0033CC);
+    box-shadow: 0 4px 12px rgba(0, 70, 255, 0.3);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 16px rgba(0, 70, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a; 
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; 
+}

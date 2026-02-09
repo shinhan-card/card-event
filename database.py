@@ -133,6 +133,39 @@ class EventInsight(Base):
     event = relationship("CardEvent", back_populates="insights")
 
 
+class EventManualEdit(Base):
+    """수동 정정 이력"""
+    __tablename__ = "event_manual_edits"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), index=True, nullable=False)
+    field_name = Column(String, nullable=False)
+    old_value = Column(Text)
+    new_value = Column(Text)
+    editor = Column(String, default="admin")
+    edited_at = Column(DateTime, default=datetime.now)
+    reason = Column(Text)
+
+    event = relationship("CardEvent", backref="manual_edits")
+
+    __table_args__ = (
+        Index("ix_manual_edits_event_date", "event_id", "edited_at"),
+    )
+
+
+class EventCurationState(Base):
+    """이벤트 잠금 상태 (재추출 방지)"""
+    __tablename__ = "event_curation_state"
+
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
+    is_locked = Column(Integer, default=0)  # 0=unlocked, 1=locked
+    locked_by = Column(String)
+    locked_at = Column(DateTime)
+    lock_reason = Column(Text)
+
+    event = relationship("CardEvent", backref="curation_state")
+
+
 class Job(Base):
     """파이프라인 잡 상태 추적"""
     __tablename__ = "jobs"
@@ -509,6 +542,81 @@ def get_job_stats(db):
     for jt, st, cnt in rows:
         stats.setdefault(jt, {})[st] = cnt
     return stats
+
+
+# ===========================================================================
+# CRUD: manual edits / curation state
+# ===========================================================================
+
+def save_manual_edit(db, event_id: int, field_name: str, old_value, new_value, editor: str = "admin", reason: str = None):
+    edit = EventManualEdit(
+        event_id=event_id, field_name=field_name,
+        old_value=str(old_value)[:2000] if old_value is not None else None,
+        new_value=str(new_value)[:2000] if new_value is not None else None,
+        editor=editor, reason=reason,
+    )
+    db.add(edit)
+    db.commit()
+    return edit.id
+
+
+def get_edit_history(db, event_id: int):
+    return db.query(EventManualEdit).filter(
+        EventManualEdit.event_id == event_id
+    ).order_by(EventManualEdit.edited_at.desc()).all()
+
+
+def get_all_edit_history(db, event_id: int = None, editor: str = None,
+                         from_date: datetime = None, to_date: datetime = None,
+                         limit: int = 100, offset: int = 0):
+    """전체 수동 정정 로그 조회 (페이지네이션 + 필터)."""
+    q = db.query(EventManualEdit)
+    if event_id:
+        q = q.filter(EventManualEdit.event_id == event_id)
+    if editor:
+        q = q.filter(EventManualEdit.editor == editor)
+    if from_date:
+        q = q.filter(EventManualEdit.edited_at >= from_date)
+    if to_date:
+        q = q.filter(EventManualEdit.edited_at <= to_date)
+    total = q.count()
+    rows = q.order_by(EventManualEdit.edited_at.desc()).offset(offset).limit(limit).all()
+    return rows, total
+
+
+def lock_event(db, event_id: int, locked_by: str = "admin", reason: str = None):
+    state = db.query(EventCurationState).filter(EventCurationState.event_id == event_id).first()
+    if state:
+        state.is_locked = 1
+        state.locked_by = locked_by
+        state.locked_at = datetime.now()
+        state.lock_reason = reason
+    else:
+        state = EventCurationState(
+            event_id=event_id, is_locked=1,
+            locked_by=locked_by, locked_at=datetime.now(), lock_reason=reason,
+        )
+        db.add(state)
+    db.commit()
+
+
+def unlock_event(db, event_id: int):
+    state = db.query(EventCurationState).filter(EventCurationState.event_id == event_id).first()
+    if state:
+        state.is_locked = 0
+        state.locked_by = None
+        state.locked_at = None
+        state.lock_reason = None
+        db.commit()
+
+
+def is_event_locked(db, event_id: int) -> bool:
+    state = db.query(EventCurationState).filter(EventCurationState.event_id == event_id).first()
+    return bool(state and state.is_locked)
+
+
+def get_curation_state(db, event_id: int):
+    return db.query(EventCurationState).filter(EventCurationState.event_id == event_id).first()
 
 
 # ===========================================================================

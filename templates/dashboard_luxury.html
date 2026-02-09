@@ -1,0 +1,471 @@
+<!-- DEPRECATED: 이 템플릿은 더 이상 사용되지 않습니다. simple_dashboard.html을 사용하세요. -->
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHINHAN CARD - Event Intelligence Pro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        shinhan: {
+                            blue: '#0046FF',
+                            dark: '#0033CC',
+                            navy: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Excel Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/luxury.css') }}">
+</head>
+<body class="antialiased selection:bg-shinhan-blue selection:text-white">
+
+    <!-- Navbar -->
+    <header class="glass-header fixed w-full top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-shinhan-blue to-blue-700 flex items-center justify-center shadow-[0_0_15px_rgba(0,70,255,0.5)]">
+                        <i class="fas fa-chart-line text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white tracking-wide">Event Intelligence <span class="text-shinhan-blue text-xs align-top">PRO</span></h1>
+                        <p class="text-xs text-gray-400 font-light tracking-widest uppercase">Strategic Marketing Dashboard</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="exportToExcel()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all">
+                        <i class="fas fa-file-excel text-green-400"></i>
+                        <span>Export</span>
+                    </button>
+                    <button onclick="refreshData()" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white flex items-center gap-2">
+                        <i class="fas fa-sync-alt animate-[spin_3s_linear_infinite]"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 pt-28 pb-12">
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
+            <!-- Total Events -->
+            <div class="glass-panel rounded-2xl p-6 stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</span>
+                </div>
+                <h3 class="text-3xl font-bold text-white mb-1" id="total-events">0</h3>
+                <p class="text-xs text-gray-400">All Collected Events</p>
+            </div>
+
+            <!-- Active -->
+            <div class="glass-panel rounded-2xl p-6 stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</span>
+                </div>
+                <h3 class="text-3xl font-bold text-emerald-400 mb-1" id="active-events">0</h3>
+                <p class="text-xs text-gray-400">Currently Running</p>
+            </div>
+
+            <!-- Ended -->
+            <div class="glass-panel rounded-2xl p-6 stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-gray-500/10 text-gray-400">
+                        <i class="fas fa-stop-circle"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ended</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-400 mb-1" id="ended-events">0</h3>
+                <p class="text-xs text-gray-400">Past Events</p>
+            </div>
+
+            <!-- High Threat -->
+            <div class="glass-panel rounded-2xl p-6 stat-card border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-red-500/10 text-red-500">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-red-500/80 uppercase tracking-wider">High Risk</span>
+                </div>
+                <h3 class="text-3xl font-bold text-red-500 mb-1" id="high-threat">0</h3>
+                <p class="text-xs text-gray-400">Require Attention</p>
+            </div>
+
+            <!-- Mid Threat -->
+            <div class="glass-panel rounded-2xl p-6 stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mid Risk</span>
+                </div>
+                <h3 class="text-3xl font-bold text-amber-500 mb-1" id="mid-threat">0</h3>
+                <p class="text-xs text-gray-400">Monitor Needed</p>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="glass-panel rounded-2xl p-6 mb-10">
+            <div class="flex items-center gap-2 mb-6 border-b border-gray-700/50 pb-4">
+                <i class="fas fa-filter text-shinhan-blue"></i>
+                <h2 class="text-lg font-bold text-white">Smart Filters</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase">Company</label>
+                    <div class="relative">
+                        <select id="filter-company" class="w-full rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-shinhan-blue/50 transition-colors focus:ring-2 focus:ring-shinhan-blue/50 focus:outline-none appearance-none">
+                            <option value="">All Companies</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase">Category</label>
+                    <div class="relative">
+                        <select id="filter-category" class="w-full rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-shinhan-blue/50 transition-colors focus:ring-2 focus:ring-shinhan-blue/50 focus:outline-none appearance-none">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase">Threat Level</label>
+                    <div class="relative">
+                        <select id="filter-threat" class="w-full rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-shinhan-blue/50 transition-colors focus:ring-2 focus:ring-shinhan-blue/50 focus:outline-none appearance-none">
+                            <option value="">All Levels</option>
+                            <option value="High" class="text-red-400">High</option>
+                            <option value="Mid" class="text-amber-400">Mid</option>
+                            <option value="Low" class="text-emerald-400">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase">Status</label>
+                    <div class="relative">
+                        <select id="filter-status" class="w-full rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-shinhan-blue/50 transition-colors focus:ring-2 focus:ring-shinhan-blue/50 focus:outline-none appearance-none">
+                            <option value="">All Status</option>
+                            <option value="active">Running</option>
+                            <option value="ended">Ended</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-400 uppercase">Month (2026)</label>
+                    <div class="relative">
+                        <select id="filter-month" class="w-full rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-shinhan-blue/50 transition-colors focus:ring-2 focus:ring-shinhan-blue/50 focus:outline-none appearance-none">
+                            <option value="">All Months</option>
+                            <option value="01">January</option>
+                            <option value="02" selected>February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+                <button onclick="applyFilters()" class="btn-primary px-8 py-2.5 rounded-lg text-sm font-bold tracking-wide flex items-center gap-2">
+                    <i class="fas fa-search"></i> SEARCH
+                </button>
+                <button onclick="resetFilters()" class="btn-secondary px-8 py-2.5 rounded-lg text-sm font-medium hover:text-white flex items-center gap-2">
+                    <i class="fas fa-undo"></i> RESET
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="glass-panel rounded-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-700/50 flex justify-between items-center bg-gray-900/40">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-bold text-white">Event List</h2>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-shinhan-blue/20 text-shinhan-light border border-shinhan-blue/30" id="event-count-badge">0 found</span>
+                </div>
+                <p class="text-xs text-gray-500 font-mono">Real-time Data</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse luxury-table">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider w-1/3">Title</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Period</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Threat</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 text-xs uppercase tracking-wider text-center">Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-table-body">
+                        <!-- Content rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="no-data" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-3xl text-gray-600"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-300">No events found</h3>
+                <p class="text-sm text-gray-500 mt-1">Try adjusting your filters</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 text-center">
+        <p class="text-xs text-gray-600">
+            &copy; 2026 Shinhan Card Corp. Event Intelligence System. All rights reserved.
+        </p>
+    </footer>
+
+    <!-- Logic Script (Ported from Pro) -->
+    <script>
+        let allEvents = [];
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+        
+        async function loadData() {
+            try {
+                const statsRes = await fetch('/api/stats');
+                const stats = await statsRes.json();
+                updateStats(stats);
+                
+                const eventsRes = await fetch('/api/events');
+                allEvents = await eventsRes.json();
+                renderEvents(allEvents);
+                
+                await loadFilterOptions();
+            } catch (error) {
+                console.error('Data Load Error:', error);
+            }
+        }
+        
+        function updateStats(stats) {
+            document.getElementById('total-events').textContent = stats.total_events || 0;
+            document.getElementById('high-threat').textContent = stats.threat_stats?.High || 0;
+            document.getElementById('mid-threat').textContent = stats.threat_stats?.Mid || 0;
+            
+            const today = new Date();
+            let active = 0, ended = 0;
+            allEvents.forEach(e => {
+                if (isEventActive(e.period)) active++;
+                else ended++;
+            });
+            document.getElementById('active-events').textContent = active;
+            document.getElementById('ended-events').textContent = ended;
+        }
+        
+        function isEventActive(period) {
+            if (!period || period === '정보 없음' || period === 'Info Missing') return true;
+            const today = new Date();
+            const parts = period.split('~');
+            if (parts.length < 2) return true;
+            
+            try {
+                const endDateStr = parts[1].trim().replace(/\./g, '-');
+                const endDate = new Date(endDateStr);
+                return endDate >= today;
+            } catch {
+                return true;
+            }
+        }
+        
+        function renderEvents(events) {
+            const tbody = document.getElementById('event-table-body');
+            const noData = document.getElementById('no-data');
+            const countBadge = document.getElementById('event-count-badge');
+            
+            if (events.length === 0) {
+                tbody.innerHTML = '';
+                noData.classList.remove('hidden');
+                countBadge.textContent = '0 found';
+                return;
+            }
+            
+            noData.classList.add('hidden');
+            countBadge.textContent = `${events.length} found`;
+            
+            tbody.innerHTML = events.map(e => {
+                const isActive = isEventActive(e.period);
+                const statusClass = isActive ? 'badge-active' : 'badge-ended';
+                const statusIcon = isActive ? '<i class="fas fa-circle text-[8px] mr-1"></i>' : '<i class="fas fa-stop text-[8px] mr-1"></i>';
+                const statusText = isActive ? 'Active' : 'Ended';
+                
+                const createdDate = new Date(e.created_at);
+                const createdStr = createdDate.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
+                
+                let threatClass = 'threat-low';
+                if(e.threat_level === 'High') threatClass = 'threat-high';
+                if(e.threat_level === 'Mid') threatClass = 'threat-mid';
+
+                return `
+                    <tr class="transition-colors border-b border-gray-800 hover:bg-white/5">
+                        <td class="px-6 py-4 text-sm font-semibold text-white tracking-wide">${e.company}</td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-200">${e.title}</div>
+                            ${e.one_line_summary && e.one_line_summary !== e.title ? 
+                                `<div class="text-xs text-gray-500 mt-1 line-clamp-1">${e.one_line_summary}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400 font-light">${e.category || '-'}</td>
+                        <td class="px-6 py-4 text-xs text-gray-500 font-mono">${e.period || '-'}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full flex items-center w-fit ${statusClass}">
+                                ${statusIcon} ${statusText}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 text-xs font-bold rounded-full ${threatClass}">
+                                ${e.threat_level || 'Low'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-gray-500 font-mono">${createdStr}</td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="${e.url}" target="_blank" class="w-8 h-8 rounded-full bg-shinhan-blue/20 flex items-center justify-center text-shinhan-light hover:bg-shinhan-blue hover:text-white transition-all mx-auto">
+                                <i class="fas fa-arrow-right -rotate-45 text-xs"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        async function loadFilterOptions() {
+            const [companiesRes, categoriesRes] = await Promise.all([
+                fetch('/api/companies'),
+                fetch('/api/categories')
+            ]);
+            
+            const companies = await companiesRes.json();
+            const categories = await categoriesRes.json();
+            
+            const companySelect = document.getElementById('filter-company');
+            companies.companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                companySelect.appendChild(option);
+            });
+            
+            const categorySelect = document.getElementById('filter-category');
+            categories.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+        
+        async function applyFilters() {
+            const company = document.getElementById('filter-company').value;
+            const category = document.getElementById('filter-category').value;
+            const threat = document.getElementById('filter-threat').value;
+            const status = document.getElementById('filter-status').value;
+            const month = document.getElementById('filter-month').value;
+            
+            const params = new URLSearchParams();
+            if (company) params.append('company', company);
+            if (category) params.append('category', category);
+            if (threat) params.append('threat_level', threat);
+            
+            const response = await fetch(`/api/events?${params.toString()}`);
+            let events = await response.json();
+            
+            if (status === 'active') {
+                events = events.filter(e => isEventActive(e.period));
+            } else if (status === 'ended') {
+                events = events.filter(e => !isEventActive(e.period));
+            }
+            
+            if (month) {
+                events = events.filter(e => {
+                    return e.period && e.period.includes(`2026.${month}`);
+                });
+            }
+            
+            renderEvents(events);
+        }
+        
+        function resetFilters() {
+            document.querySelectorAll('select').forEach(s => s.value = '');
+            // Set default month back to Feb if needed, or clear all
+            document.getElementById('filter-month').value = ''; 
+            renderEvents(allEvents);
+        }
+        
+        function refreshData() {
+            location.reload();
+        }
+        
+        function exportToExcel() {
+            const ws_data = [
+                ['Company', 'Title', 'Category', 'Period', 'Status', 'Threat', 'Collected', 'URL']
+            ];
+            
+            allEvents.forEach(e => {
+                const isActive = isEventActive(e.period);
+                const createdDate = new Date(e.created_at).toLocaleDateString('ko-KR');
+                
+                ws_data.push([
+                    e.company,
+                    e.title,
+                    e.category || '-',
+                    e.period || '-',
+                    isActive ? 'Active' : 'Ended',
+                    e.threat_level || 'Low',
+                    createdDate,
+                    e.url
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Events Data");
+            
+            const filename = `Shinhan_Event_Intelligence_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+    </script>
+</body>
+</html>

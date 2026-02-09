@@ -217,27 +217,47 @@ def _generate_text_with_gemini(
 
 
 SYSTEM_PROMPT = """
-당신은 **카드 산업 마케팅 전문 애널리스트**입니다.
-경쟁사 카드 이벤트의 상세 내용을 분석하고, 마케팅 전략 관점에서 인사이트를 제공합니다.
+당신은 **신한카드 마케팅팀 소속 경쟁사 분석 전문가**입니다.
+경쟁사 카드 이벤트를 읽고, 신한카드 마케터가 즉시 전략 판단에 활용할 수 있는 분석을 제공합니다.
 
 아래 JSON 형식으로 *정확히* 응답하세요. JSON 외 다른 텍스트는 절대 출력하지 마세요.
 
 {
-  "one_line_summary": "마케팅 담당자가 3초 안에 파악할 수 있는 한줄 요약 (50자 이내)",
+  "one_line_summary": "마케팅 담당자가 3초 안에 파악할 수 있는 한줄 요약 (50자 이내, '~카드, ~혜택 제공' 형식)",
   "category": "카테고리 (쇼핑/여행/식음료/교통/문화/생활/금융/통신/기타 중 택1)",
+
   "threat_level": "경쟁 위협도 (High/Mid/Low)",
-  "threat_reason": "위협도 판단 근거 (1문장)",
+  "threat_reason": "위협도 판단 근거: 왜 위협인지 또는 왜 낮은지 구체적 수치/조건 근거 포함 (2문장)",
+
   "benefit_level": "혜택 수준 (높음/중상/보통/낮음)",
+  "benefit_detail": "혜택 구체 내용: 할인율·캐시백 금액·적립률 등 숫자를 포함해 1~2문장 정리",
+
   "target_clarity": "타겟 명확도 (높음/보통/낮음)",
-  "competitive_points": ["경쟁력 포인트 1", "경쟁력 포인트 2"],
-  "promo_strategies": ["프로모션 전략 1", "프로모션 전략 2"],
-  "marketing_takeaway": "우리 마케팅팀이 참고할 핵심 시사점 (2~3문장)"
+  "target_profile": "이 이벤트가 노리는 고객 프로필: 연령대, 소비 성향, 라이프스타일, 카드 사용 패턴 등 (1~2문장)",
+
+  "conditions_summary": "참여 조건 요약: 최소 결제금액, 월 한도, 선착순 여부, 필수 등록 여부 등 핵심 조건 3줄 이내",
+  "event_duration_type": "이벤트 기간 유형 (단기/중기/장기/상시) - 1개월 미만=단기, 1~3개월=중기, 3개월+=장기",
+
+  "competitive_points": ["이 이벤트의 경쟁 우위 포인트 (구체적으로, 예: '무조건 5% 캐시백으로 조건 허들 없음') 2~4개"],
+  "weaknesses": ["이 이벤트의 약점 또는 제약사항 (예: '선착순 1만명 한정으로 실질 혜택 도달률 낮음') 1~3개"],
+
+  "promo_strategies": ["프로모션 전략 태그 (신규유치/리텐션/교차판매/업셀링/제휴확장/시즌마케팅/디지털전환 등) 1~3개"],
+  "objective_tags": ["이벤트 목적 태그 1~3개"],
+  "target_tags": ["타겟 태그 1~3개"],
+  "channel_tags": ["채널 태그 (앱/웹/오프라인/간편결제 등) 1~2개"],
+
+  "shinhan_response": "신한카드가 이 이벤트에 대응해야 하는 이유와 구체적 대응 방향 제안 (2~3문장, '~하면 ~할 수 있다' 형식으로 실행 가능하게)",
+  "marketing_takeaway": "이 이벤트에서 얻을 수 있는 마케팅 인사이트 핵심 (2~3문장, 업계 트렌드와 연결)"
 }
 
 **판단 기준**:
-- threat_level High: 파격적 혜택 + 넓은 타겟 + 장기 운영
-- benefit_level 높음: 10만원↑ 또는 30%↑ 할인
+- threat_level High: 파격적 혜택(10만원+/30%+) + 넓은 타겟(전 고객 또는 주요 세그먼트) + 장기(3개월+)
+- threat_level Mid: 괜찮은 혜택이나 타겟/기간이 제한적
+- threat_level Low: 소규모 혜택이거나 매우 좁은 타겟
+- benefit_level 높음: 10만원+ 캐시백 또는 30%+ 할인 또는 적립률 5%+
+- benefit_level 중상: 5~10만원 캐시백 또는 10~30% 할인
 - target_clarity 높음: 특정 카드/연령/조건이 명시된 경우
+- 모든 필드에서 구체적 숫자·금액·비율을 최대한 포함할 것
 """
 
 
@@ -268,24 +288,29 @@ def enrich_with_gemini(extracted: dict, company: str = "") -> Optional[dict]:
                 mc_lines.append(f"[{key}] " + " / ".join(str(i)[:200] for i in items[:5]))
 
     user_prompt = f"""
-[카드사] {company}
-[제목] {title}
-[기간] {period}
-[혜택] {benefit[:500]}
-[조건] {conditions[:400]}
-[대상] {target[:200]}
-[마케팅 내용]
-{chr(10).join(mc_lines[:20])}
-[본문 발췌]
-{raw[:2000]}
+=== 이벤트 핵심 요약 (구조화 추출 데이터) ===
+- 카드사: {company}
+- 이벤트명: {title}
+- 기간: {period if period else '미추출'}
+- 대상/타겟: {target[:300] if target else '미추출 (전체 고객 가능성)'}
+- 주요 혜택: {benefit[:600] if benefit else '미추출'}
+- 참여 조건: {conditions[:500] if conditions else '미추출'}
+
+=== 추출된 마케팅 콘텐츠 (섹션별) ===
+{chr(10).join(mc_lines[:20]) if mc_lines else '(섹션 데이터 없음)'}
+
+=== 이벤트 페이지 원문 발췌 ===
+{raw[:2500]}
+
+위 구조화 요약과 원문을 모두 참고하여 분석하세요. 특히 '기간/대상/혜택/조건'에서 구체적 숫자와 금액을 최대한 반영하세요.
 """
 
     text = _generate_text_with_gemini(
         f"{SYSTEM_PROMPT}\n\n{user_prompt}",
         generation_config={
-            "temperature": 0.3,
-            "top_p": 0.8,
-            "max_output_tokens": 1024,
+            "temperature": 0.25,
+            "top_p": 0.85,
+            "max_output_tokens": 2048,
         },
         max_attempts=3,
         allow_wait=True,
@@ -303,15 +328,19 @@ def enrich_with_gemini(extracted: dict, company: str = "") -> Optional[dict]:
 
 
 COMPANY_BRIEF_PROMPT = """
-당신은 카드사 마케팅 전략가다.
-입력된 카드사 상태 스냅샷을 요약해 '현재 상태 개요'를 작성하라.
-아래 JSON만 출력하고, 다른 텍스트를 절대 포함하지 마라.
+당신은 신한카드 마케팅팀의 경쟁사 분석 전문가다.
+입력된 카드사의 현재 이벤트 현황 스냅샷을 분석하고, 신한카드 마케터가 즉시 활용할 수 있는 전략 브리핑을 작성하라.
+추출률/인사이트률 같은 시스템 운영 지표는 절대 언급하지 말고, 마케팅 전략 관점에서만 분석하라.
 
+아래 JSON만 출력하라:
 {
-  "overview": "한 문단 요약 (120자 이내)",
-  "focus_points": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-  "watchouts": ["주의 포인트 1", "주의 포인트 2"],
-  "action_hint": "실행 제안 1문장"
+  "overview": "이 카드사의 현재 마케팅 전략 방향을 한 문단으로 요약 (카테고리 집중도, 혜택 강도, 타겟 특성 중심, 150자 이내)",
+  "key_strategy": "이 카드사가 가장 공격적으로 밀고 있는 전략 1가지를 구체적으로 설명 (예: '20~30대 디지털 네이티브 대상 간편결제 캐시백 집중', 80자 이내)",
+  "strongest_categories": ["가장 이벤트가 많거나 혜택이 강한 카테고리 2~3개"],
+  "avg_benefit_assessment": "평균 혜택 수준 평가 (금액/비율 포함, 예: '평균 캐시백 2.5만원, 할인율 8% 수준으로 업계 중상위')",
+  "target_focus": "주로 노리는 고객층 (연령/소비성향/라이프스타일 관점, 50자 이내)",
+  "shinhan_threat": "신한카드 관점에서 이 카드사의 위협 요인 (구체적으로, 50자 이내)",
+  "recommended_counter": "신한카드가 이 카드사에 대응하기 위한 구체적 액션 제안 1~2문장"
 }
 """
 
@@ -330,8 +359,8 @@ def summarize_company_status(company: str, snapshot: dict) -> Optional[dict]:
         f"{COMPANY_BRIEF_PROMPT}\n\n[회사명]\n{company}\n\n[스냅샷]\n{payload}",
         generation_config={
             "temperature": 0.25,
-            "top_p": 0.8,
-            "max_output_tokens": 512,
+            "top_p": 0.85,
+            "max_output_tokens": 1024,
         },
         max_attempts=2,
         allow_wait=False,
@@ -349,20 +378,24 @@ def summarize_company_status(company: str, snapshot: dict) -> Optional[dict]:
         return None
 
     overview = str(obj.get("overview") or "").strip()
-    focus_points = obj.get("focus_points") if isinstance(obj.get("focus_points"), list) else []
-    watchouts = obj.get("watchouts") if isinstance(obj.get("watchouts"), list) else []
-    action_hint = str(obj.get("action_hint") or "").strip()
-
-    focus_points = [str(x).strip() for x in focus_points if str(x).strip()][:3]
-    watchouts = [str(x).strip() for x in watchouts if str(x).strip()][:2]
     if not overview:
         return None
 
+    strongest = obj.get("strongest_categories") if isinstance(obj.get("strongest_categories"), list) else []
+    strongest = [str(x).strip() for x in strongest if str(x).strip()][:3]
+
     return {
         "overview": overview,
-        "focus_points": focus_points,
-        "watchouts": watchouts,
-        "action_hint": action_hint,
+        "key_strategy": str(obj.get("key_strategy") or "").strip(),
+        "strongest_categories": strongest,
+        "avg_benefit_assessment": str(obj.get("avg_benefit_assessment") or "").strip(),
+        "target_focus": str(obj.get("target_focus") or "").strip(),
+        "shinhan_threat": str(obj.get("shinhan_threat") or "").strip(),
+        "recommended_counter": str(obj.get("recommended_counter") or "").strip(),
+        # 하위호환: 기존 필드도 매핑
+        "focus_points": strongest,
+        "watchouts": [obj.get("shinhan_threat", "")] if obj.get("shinhan_threat") else [],
+        "action_hint": str(obj.get("recommended_counter") or "").strip(),
     }
 
 
@@ -477,6 +510,70 @@ def infer_qualitative_comparison(company_snapshots: list) -> Optional[dict]:
         "rows": normalized_rows,
         "summary": summary,
     }
+
+
+TEXT_COMPARE_PROMPT = """당신은 카드 이벤트 마케팅 분석가입니다.
+아래는 여러 카드사의 이벤트에서 추출된 텍스트 요약입니다.
+
+{text_block}
+
+위 텍스트를 분석하여 다음 JSON을 반환하세요:
+{{
+  "common_patterns": ["공통으로 사용되는 문구·패턴 5~10개 (예: 최소 결제금액, 선착순, 캐시백, 할인율 등)"],
+  "differentiators": {{
+    "카드사명1": ["해당 카드사만의 차별 포인트 3~5개"],
+    "카드사명2": ["해당 카드사만의 차별 포인트 3~5개"]
+  }},
+  "condition_patterns": ["고빈도 조건 패턴 5~8개 (최소 결제금액 X만원, 월 N회 한도, 선착순 N명 등 구체적으로)"]
+}}
+
+JSON만 반환하세요.
+"""
+
+
+def compare_event_texts(company_texts: dict) -> Optional[dict]:
+    """
+    카드사별 추출 텍스트를 Gemini로 비교 분석.
+    company_texts: {"삼성카드": "텍스트...", "KB국민카드": "텍스트...", ...}
+    """
+    if not GEMINI_API_KEY:
+        return None
+
+    text_block = ""
+    for co, txt in company_texts.items():
+        text_block += f"\n--- {co} ---\n{txt[:2000]}\n"
+
+    if len(text_block.strip()) < 50:
+        return None
+
+    prompt = TEXT_COMPARE_PROMPT.replace("{text_block}", text_block)
+
+    raw = _generate_text_with_gemini(
+        prompt,
+        generation_config={"temperature": 0.25, "top_p": 0.8, "max_output_tokens": 1024},
+        max_attempts=2,
+        allow_wait=True,
+    )
+    if not raw:
+        return None
+
+    json_text = _extract_json_text(raw)
+    try:
+        obj = json.loads(json_text)
+    except Exception:
+        logger.warning("텍스트 비교 JSON 파싱 실패: %s", json_text[:200])
+        return None
+
+    common = obj.get("common_patterns", [])
+    diff = obj.get("differentiators", {})
+    cond = obj.get("condition_patterns", [])
+    if not isinstance(common, list):
+        common = []
+    if not isinstance(diff, dict):
+        diff = {}
+    if not isinstance(cond, list):
+        cond = []
+    return {"common_patterns": common, "differentiators": diff, "condition_patterns": cond}
 
 
 def merge_gemini_insights(existing_insights: dict, gemini_result: dict) -> dict:

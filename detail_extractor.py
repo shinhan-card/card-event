@@ -9,7 +9,13 @@ from typing import Dict, List, Tuple
 
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-from playwright_stealth import stealth_async
+
+# playwright_stealth 2.x: Stealth 클래스만 사용 (1.x stealth_async는 제거됨)
+try:
+    from playwright_stealth import Stealth
+    _STEALTH_CLS = Stealth
+except ImportError:
+    _STEALTH_CLS = None
 
 # 알림/헤더 제외용 (4사 공통)
 _HEADER_LIKE = (
@@ -754,8 +760,9 @@ async def extract_from_url(url: str, wait_sec: float = 3) -> dict:
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             viewport={"width": 1920, "height": 1080},
         )
+        if _STEALTH_CLS:
+            await _STEALTH_CLS().apply_stealth_async(context)
         page = await context.new_page()
-        await stealth_async(page)
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=15000)
             await asyncio.sleep(wait_sec)

@@ -40,6 +40,12 @@ class SamsungConnector(BaseConnector):
                 title = self._extract_title(soup) or ""
                 if not title or len(title) < 3:
                     continue
+                # 앱 리다이렉트/안내 페이지 제거
+                if any(junk in title for junk in self._JUNK_TITLES):
+                    consecutive_fail += 1
+                    if consecutive_fail >= self.MAX_CONSECUTIVE_FAIL:
+                        break
+                    continue
 
                 period = self._extract_period(soup)
                 events.append(RawEvent(
@@ -62,6 +68,7 @@ class SamsungConnector(BaseConnector):
     # -- 헬퍼 --
     _HEADER_NOISE = ("삼성카드", "삼성 카드", "로그인", "마이페이지", "이벤트 목록")
     _NOTIFICATION = ("이벤트에 응모되었습니다", "이벤트에 응모 되었습니다")
+    _JUNK_TITLES = ("새로워진삼성카드", "앱카드 앱에서응모", "앱에서 응모해 보세요", "앱에서응모해 보세요")
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
         for scope_sel in ['main', '.content', '.event-detail', '[class*="event"]', 'article']:

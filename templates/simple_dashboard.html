@@ -5,161 +5,411 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>경쟁사 카드 이벤트 인텔리전스</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif}
-.c-samsung{--cc:#6ec6ff}.c-shinhan{--cc:#0057ff}.c-hyundai{--cc:#111111}.c-kb{--cc:#ffb300}.c-default{--cc:#455a64}
-.pill-samsung{background:#6ec6ff;color:#0b1f33}.pill-shinhan{background:#0057ff;color:#fff}.pill-hyundai{background:#111111;color:#fff}.pill-kb{background:#ffb300;color:#2b1d00}.pill-default{background:#455a64;color:#fff}
-.card-co{border-left:5px solid var(--cc);border-top:3px solid var(--cc)}
-.row-co{border-left:4px solid var(--cc);background:color-mix(in srgb,var(--cc) 6%,white)}
-.tab-btn{padding:.5rem 1rem;font-size:.875rem;font-weight:500;border-bottom:2px solid transparent;color:#64748b;cursor:pointer}
-.tab-btn.active{border-color:#2563eb;color:#2563eb}
-.section-card{background:#fff;border:1px solid #e2e8f0;border-radius:.75rem;padding:1.25rem}
-.kpi{text-align:center}.kpi .val{font-size:1.5rem;font-weight:700}.kpi .lbl{font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
-.badge-hi{background:#dc2626;color:#fff}.badge-mid{background:#f59e0b;color:#fff}.badge-lo{background:#10b981;color:#fff}
-.badge-sm{font-size:.65rem;padding:2px 6px;border-radius:9999px;font-weight:600}
+:root{
+  --bg:#eef2f7;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --panel:#ffffff;
+  --line:#d8e1ec;
+  --brand:#0a4fff;
+  --brand-dark:#092d6c;
+  --brand-soft:#e8efff;
+  --ok:#059669;
+  --warn:#d97706;
+  --danger:#dc2626;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:'Noto Sans KR',sans-serif;
+  background:
+    radial-gradient(1200px 520px at -8% -10%, #dbe7ff 0%, transparent 55%),
+    radial-gradient(900px 420px at 108% -8%, #ffecc6 0%, transparent 52%),
+    linear-gradient(180deg, #f6f9fe 0%, var(--bg) 100%);
+}
+.display-font{font-family:'Space Grotesk','Noto Sans KR',sans-serif}
+.section-card{
+  background:rgba(255,255,255,.9);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:1rem;
+  box-shadow:0 12px 34px rgba(15,23,42,.07);
+  backdrop-filter:blur(4px);
+}
+.kpi{position:relative;overflow:hidden;padding:1rem 1rem .9rem}
+.kpi:before{
+  content:'';
+  position:absolute;
+  inset:0 auto auto 0;
+  width:46%;
+  height:2px;
+  background:linear-gradient(90deg,var(--brand),transparent);
+}
+.kpi .val{font-size:1.55rem;font-weight:700;line-height:1.1}
+.kpi .lbl{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kpi .ico{font-size:.95rem;color:#1d4ed8;background:var(--brand-soft);width:1.9rem;height:1.9rem;border-radius:999px;display:inline-flex;align-items:center;justify-content:center}
+.app-header{
+  background:linear-gradient(135deg,#0b1c3d 0%,#0f2b5f 60%,#173a79 100%);
+  color:#fff;
+  border-bottom:1px solid rgba(255,255,255,.15);
+  box-shadow:0 10px 40px rgba(3,10,27,.35);
+}
+.header-gradient-text{
+  background:linear-gradient(to right, #ffffff, #60a5fa, #a78bfa, #60a5fa, #ffffff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+.tab-btn{
+  padding:.65rem 1rem;
+  font-size:.84rem;
+  font-weight:600;
+  border:1px solid transparent;
+  border-radius:999px;
+  color:#4b5563;
+  background:transparent;
+  cursor:pointer;
+  transition:.2s ease;
+}
+.tab-btn:hover{background:#eef3fb;border-color:#d7e1ee}
+.tab-btn.active{background:#fff;color:#0a4fff;border-color:#bcd0ff;box-shadow:0 8px 18px rgba(10,79,255,.16)}
+.badge-sm{font-size:.65rem;padding:2px 7px;border-radius:999px;font-weight:700;line-height:1.2}
+.badge-hi{background:var(--danger);color:#fff}
+.badge-mid{background:var(--warn);color:#fff}
+.badge-lo{background:var(--ok);color:#fff}
+.c-samsung{--cc:#6ec6ff}
+.c-shinhan{--cc:#0057ff}
+.c-hyundai{--cc:#111111}
+.c-kb{--cc:#ffb300}
+.c-default{--cc:#475569}
+.pill-samsung{background:#6ec6ff;color:#0b1f33}
+.pill-shinhan{background:#0057ff;color:#fff}
+.pill-hyundai{background:#111111;color:#fff}
+.pill-kb{background:#ffb300;color:#2b1d00}
+.pill-default{background:#475569;color:#fff}
+.card-co{border-left:5px solid var(--cc);border-top:2px solid color-mix(in srgb,var(--cc) 58%,#fff 42%)}
+.row-co{border-left:4px solid var(--cc);background:color-mix(in srgb,var(--cc) 4%,#fff 96%)}
+.events-table thead th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#475569;background:#f5f8fc}
+.events-table tbody td{border-top:1px solid #e7edf5}
+.events-table tbody tr:hover{background:#f7faff}
+.dark-panel{background:linear-gradient(145deg,#0a1024,#0d1b3b);color:#e2e8f0;border-color:#1f2c4f}
+.progress-wrap{background:rgba(8,16,36,.72);border:1px solid rgba(198,214,248,.2)}
+.mission-kpi{
+  border:1px solid #dbe7ff;
+  background:#fff;
+  border-radius:14px;
+  padding:.8rem .9rem;
+}
+.mission-kpi .ttl{font-size:.72rem;color:#64748b;font-weight:700;letter-spacing:.02em}
+.mission-kpi .num{font-size:1.45rem;font-weight:800;line-height:1.1}
+.mission-kpi .sub{font-size:.72rem;color:#64748b}
+.anim-rise{animation:riseIn .55s ease both}
+.anim-delay-1{animation-delay:.06s}.anim-delay-2{animation-delay:.12s}.anim-delay-3{animation-delay:.18s}.anim-delay-4{animation-delay:.24s}
+@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.kpi-tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;font-size:.65rem;line-height:1.4;padding:6px 10px;border-radius:8px;white-space:nowrap;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.3);pointer-events:none}
+.kpi-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b}
+.kpi-card:hover .kpi-tip,.kpi-card:focus .kpi-tip{display:block}
+table th.sticky,table td.sticky{position:sticky!important;left:0;z-index:10}
+table th.sticky{z-index:11}
+@media (max-width: 768px){
+  .kpi .val{font-size:1.3rem}
+  .section-card{padding:.9rem}
+}
 </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="min-h-screen">
 
-<!-- 헤더 -->
-<header class="bg-slate-800 text-white shadow-lg">
-<div class="max-w-[1400px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-lg sm:text-xl font-bold tracking-tight">경쟁사 카드 이벤트 인텔리전스</h1>
-    <p class="text-slate-400 text-xs mt-0.5">신한카드 마케팅 담당자용 — 매일 아침 5분 브리핑</p>
+<header class="app-header">
+  <!-- Made by -->
+  <div class="max-w-[1500px] mx-auto px-4 pt-3 text-center">
+    <p class="text-[10px] text-blue-300/40 tracking-widest uppercase">Made by TaeWoongYoon</p>
   </div>
-  <div class="flex items-center gap-2 text-sm">
-    <button onclick="triggerPipeline()" id="btnPipe" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-bolt mr-1"></i>전체 파이프라인</button>
-    <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-file-excel mr-1"></i>엑셀</button>
-    <button onclick="location.reload()" class="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-medium"><i class="fas fa-sync-alt mr-1"></i>새로고침</button>
+  <!-- 제목 (가운데 + 그라데이션) -->
+  <div class="max-w-[1500px] mx-auto px-4 pt-2 pb-4 text-center">
+    <h1 class="display-font text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight header-gradient-text">주요 카드사 이벤트 분석 인텔리전스</h1>
+    <p class="text-[13px] text-blue-100/60 mt-2">신한카드 마케팅용 모니터링 시스템</p>
+    <p id="headerLastIngest" class="text-[11px] text-blue-200/40 mt-1 hidden"></p>
   </div>
-</div>
+  <!-- 버튼 영역 -->
+  <div class="max-w-[1500px] mx-auto px-4 pb-3 flex items-center justify-center gap-2 text-sm flex-wrap">
+    <button onclick="startIngestOnly()" id="btnIngestOnly" class="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3 py-1.5 rounded-xl font-medium"><i class="fas fa-download mr-1"></i>이벤트 수집</button>
+    <button onclick="startFullExtraction()" id="btnExtractAll" class="bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-1.5 rounded-xl font-semibold"><i class="fas fa-play mr-1"></i>전체 추출</button>
+    <button type="button" onclick="showExtractHelp()" class="w-7 h-7 rounded-full border border-white/35 bg-white/10 text-white text-sm font-bold inline-flex items-center justify-center" title="추출이란?">?</button>
+    <span id="lastRunSummary" class="text-xs text-blue-100/60 italic hidden"></span>
+    <span id="lastIngestSummary" class="text-xs text-blue-100/60 italic hidden"></span>
+    <button onclick="exportExcel()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-xl font-semibold"><i class="fas fa-file-excel mr-1"></i>엑셀</button>
+    <button onclick="location.reload()" class="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3 py-1.5 rounded-xl font-medium"><i class="fas fa-sync-alt mr-1"></i></button>
+  </div>
+  <!-- KPI 카드 영역 -->
+  <div class="max-w-[1500px] mx-auto px-4 pb-5">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
+        <div class="text-[11px] text-blue-200/70 font-medium mb-1">전체 이벤트 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
+        <div class="text-2xl font-extrabold text-white" id="hsTotal">-</div>
+        <div class="kpi-tip">has_meaningful_info() 필터 통과 건수<br>API: /api/stats &rarr; total_events</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
+        <div class="text-[11px] text-blue-200/70 font-medium mb-1">진행중 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
+        <div class="text-2xl font-extrabold text-emerald-300" id="hsActive">-</div>
+        <div class="kpi-tip">period_end >= today 인 이벤트 수<br>API: /api/events 클라이언트 계산</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
+        <div class="text-[11px] text-blue-200/70 font-medium mb-1">추출률 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
+        <div class="text-2xl font-extrabold text-amber-300" id="hsExtRate">-</div>
+        <div class="kpi-tip">extracted_count / collected_count * 100<br>API: /api/analytics/company-overview &rarr; totals.extraction_rate</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
+        <div class="text-[11px] text-blue-200/70 font-medium mb-1">AI 인사이트 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
+        <div class="text-2xl font-extrabold text-cyan-300" id="hsInsight">-</div>
+        <div class="kpi-tip">marketing_insights JSON이 존재하는 이벤트 수<br>API: /api/events 클라이언트 계산</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
+        <div class="text-[11px] text-blue-200/70 font-medium mb-1">수집 카드사 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
+        <div class="text-2xl font-extrabold text-white" id="hsCompanies">-</div>
+        <div class="kpi-tip">company 필드 고유값 수<br>API: /api/analytics/company-overview &rarr; companies.length</div>
+      </div>
+    </div>
+  </div>
+  <div id="extractProgressWrap" class="hidden progress-wrap max-w-[1500px] mx-auto mx-4 mb-3 px-4 py-2 rounded-xl">
+    <div class="flex items-center justify-between gap-3 mb-1.5">
+      <span id="extractProgressText" class="text-sm font-medium text-white">준비 중…</span>
+      <span id="extractProgressPct" class="text-xs text-blue-100/80">—</span>
+    </div>
+    <div class="h-2 bg-slate-800/70 rounded-full overflow-hidden">
+      <div id="extractProgressBar" class="h-full bg-amber-400 rounded-full transition-all duration-300" style="width:0%"></div>
+    </div>
+  </div>
 </header>
 
-<!-- 탭 네비게이션 -->
-<nav class="max-w-[1400px] mx-auto px-4 pt-4 flex gap-1 border-b border-slate-200 overflow-x-auto">
-  <button class="tab-btn active" data-tab="executive">경영 요약</button>
+<nav class="max-w-[1500px] mx-auto px-4 pt-4 flex flex-wrap gap-2">
+  <button class="tab-btn active" data-tab="executive">전략 브리핑</button>
   <button class="tab-btn" data-tab="compare">카드사 비교</button>
   <button class="tab-btn" data-tab="benchmark">혜택 벤치마크</button>
   <button class="tab-btn" data-tab="strategy">전략 맵</button>
   <button class="tab-btn" data-tab="events">이벤트 목록</button>
 </nav>
 
-<main class="max-w-[1400px] mx-auto px-4 py-5">
+<main class="max-w-[1500px] mx-auto px-4 py-5">
 
-<!-- ========== 1. 경영 요약 ========== -->
 <section id="tab-executive" class="space-y-5">
-  <!-- KPI -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-    <div class="section-card kpi"><div class="val" id="kTotal">0</div><div class="lbl">전체 이벤트</div></div>
-    <div class="section-card kpi"><div class="val text-emerald-600" id="kActive">0</div><div class="lbl">진행중</div></div>
-    <div class="section-card kpi"><div class="val text-slate-500" id="kEnded">0</div><div class="lbl">종료</div></div>
-    <div class="section-card kpi"><div class="val text-blue-600" id="kInsight">0</div><div class="lbl">인사이트 완료</div></div>
-    <div class="section-card kpi"><div class="val text-amber-600" id="kExtRate">0%</div><div class="lbl">추출률</div></div>
-    <div class="section-card kpi"><div class="val text-purple-600" id="kCompanies">0</div><div class="lbl">수집 카드사</div></div>
-  </div>
-  <!-- 커버리지 차트 + 주목 이벤트 -->
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 수집/추출/인사이트 커버리지</h3><div style="height:220px"><canvas id="chartCoverage"></canvas></div></div>
-    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">주목할 이벤트 (위협도 High)</h3><div id="topThreats" class="space-y-2 text-sm"></div></div>
-  </div>
-  <div class="section-card">
-    <div class="flex items-center justify-between gap-2 mb-2">
-      <h3 class="text-sm font-bold text-slate-700">카드사별 현재 상태 개요 (Gemini)</h3>
-      <button
-        id="btnBriefRefresh"
-        onclick="refreshCompanyBriefings(true)"
-        class="text-xs bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg"
-      >
+  <!-- 카드사별 현재 전략 개요 -->
+  <div class="section-card anim-rise">
+    <div class="flex items-center justify-between gap-2 mb-4">
+      <h3 class="display-font text-base font-bold text-slate-800"><i class="fas fa-chess mr-2 text-blue-500"></i>카드사별 현재 전략 개요</h3>
+      <button id="btnBriefRefresh" onclick="refreshCompanyBriefings(true)" class="text-xs bg-slate-800 hover:bg-slate-900 text-white px-2.5 py-1.5 rounded-lg">
         <i class="fas fa-wand-magic-sparkles mr-1"></i>Gemini 재생성
       </button>
     </div>
-    <p id="briefMeta" class="text-xs text-slate-500 mb-3"></p>
-    <div id="companyBriefings" class="grid md:grid-cols-2 gap-3"></div>
+    <p id="briefMeta" class="text-xs text-slate-500 mb-4"></p>
+    <!-- 당사 (신한) -->
+    <div id="briefingShinhan" class="mb-5"></div>
+    <!-- 경쟁 3사 -->
+    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-building mr-1"></i>경쟁사 분석</h4>
+    <div id="briefingCompetitors" class="grid md:grid-cols-3 gap-3"></div>
   </div>
-  <div class="section-card bg-slate-950 text-slate-100 border-slate-800">
+
+  <!-- 카테고리 리스크 맵 + 주간 변화 -->
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="section-card anim-rise anim-delay-1">
+      <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-map mr-1.5 text-rose-500"></i>경쟁사 카테고리 분포</h3>
+      <div id="actionRiskMap" class="text-sm"></div>
+    </div>
+    <div class="section-card anim-rise anim-delay-2">
+      <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-chart-line text-blue-500 mr-1.5"></i>주간 변화 요약</h3>
+      <div id="actionWeekly" class="text-sm"></div>
+    </div>
+  </div>
+
+  <div class="section-card dark-panel anim-rise anim-delay-3">
     <div class="flex items-center justify-between gap-2 mb-2">
-      <h3 class="text-lg font-extrabold tracking-tight">카드 4사 비교 요약 (정성 + 정량)</h3>
-      <button
-        id="btnQualRefresh"
-        onclick="refreshQualitativeComparison(true)"
-        class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg"
-      >
+      <h3 class="display-font text-lg font-extrabold tracking-tight">카드 4사 정성 비교 (참고)</h3>
+      <button id="btnQualRefresh" onclick="refreshQualitativeComparison(true)" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1.5 rounded-lg border border-white/15">
         <i class="fas fa-chart-simple mr-1"></i>비교 재추론
       </button>
     </div>
-    <p id="qualMeta" class="text-xs text-slate-400 mb-3"></p>
+    <p id="qualMeta" class="text-xs text-slate-300/85 mb-3"></p>
     <div id="qualitativeMatrix" class="overflow-x-auto"></div>
   </div>
 </section>
 
-<!-- ========== 2. 카드사 비교 ========== -->
 <section id="tab-compare" class="hidden space-y-5">
   <div id="companyCards" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
-  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">혜택 수준 분포 (카드사별)</h3><div style="height:250px"><canvas id="chartBenefitDist"></canvas></div></div>
+  <div class="section-card">
+    <h3 class="display-font text-sm font-bold text-slate-700 mb-3">혜택 수준 분포 (카드사별)</h3>
+    <div style="height:260px"><canvas id="chartBenefitDist"></canvas></div>
+  </div>
 </section>
 
-<!-- ========== 3. 혜택 벤치마크 ========== -->
 <section id="tab-benchmark" class="hidden space-y-5">
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 평균 혜택 금액</h3><div style="height:250px"><canvas id="chartBenefitAmount"></canvas></div></div>
-    <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">카드사별 평균 할인율</h3><div style="height:250px"><canvas id="chartBenefitPct"></canvas></div></div>
+    <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">카드사별 평균 혜택 금액</h3><div style="height:260px"><canvas id="chartBenefitAmount"></canvas></div></div>
+    <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">카드사별 평균 할인율</h3><div style="height:260px"><canvas id="chartBenefitPct"></canvas></div></div>
   </div>
   <div class="section-card" id="benchmarkTable"></div>
 </section>
 
-<!-- ========== 4. 전략 맵 ========== -->
 <section id="tab-strategy" class="hidden space-y-5">
-  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">프로모션 목적 히트맵 (카드사 x 목적)</h3><div id="heatmapContainer" class="overflow-x-auto"></div></div>
-  <div class="section-card"><h3 class="text-sm font-bold text-slate-700 mb-3">이벤트 추세 (주별 시작/종료)</h3><div style="height:250px"><canvas id="chartTrends"></canvas></div></div>
+  <div class="section-card">
+    <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-chart-area text-amber-500 mr-1.5"></i>신한 공백 카테고리 주간 추세</h3>
+    <div style="height:220px"><canvas id="chartGapTrend"></canvas></div>
+    <p id="gapTrendSummary" class="text-xs text-slate-500 mt-2"></p>
+  </div>
+  <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">프로모션 목적 히트맵 (카드사 x 목적)</h3><div id="heatmapContainer" class="overflow-x-auto"></div></div>
+  <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">이벤트 추세 (주별 시작/종료)</h3><div style="height:260px"><canvas id="chartTrends"></canvas></div></div>
+  <div class="grid xl:grid-cols-2 gap-4">
+    <div class="section-card">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h3 class="display-font text-sm font-bold text-slate-700">비교 매트릭스</h3>
+        <select id="matrixAxis" onchange="loadCompareMatrix()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+          <option value="category">카테고리 기준</option>
+          <option value="benefit_type">혜택 유형 기준</option>
+        </select>
+      </div>
+      <div id="compareMatrixContainer" class="overflow-x-auto text-sm"></div>
+    </div>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold text-slate-700 mb-3">신한카드 갭 분석</h3>
+      <div id="shinhanGapView" class="text-sm"></div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <h3 class="display-font text-sm font-bold text-slate-700">Gemini 텍스트 비교 분석</h3>
+      <button id="btnTextCompare" onclick="loadTextComparison()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg">
+        <i class="fas fa-wand-magic-sparkles mr-1"></i>비교 분석 실행
+      </button>
+    </div>
+    <div id="textCompareResult" class="text-sm"></div>
+  </div>
 </section>
 
-<!-- ========== 5. 이벤트 목록 ========== -->
 <section id="tab-events" class="hidden space-y-4">
-  <div class="flex flex-wrap items-end gap-3">
-    <div class="flex-1 min-w-[180px]"><label class="text-xs text-slate-500 block mb-1">키워드</label><input id="searchKw" placeholder="할인, 캐시백, 삼성…" class="w-full border rounded-lg px-3 py-1.5 text-sm"></div>
-    <select id="fCompany" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 카드사</option></select>
-    <select id="fCat" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 카테고리</option></select>
-    <select id="fStatus" class="border rounded-lg px-3 py-1.5 text-sm"><option value="">전체 상태</option><option value="active">진행중</option><option value="ended">종료</option></select>
+  <div class="section-card">
+    <div class="grid md:grid-cols-2 xl:grid-cols-7 gap-3 items-end">
+      <div class="md:col-span-2"><label class="text-xs text-slate-500 block mb-1">키워드</label><input id="searchKw" placeholder="할인, 캐시백, 프리미엄, 제휴..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"></div>
+      <div><label class="text-xs text-slate-500 block mb-1">카드사</label><select id="fCompany" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카드사</option></select></div>
+      <div><label class="text-xs text-slate-500 block mb-1">카테고리</label><select id="fCat" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카테고리</option></select></div>
+      <div><label class="text-xs text-slate-500 block mb-1">상태</label><select id="fStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 상태</option><option value="active">진행중</option><option value="ended">종료</option></select></div>
+      <div><label class="text-xs text-slate-500 block mb-1">혜택 유형</label><select id="fBenefitType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 혜택 유형</option></select></div>
+      <div><label class="text-xs text-slate-500 block mb-1">추출 상태</label><select id="fExtracted" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 추출 상태</option><option value="done">추출 완료</option><option value="pending">미완료</option></select></div>
+      <div><label class="text-xs text-slate-500 block mb-1">목적 태그</label><select id="fTag" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 목적 태그</option></select></div>
+    </div>
+    <div class="mt-3 flex items-center justify-between gap-2 flex-wrap">
+      <p class="text-xs text-slate-500">이벤트를 2건 이상 선택하면 상세 비교표를 열 수 있습니다.</p>
+      <button id="btnCompareSelected" onclick="openCompareModal()" class="hidden bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">
+        <i class="fas fa-table-columns mr-1"></i>선택 이벤트 비교 (<span id="compareCount">0</span>)
+      </button>
+    </div>
   </div>
-  <div class="bg-white rounded-xl border overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-slate-100 text-slate-600 font-semibold"><tr>
-        <th class="px-3 py-2 text-left">카드사</th><th class="px-3 py-2 text-left">제목</th><th class="px-3 py-2 text-left">혜택</th><th class="px-3 py-2 text-left">기간</th><th class="px-3 py-2 text-left">위협도</th><th class="px-3 py-2 w-16"></th>
-      </tr></thead>
-      <tbody id="eventsTbody" class="divide-y"></tbody>
-    </table>
+
+  <div class="section-card p-0 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="events-table w-full text-sm">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 w-10 text-center"><input type="checkbox" class="accent-blue-600" onchange="toggleAllCompare(this)" title="전체 선택"></th>
+            <th class="px-3 py-2 text-left">카드사</th>
+            <th class="px-3 py-2 text-left">제목</th>
+            <th class="px-3 py-2 text-left">혜택</th>
+            <th class="px-3 py-2 text-left">기간</th>
+            <th class="px-3 py-2 text-left">추출 <button type="button" onclick="showExtractHelp()" class="ml-1 w-5 h-5 rounded-full border border-slate-400 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold inline-flex items-center justify-center align-middle" title="추출이란?">?</button></th>
+            <th class="px-3 py-2 text-left">상태</th>
+            <th class="px-3 py-2 w-16"></th>
+          </tr>
+        </thead>
+        <tbody id="eventsTbody"></tbody>
+      </table>
+    </div>
+    <div id="paginationBar" class="border-t border-slate-200 px-4 py-3 bg-slate-50 flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-2 text-xs text-slate-500">
+        <span id="pageInfo">0건</span>
+        <select id="pageSize" onchange="changePageSize()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs">
+          <option value="30">30건씩</option>
+          <option value="100">100건씩</option>
+        </select>
+      </div>
+      <div id="pageButtons" class="flex items-center gap-1"></div>
+    </div>
     <div id="eventsEmpty" class="hidden text-center py-12 text-slate-400">조건에 맞는 이벤트가 없습니다.</div>
   </div>
 </section>
 
 </main>
 
-<!-- ========== 상세 모달 ========== -->
-<div id="detailModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none">
-<div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
-  <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-50 rounded-t-xl">
-    <div class="min-w-0 flex-1"><h2 class="font-bold text-slate-800 truncate" id="mdTitle"></h2><p class="text-xs text-slate-500 mt-0.5" id="mdSummary"></p></div>
-    <div class="flex items-center gap-2 ml-3">
-      <a id="mdNewTab" href="#" target="_blank" class="text-xs text-blue-600 hover:underline"><i class="fas fa-external-link-alt mr-1"></i>원본</a>
-      <button onclick="extractOne()" id="mdExtractBtn" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"><i class="fas fa-sync-alt mr-1"></i>추출</button>
-      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 p-1"><i class="fas fa-times text-lg"></i></button>
+<div id="detailModal" class="fixed inset-0 bg-slate-900/55 z-50 flex items-center justify-center p-4" style="display:none">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-900 text-white">
+      <div class="min-w-0 flex-1">
+        <h2 class="display-font font-bold text-white truncate" id="mdTitle"></h2>
+        <p class="text-xs text-blue-100/80 mt-0.5" id="mdSummary"></p>
+      </div>
+      <div class="flex items-center gap-2 ml-3">
+        <a id="mdNewTab" href="#" target="_blank" class="text-xs text-cyan-300 hover:text-cyan-200"><i class="fas fa-external-link-alt mr-1"></i>원본</a>
+        <button id="mdLockBtn" onclick="toggleLock()" class="bg-slate-500 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"><i class="fas fa-lock-open mr-1"></i>잠금</button>
+        <button onclick="extractOne()" id="mdExtractBtn" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fas fa-sync-alt mr-1"></i>추출</button>
+        <button onclick="closeModal()" class="text-slate-300 hover:text-white p-1"><i class="fas fa-times text-lg"></i></button>
+      </div>
+    </div>
+    <div class="flex border-b bg-slate-50 text-sm px-2 py-2 gap-1 items-center">
+      <button class="tab-btn active" data-mtab="iframe">원본 페이지</button>
+      <button class="tab-btn" data-mtab="intelligence">AI 분석</button>
+      <button class="tab-btn" data-mtab="edit">수동 수정</button>
+      <span class="ml-auto flex items-center gap-1 text-[11px] text-slate-400" id="zoomControls">
+        <i class="fas fa-magnifying-glass-minus"></i>
+        <button onclick="setIframeZoom(1)" id="zoomBtn100" class="px-1.5 py-0.5 rounded border border-slate-300 hover:bg-slate-200">100%</button>
+        <button onclick="setIframeZoom(0.85)" id="zoomBtn85" class="px-1.5 py-0.5 rounded border border-blue-400 bg-blue-50 text-blue-700 font-bold">85%</button>
+      </span>
+    </div>
+    <div class="flex-1 min-h-0 overflow-hidden">
+      <div id="mp-iframe" class="h-full bg-slate-100 overflow-auto">
+        <div id="iframeZoomWrap" style="transform:scale(0.85);transform-origin:top center;width:117.6%;height:117.6%">
+          <iframe id="mdFrame" class="w-full h-full rounded-xl border-0 bg-white"></iframe>
+        </div>
+      </div>
+      <div id="mp-intelligence" class="h-full overflow-y-auto p-5 hidden"></div>
+      <div id="mp-edit" class="h-full overflow-y-auto p-5 hidden"></div>
     </div>
   </div>
-  <div class="flex border-b text-sm">
-    <button class="tab-btn active" data-mtab="intelligence">AI 분석</button>
-    <button class="tab-btn" data-mtab="sections">추출 내용</button>
-    <button class="tab-btn" data-mtab="iframe">원본 페이지</button>
-  </div>
-  <div class="flex-1 min-h-0 overflow-hidden">
-    <div id="mp-intelligence" class="h-full overflow-y-auto p-5"></div>
-    <div id="mp-sections" class="h-full overflow-y-auto p-5 hidden"></div>
-    <div id="mp-iframe" class="h-full p-2 bg-slate-100 hidden"><iframe id="mdFrame" class="w-full h-full rounded border-0 bg-white"></iframe></div>
+</div>
+
+<div id="compareModal" class="fixed inset-0 bg-slate-900/55 z-50 hidden items-center justify-center p-4" style="display:none" onclick="if(event.target===this) closeCompareModal()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-900 text-white">
+      <h2 class="display-font text-lg font-bold">선택 이벤트 비교</h2>
+      <button onclick="closeCompareModal()" class="text-slate-300 hover:text-white p-1"><i class="fas fa-times text-lg"></i></button>
+    </div>
+    <div id="compareBody" class="p-5 overflow-auto"></div>
   </div>
 </div>
+
+<div id="extractHelpModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none" onclick="if(event.target===this) closeExtractHelp()">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="display-font text-lg font-bold text-slate-800"><i class="fas fa-info-circle text-blue-500 mr-2"></i>「추출」이란?</h3>
+      <button type="button" onclick="closeExtractHelp()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+    </div>
+    <div class="text-sm text-slate-600 space-y-3">
+      <p><strong>수집</strong>은 카드사 이벤트 <strong>목록 페이지</strong>에서 이벤트 제목·링크만 가져오는 단계입니다.</p>
+      <p><strong>추출</strong>은 각 이벤트의 <strong>상세 페이지</strong>에 실제로 들어가서, 혜택·기간·조건·참여방법·타겟 등을 읽어와 구조화된 데이터로 저장하는 단계입니다.</p>
+      <ul class="list-disc list-inside space-y-1 text-slate-500">
+        <li><strong>추출 완료</strong>: 이미 상세 페이지를 방문해 내용을 저장한 이벤트</li>
+        <li><strong>미완료</strong>: 아직 상세 페이지를 읽지 않아 혜택·조건 등이 비어 있는 이벤트</li>
+      </ul>
+      <p><strong>전체 추출 시작</strong> 버튼은 <strong>수집(목록 크롤링)은 하지 않고</strong>, 이미 DB에 있는 이벤트 중 <strong>미추출 이벤트만</strong> 골라서 일괄로 상세 추출합니다. 이미 추출된 이벤트는 다시 추출하지 않습니다.</p>
+    </div>
+    <div class="mt-5 text-right">
+      <button type="button" onclick="closeExtractHelp()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium text-slate-700">닫기</button>
+    </div>
+  </div>
 </div>
 
 <script src="/static/js/dashboard.js"></script>

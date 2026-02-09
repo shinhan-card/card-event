@@ -5,13 +5,20 @@ FastAPI 백엔드 — 경쟁사 카드 이벤트 인텔리전스 시스템
 import json
 import logging
 import sys
+import os
+
+# Windows cp949 콘솔에서 유니코드(— 등) 출력 시 인코딩 오류 방지
+if getattr(sys.stdout, "reconfigure", None) and (sys.stdout.encoding or "").upper().startswith("CP949"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from collections import Counter, defaultdict
 from contextlib import asynccontextmanager
 from datetime import datetime, date, timedelta
 from threading import Lock
 
 from fastapi import FastAPI, Depends, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
@@ -29,6 +36,21 @@ QUAL_COMPARISON_TTL_SEC = 900
 _COMPANY_BRIEF_CACHE = {}
 _QUAL_COMPARISON_CACHE = None
 _COMPANY_BRIEF_LOCK = Lock()
+
+# 간단한 메모리 캐시 (벤치마크/매트릭스 등)
+_SIMPLE_CACHE = {}
+_SIMPLE_CACHE_TTL = 300  # 5분
+
+
+def _cached(key, builder, ttl=None):
+    """간단한 메모리 캐시. builder()의 결과를 TTL만큼 캐시."""
+    now = datetime.now()
+    entry = _SIMPLE_CACHE.get(key)
+    if entry and (now - entry["at"]).total_seconds() <= (ttl or _SIMPLE_CACHE_TTL):
+        return entry["data"]
+    data = builder()
+    _SIMPLE_CACHE[key] = {"data": data, "at": now}
+    return data
 
 
 # ===========================================================================
@@ -176,6 +198,127 @@ def build_benefit_benchmark(session: Session) -> dict:
     return {"companies": summary}
 
 
+def build_compare_matrix(session: Session, axis: str = "category") -> dict:
+    """카드사 x 축 교차 건수 매트릭스. axis: category/benefit_type/target/strategy"""
+    events = session.query(db.CardEvent).all()
+    heatmap = defaultdict(lambda: defaultdict(int))
+
+    if axis in ("category", "benefit_type"):
+        for ev in events:
+            if not db.has_meaningful_info(ev):
+                continue
+            company = (ev.company or "기타").strip()
+            val = (getattr(ev, axis, None) or "").strip()
+            if val:
+                heatmap[company][val] += 1
+    elif axis in ("target", "strategy"):
+        rows = session.query(db.EventInsight).all()
+        field = "target_tags" if axis == "target" else "objective_tags"
+        for row in rows:
+            ev = row.event
+            if not ev:
+                continue
+            company = (ev.company or "기타").strip()
+            raw = getattr(row, field, None)
+            tags = []
+            try:
+                tags = json.loads(raw) if raw else []
+            except Exception:
+                pass
+            for tag in tags:
+                if tag:
+                    heatmap[company][tag] += 1
+
+    return {
+        "axis": axis,
+        "heatmap": {k: dict(v) for k, v in heatmap.items()},
+    }
+
+
+def build_shinhan_gap(session: Session) -> dict:
+    """신한이 미대응이지만 경쟁사에 있는 카테고리 갭 분석."""
+    events = [e for e in session.query(db.CardEvent).all() if db.has_meaningful_info(e)]
+    today = date.today()
+    active = [e for e in events if e.period_end and e.period_end >= today]
+
+    cat_company = defaultdict(lambda: defaultdict(list))
+    for ev in active:
+        cat = (ev.category or "").strip()
+        co = (ev.company or "").strip()
+        if cat and co:
+            cat_company[cat][co].append({
+                "id": ev.id, "title": ev.title, "benefit_value": ev.benefit_value,
+                "period": ev.period, "company": co,
+            })
+
+    shinhan_key = "신한카드"
+    competitors = [c for c in set(ev.company for ev in active if ev.company) if c != shinhan_key]
+
+    gaps = []
+    for cat, by_co in cat_company.items():
+        sh_count = len(by_co.get(shinhan_key, []))
+        comp_events = []
+        for co in competitors:
+            comp_events.extend(by_co.get(co, []))
+        if sh_count == 0 and comp_events:
+            gaps.append({
+                "category": cat,
+                "competitor_count": len(comp_events),
+                "competitor_events": comp_events[:10],
+            })
+
+    gaps.sort(key=lambda g: -g["competitor_count"])
+    return {"gaps": gaps, "total_active": len(active), "shinhan_active": sum(1 for e in active if e.company == shinhan_key)}
+
+
+def _build_shinhan_gap_trend(session: Session, num_weeks: int = 8) -> dict:
+    """주차별 신한 공백 카테고리 수 추세."""
+    from datetime import timedelta as td
+    events = [e for e in session.query(db.CardEvent).all() if db.has_meaningful_info(e)]
+    today = date.today()
+    shinhan_key = "신한카드"
+    result_weeks = []
+    gap_counts = []
+    new_gap_counts = []
+    resolved_gap_counts = []
+    prev_gaps = set()
+
+    for w in range(num_weeks - 1, -1, -1):
+        ref = today - td(days=w * 7)
+        week_label = ref.strftime("%Y-W%W")
+        # 해당 시점 기준 활성 이벤트
+        active = [e for e in events if e.period_start and e.period_end and e.period_start <= ref <= e.period_end]
+        cat_co = defaultdict(set)
+        for ev in active:
+            cat = (ev.category or "").strip()
+            co = (ev.company or "").strip()
+            if cat and co:
+                cat_co[cat].add(co)
+        # 신한 공백 = 경쟁사 있지만 신한 없는 카테고리
+        current_gaps = set()
+        for cat, cos in cat_co.items():
+            has_competitor = any(c != shinhan_key for c in cos)
+            has_shinhan = shinhan_key in cos
+            if has_competitor and not has_shinhan:
+                current_gaps.add(cat)
+        new_gaps = current_gaps - prev_gaps
+        resolved = prev_gaps - current_gaps
+        result_weeks.append(week_label)
+        gap_counts.append(len(current_gaps))
+        new_gap_counts.append(len(new_gaps))
+        resolved_gap_counts.append(len(resolved))
+        prev_gaps = current_gaps
+
+    return {
+        "weeks": result_weeks,
+        "gap_counts": gap_counts,
+        "new_gap_counts": new_gap_counts,
+        "resolved_gap_counts": resolved_gap_counts,
+        "current_gaps": sorted(prev_gaps),
+        "generated_at": datetime.now().isoformat(),
+    }
+
+
 def _build_company_snapshot(company: str, overview_row: dict, events: List[db.CardEvent]) -> dict:
     status_counter = Counter((ev.status or "unknown") for ev in events)
     category_counter = Counter((ev.category or "미분류").strip() for ev in events if (ev.category or "").strip())
@@ -224,54 +367,44 @@ def _make_snapshot_key(snapshot: dict) -> str:
 
 
 def _rule_company_brief(company: str, snapshot: dict) -> dict:
-    total = int(snapshot.get("collected_count") or 0)
     active = int(snapshot.get("active_count") or 0)
-    ended = int(snapshot.get("ended_count") or 0)
-    extraction_rate = int(snapshot.get("extraction_rate") or 0)
-    insight_rate = int(snapshot.get("insight_rate") or 0)
-    high_threat = int(snapshot.get("high_threat_count") or 0)
     top_categories = snapshot.get("top_categories") or []
     top_points = snapshot.get("top_competitive_points") or []
     top_strategies = snapshot.get("top_promo_strategies") or []
     avg_pct = snapshot.get("avg_benefit_pct") or 0
     avg_amount = snapshot.get("avg_benefit_amount_won") or 0
 
-    category_text = ", ".join(top_categories[:2]) if top_categories else "카테고리 분산"
+    category_text = ", ".join(top_categories[:2]) if top_categories else "다양한 카테고리"
+    strategy_text = ", ".join(top_strategies[:2]) if top_strategies else "일반 프로모션"
+
     overview = (
-        f"{company} 이벤트는 총 {total}건이며 진행중 {active}건, 종료 {ended}건입니다. "
-        f"최근 중심 카테고리는 {category_text}이며 추출률 {extraction_rate}%, 인사이트률 {insight_rate}%입니다."
+        f"{company}은 현재 {active}건의 이벤트를 진행 중이며, "
+        f"{category_text} 카테고리에 집중하고 있습니다. "
+        f"주요 전략은 {strategy_text} 중심입니다."
     )
 
-    focus_points = []
+    benefit_text = []
     if avg_amount:
-        focus_points.append(f"평균 금액형 혜택 약 {int(avg_amount):,}원 수준")
+        benefit_text.append(f"평균 {int(avg_amount):,}원")
     if avg_pct:
-        focus_points.append(f"평균 비율형 혜택 {avg_pct}% 수준")
-    focus_points.extend(str(x) for x in top_points[:2] if x)
-    focus_points.extend(str(x) for x in top_strategies[:2] if x)
-    focus_points = focus_points[:3] or ["진행 이벤트 혜택 구조 재점검 필요"]
+        benefit_text.append(f"평균 {avg_pct}%")
+    avg_benefit_assessment = " / ".join(benefit_text) + " 수준" if benefit_text else "혜택 데이터 부족"
 
-    watchouts = []
-    if extraction_rate < 70:
-        watchouts.append("상세 추출 커버리지가 낮아 본문 근거 기반 비교 정밀도가 떨어질 수 있음")
-    if high_threat > 0:
-        watchouts.append(f"위협도 High 이벤트 {high_threat}건으로 단기 대응 카드 필요")
-    if not watchouts:
-        watchouts.append("현재 데이터 품질은 안정적이나 이벤트 조건 변경 모니터링은 계속 필요")
-    watchouts = watchouts[:2]
-
-    if high_threat > 0:
-        action_hint = "High 이벤트 중심으로 경쟁 혜택 매칭표를 주간 단위로 업데이트하세요."
-    elif extraction_rate < 70:
-        action_hint = "상세 추출 실패 이벤트를 우선 보강해 경쟁사 혜택 비교 기준을 정교화하세요."
-    else:
-        action_hint = "상위 프로모션 전략을 업종별로 분류해 자사 우선 대응 캠페인을 설계하세요."
+    points_text = ", ".join(str(x) for x in top_points[:2]) if top_points else ""
+    shinhan_threat = points_text if points_text else f"{category_text} 영역에서 경쟁 심화"
 
     return {
-        "overview": overview[:120],
-        "focus_points": focus_points,
-        "watchouts": watchouts,
-        "action_hint": action_hint,
+        "overview": overview[:150],
+        "key_strategy": strategy_text,
+        "strongest_categories": top_categories[:3],
+        "avg_benefit_assessment": avg_benefit_assessment,
+        "target_focus": "전반적 고객층 대상",
+        "shinhan_threat": shinhan_threat[:50],
+        "recommended_counter": f"{category_text} 카테고리에서 차별화된 혜택 구조 설계가 필요합니다.",
+        # 하위호환
+        "focus_points": top_categories[:3],
+        "watchouts": [shinhan_threat[:50]],
+        "action_hint": f"{category_text} 카테고리에서 차별화된 혜택 구조 설계가 필요합니다.",
     }
 
 
@@ -458,10 +591,52 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-except Exception:
-    pass
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """미처리 예외를 500 JSON으로 반환."""
+    import traceback
+    err_msg = str(exc)
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message": "서버 오류",
+            "success": False,
+            "error": err_msg,
+        },
+    )
+
+
+async def pipeline_error_middleware(request, call_next):
+    """/api/pipeline/full 호출 시 예외가 나도 JSON 반환."""
+    if request.url.path != "/api/pipeline/full" or request.method != "POST":
+        return await call_next(request)
+    try:
+        return await call_next(request)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "message": "전체 파이프라인 실패",
+                "success": False,
+                "error": str(e),
+            },
+        )
+
+
+app.middleware("http")(pipeline_error_middleware)
+
+
+# Static Files Mount (Robust)
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    print(f"[INFO] Static files mounted from: {static_dir}")
+else:
+    print(f"[WARNING] Static directory NOT found at: {static_dir}")
 
 templates = Jinja2Templates(directory="templates")
 db.init_db()
@@ -521,18 +696,40 @@ async def read_root(request: Request):
     return templates.TemplateResponse("simple_dashboard.html", {"request": request})
 
 
+# Legacy 경로 -> / 로 리다이렉트
+from fastapi.responses import RedirectResponse
+
+@app.get("/luxury")
+async def redirect_luxury():
+    return RedirectResponse(url="/", status_code=302)
+
+@app.get("/pro")
+async def redirect_pro():
+    return RedirectResponse(url="/", status_code=302)
+
+@app.get("/index")
+async def redirect_index():
+    return RedirectResponse(url="/", status_code=302)
+
+
 @app.get("/api/events", response_model=List[EventResponse])
 async def get_events(
     company: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     threat_level: Optional[str] = Query(None),
+    page: Optional[int] = Query(None, ge=1),
+    size: int = Query(1000, ge=1, le=5000),
     db_session: Session = Depends(db.get_db),
 ):
     filters = {}
     if company: filters["company"] = company
     if category: filters["category"] = category
     if threat_level: filters["threat_level"] = threat_level
-    return db.get_all_events(db_session, filters)
+    all_events = db.get_all_events(db_session, filters)
+    if page is not None:
+        offset = (page - 1) * size
+        return all_events[offset:offset + size]
+    return all_events[:size]
 
 
 @app.post("/api/events/extract-pending")
@@ -665,12 +862,94 @@ async def get_trends(
 
 @app.get("/api/analytics/strategy-map")
 async def get_strategy_map(db_session: Session = Depends(db.get_db)):
-    return build_strategy_map(db_session)
+    return _cached("strategy_map", lambda: build_strategy_map(db_session))
+
+
+@app.get("/api/analytics/compare-matrix")
+async def get_compare_matrix(
+    axis: str = Query("category"),
+    db_session: Session = Depends(db.get_db),
+):
+    if axis not in ("category", "benefit_type", "target", "strategy"):
+        raise HTTPException(400, "axis must be one of: category, benefit_type, target, strategy")
+    return build_compare_matrix(db_session, axis)
+
+
+@app.get("/api/analytics/shinhan-gap")
+async def get_shinhan_gap(db_session: Session = Depends(db.get_db)):
+    return build_shinhan_gap(db_session)
+
+
+@app.get("/api/analytics/shinhan-gap-trend")
+async def get_shinhan_gap_trend(
+    weeks: int = Query(8, ge=2, le=52),
+    db_session: Session = Depends(db.get_db),
+):
+    return _cached(f"shinhan_gap_trend_{weeks}", lambda: _build_shinhan_gap_trend(db_session, weeks), ttl=600)
+
+
+_TEXT_COMPARISON_CACHE = None
+
+
+@app.get("/api/analytics/text-comparison")
+async def get_text_comparison(
+    force: bool = Query(False),
+    db_session: Session = Depends(db.get_db),
+):
+    global _TEXT_COMPARISON_CACHE
+    now = datetime.now()
+
+    if not force and _TEXT_COMPARISON_CACHE:
+        age = (now - _TEXT_COMPARISON_CACHE["updated_at"]).total_seconds()
+        if age <= 900:
+            result = dict(_TEXT_COMPARISON_CACHE["result"])
+            result["cached"] = True
+            return result
+
+    try:
+        from gemini_insight import compare_event_texts
+    except Exception:
+        compare_event_texts = None
+
+    # 카드사별 추출 텍스트 수집
+    events = db.get_all_events(db_session)
+    grouped = defaultdict(list)
+    for ev in events:
+        co = (ev.company or "").strip()
+        if co and ev.raw_text and len(ev.raw_text.strip()) > 30:
+            grouped[co].append(ev.raw_text[:500])
+
+    company_texts = {}
+    for co, texts in grouped.items():
+        company_texts[co] = "\n".join(texts[:20])  # 카드사당 최대 20건
+
+    result = None
+    source = "rule"
+    if compare_event_texts and company_texts:
+        result = compare_event_texts(company_texts)
+        if result:
+            source = "gemini"
+
+    if not result:
+        # rule fallback: 키워드 빈도 기반
+        all_text = " ".join(t for ts in company_texts.values() for t in [ts])
+        import re
+        patterns = ["최소 결제", "선착순", "캐시백", "할인", "무이자", "포인트", "리워드", "적립", "월 한도", "자동이체", "전월 실적"]
+        found = [p for p in patterns if p in all_text]
+        result = {"common_patterns": found, "differentiators": {}, "condition_patterns": []}
+
+    response = {
+        "source": source,
+        "cached": False,
+        **result,
+    }
+    _TEXT_COMPARISON_CACHE = {"result": response, "updated_at": now}
+    return response
 
 
 @app.get("/api/analytics/benefit-benchmark")
 async def get_benefit_benchmark(db_session: Session = Depends(db.get_db)):
-    return build_benefit_benchmark(db_session)
+    return _cached("benefit_benchmark", lambda: build_benefit_benchmark(db_session))
 
 
 @app.get("/api/analytics/company-briefings")
@@ -734,6 +1013,13 @@ async def get_company_briefings(
             "cached": cached_hit,
             "updated_at": updated_at.isoformat(),
             "overview": brief.get("overview"),
+            "key_strategy": brief.get("key_strategy"),
+            "strongest_categories": brief.get("strongest_categories", []),
+            "avg_benefit_assessment": brief.get("avg_benefit_assessment"),
+            "target_focus": brief.get("target_focus"),
+            "shinhan_threat": brief.get("shinhan_threat"),
+            "recommended_counter": brief.get("recommended_counter"),
+            # 하위호환
             "focus_points": brief.get("focus_points", []),
             "watchouts": brief.get("watchouts", []),
             "action_hint": brief.get("action_hint"),
@@ -924,8 +1210,10 @@ async def get_event_intelligence(event_id: int, db_session: Session = Depends(db
         try: return json.loads(val) if isinstance(val, str) else val
         except: return []
 
+    curation = db.get_curation_state(db_session, event_id)
     return {
         "event": EventResponse.model_validate(event),
+        "locked": bool(curation and curation.is_locked) if curation else False,
         "insight": {
             "benefit_level": insight.benefit_level if insight else None,
             "benefit_score": insight.benefit_score if insight else None,
@@ -942,6 +1230,10 @@ async def get_event_intelligence(event_id: int, db_session: Session = Depends(db
             "insight_confidence": insight.insight_confidence if insight else None,
             "section_coverage": insight.section_coverage if insight else None,
             "source": insight.source if insight else None,
+            # 고도화 필드 (marketing_insights JSON에 저장됨)
+            **({k: mi.get(k) for k in ("benefit_detail", "target_profile", "conditions_summary",
+                "event_duration_type", "weaknesses", "shinhan_response") if mi.get(k)}
+               if (mi := _pjson(event.marketing_insights)) else {}),
         } if insight else None,
         "sections": [{"type": s.section_type, "content": s.content} for s in sections],
         "snapshot_count": len(snapshots),
@@ -949,8 +1241,104 @@ async def get_event_intelligence(event_id: int, db_session: Session = Depends(db
 
 
 # ---------------------------------------------------------------------------
+# Manual Edit / Curation API
+# ---------------------------------------------------------------------------
+
+class ManualUpdateRequest(BaseModel):
+    fields: dict  # {"title": "새 제목", "benefit_value": "5만원", ...}
+    editor: Optional[str] = "admin"
+    reason: Optional[str] = None
+
+
+@app.patch("/api/events/{event_id}/manual-update")
+async def manual_update_event(event_id: int, body: ManualUpdateRequest, db_session: Session = Depends(db.get_db)):
+    event = db.get_event_by_id(db_session, event_id)
+    if not event:
+        raise HTTPException(404, "이벤트를 찾을 수 없습니다.")
+    allowed = {"title", "period", "benefit_value", "benefit_type", "conditions", "target_segment", "category"}
+    update_data = {}
+    edits = []
+    for field, new_val in body.fields.items():
+        if field not in allowed:
+            continue
+        old_val = getattr(event, field, None)
+        if str(old_val or '') == str(new_val or ''):
+            continue
+        update_data[field] = new_val
+        edits.append({"field": field, "old": old_val, "new": new_val})
+        db.save_manual_edit(db_session, event_id, field, old_val, new_val, editor=body.editor or "admin", reason=body.reason)
+    if update_data:
+        db.update_event(db_session, event_id, update_data)
+    return {"message": f"{len(edits)}건 수정 완료", "edits": edits}
+
+
+@app.get("/api/events/{event_id}/edit-history")
+async def get_edit_history(event_id: int, db_session: Session = Depends(db.get_db)):
+    history = db.get_edit_history(db_session, event_id)
+    return [
+        {
+            "id": h.id, "field_name": h.field_name,
+            "old_value": h.old_value, "new_value": h.new_value,
+            "editor": h.editor, "edited_at": h.edited_at.isoformat() if h.edited_at else None,
+            "reason": h.reason,
+        }
+        for h in history
+    ]
+
+
+@app.post("/api/events/{event_id}/lock")
+async def toggle_lock_event(event_id: int, db_session: Session = Depends(db.get_db)):
+    event = db.get_event_by_id(db_session, event_id)
+    if not event:
+        raise HTTPException(404, "이벤트를 찾을 수 없습니다.")
+    locked = db.is_event_locked(db_session, event_id)
+    if locked:
+        db.unlock_event(db_session, event_id)
+        return {"message": "잠금 해제", "locked": False}
+    else:
+        db.lock_event(db_session, event_id)
+        return {"message": "잠금 설정 (재추출 방지)", "locked": True}
+
+
+@app.get("/api/audit/edits")
+async def audit_edits(
+    event_id: Optional[int] = Query(None),
+    editor: Optional[str] = Query(None),
+    from_date: Optional[str] = Query(None, alias="from"),
+    to_date: Optional[str] = Query(None, alias="to"),
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=200),
+    db_session: Session = Depends(db.get_db),
+):
+    fd = datetime.fromisoformat(from_date) if from_date else None
+    td = datetime.fromisoformat(to_date) if to_date else None
+    offset = (page - 1) * size
+    rows, total = db.get_all_edit_history(db_session, event_id=event_id, editor=editor,
+                                           from_date=fd, to_date=td, limit=size, offset=offset)
+    return {
+        "total": total, "page": page, "size": size,
+        "items": [
+            {
+                "id": h.id, "event_id": h.event_id, "field_name": h.field_name,
+                "old_value": h.old_value, "new_value": h.new_value,
+                "editor": h.editor, "edited_at": h.edited_at.isoformat() if h.edited_at else None,
+                "reason": h.reason,
+            }
+            for h in rows
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Pipeline trigger API
 # ---------------------------------------------------------------------------
+
+@app.get("/api/pipeline/progress")
+async def get_pipeline_progress():
+    """전체 추출 진행 상태 (실제 처리 건수·성공·실패)."""
+    from modules.pipeline import get_pipeline_progress as _get
+    return _get()
+
 
 @app.post("/api/pipeline/ingest")
 async def trigger_ingest(company: Optional[str] = Query(None)):
@@ -961,9 +1349,24 @@ async def trigger_ingest(company: Optional[str] = Query(None)):
 
 @app.post("/api/pipeline/full")
 async def trigger_full_pipeline(company: Optional[str] = Query(None)):
-    from modules.pipeline import run_full_pipeline
-    result = await run_full_pipeline(company=company)
-    return {"message": "전체 파이프라인 완료", **result}
+    import asyncio
+    from modules.pipeline import run_full_pipeline, set_full_extract_started
+    try:
+        set_full_extract_started()  # 첫 폴링부터 '추출 중'으로 보이게
+        asyncio.create_task(run_full_pipeline(company=company))
+        return {"started": True, "message": "전체 파이프라인을 백그라운드에서 시작했습니다."}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "started": False,
+                "message": "전체 파이프라인 실패",
+                "success": False,
+                "error": str(e),
+            },
+        )
 
 
 # ---------------------------------------------------------------------------
