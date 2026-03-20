@@ -3,6 +3,7 @@ import { siteContent } from "@/content/site-content";
 
 const heroTitle = siteContent.hero.title;
 const primaryCtaLabel = siteContent.hero.primaryCta.label;
+const secondaryCtaLabel = siteContent.hero.secondaryCta.label;
 
 test("landing page links to deep dive", async ({ page }) => {
   await page.goto("/");
@@ -20,6 +21,17 @@ test("landing page links to deep dive", async ({ page }) => {
     .click();
 
   await expect(page).toHaveURL(/\/deep-dive$/);
+});
+
+test("landing page links secondary CTA to the executive blueprint", async ({ page }) => {
+  await page.goto("/");
+
+  await page
+    .locator("#overview")
+    .getByRole("link", { name: secondaryCtaLabel, exact: true })
+    .click();
+
+  await expect(page).toHaveURL(/\/deep-dive#executive-blueprint$/);
 });
 
 test("landing page renders the showroom contract and technology stack", async ({ page }) => {
@@ -77,4 +89,26 @@ test("landing page respects reduced motion", async ({ page }) => {
   await expect(
     page.locator("#overview").getByRole("link", { name: primaryCtaLabel, exact: true }),
   ).toBeVisible();
+
+  const motionState = await page.evaluate(() => {
+    const network = document.querySelector(".signal-network");
+    const header = document.querySelector(".signal-network-header");
+    const firstAxis = document.querySelector(".signal-network-axis");
+
+    return {
+      networkOpacity: network ? getComputedStyle(network).opacity : null,
+      networkTransform: network ? getComputedStyle(network).transform : null,
+      headerOpacity: header ? getComputedStyle(header).opacity : null,
+      headerTransform: header ? getComputedStyle(header).transform : null,
+      axisOpacity: firstAxis ? getComputedStyle(firstAxis).opacity : null,
+      axisTransform: firstAxis ? getComputedStyle(firstAxis).transform : null,
+    };
+  });
+
+  expect(motionState.networkOpacity).toBe("1");
+  expect(motionState.networkTransform).toBe("none");
+  expect(motionState.headerOpacity).toBe("1");
+  expect(motionState.headerTransform).toBe("none");
+  expect(motionState.axisOpacity).toBe("1");
+  expect(motionState.axisTransform).toBe("none");
 });

@@ -39,9 +39,14 @@ describe("route smoke", () => {
     const cta = screen.getByRole("link", {
       name: siteContent.hero.primaryCta.label,
     });
+    const secondaryCta = screen.getByRole("link", {
+      name: siteContent.hero.secondaryCta.label,
+    });
 
     expect(cta).toBeInTheDocument();
     expect(cta).toHaveAttribute("href", siteContent.hero.primaryCta.href);
+    expect(secondaryCta).toBeInTheDocument();
+    expect(secondaryCta).toHaveAttribute("href", siteContent.hero.secondaryCta.href);
   });
 
   it("renders landing sections in public contract order", () => {
