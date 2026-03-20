@@ -3454,6 +3454,37 @@ function initTabs() {
   showEventTab(CURRENT_EVENT_TAB);
 }
 
+function switchTab(tabId) {
+  const nextTab = tabId || 'dashboard';
+  document.querySelectorAll('main > section').forEach(section => section.classList.add('hidden'));
+  const target = document.getElementById('tab-' + nextTab);
+  if (target) {
+    target.classList.remove('hidden');
+    target.classList.add('anim-fade-in');
+  }
+
+  document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll(`.nav-btn[data-tab="${nextTab}"]`).forEach(btn => btn.classList.add('active'));
+  document.querySelectorAll('.mobile-nav button[data-tab]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === nextTab);
+  });
+
+  if (nextTab === 'compare' && !window._COMPARE_LOADED) {
+    window._COMPARE_LOADED = true;
+    try { loadKeywordAnalysis(); } catch(_) {}
+    try { loadTargetSegments(); } catch(_) {}
+  }
+  if (nextTab === 'products' && !window._PRODUCTS_LOADED) {
+    window._PRODUCTS_LOADED = true;
+    loadProductsTab();
+  }
+  if (nextTab === 'timeline' && !window._TIMELINE_LOADED) {
+    window._TIMELINE_LOADED = true;
+    initGantt();
+  }
+  if (nextTab === 'ops') void loadOpsData();
+}
+
 function showPage(page, options = {}) {
   const nextPage = page || 'events';
   CURRENT_PAGE = nextPage;

@@ -58,13 +58,16 @@ def test_template_keeps_briefing_boot_path_single_sourced():
     template = (ROOT / "templates/simple_dashboard.html").read_text(encoding="utf-8")
     js = (ROOT / "static/js/dashboard.js").read_text(encoding="utf-8")
 
-    assert "window.initTabs = () => {};" not in template, "template should not override initTabs"
+    assert "window.initTabs = function" not in template, "template should not override initTabs"
     assert "sendBriefingNow" not in template, "old inline send helper should be removed"
     assert "async function loadOpsData()" not in template, "template should not define ops boot control"
     assert "loadBriefingStatus()" not in template, "template should not own briefing loading"
+    assert "function switchTab(" not in template, "template should not define tab switching control"
+    assert "if (tabId === 'ops') loadOpsData();" not in template, "template should not own ops boot decisions"
     assert template.count("opsBriefingStatusGrid") == 1, "expected one briefing shell anchor"
     assert js.count("async function loadAll(") == 1, "dashboard.js should have one loadAll boot path"
     assert js.count("function initTabs(") == 1, "dashboard.js should have one initTabs boot path"
+    assert js.count("function switchTab(") == 1, "dashboard.js should own the tab switching controller"
 
 
 def test_briefing_console_js_has_failure_guardrails():
@@ -79,6 +82,7 @@ def test_briefing_console_js_has_failure_guardrails():
         "if (BRIEFING_SEND_BUSY || !briefingConsoleIsReady()) return;",
         "briefing status JSON parse failed",
         "briefing logs JSON parse failed",
+        "if (nextTab === 'ops') void loadOpsData();",
     ):
         assert snippet in js, f"missing JS guardrail: {snippet}"
 
