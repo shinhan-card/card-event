@@ -1,4 +1,4 @@
-export type ModuleClusterKey = "event-pipeline" | "product-rag";
+export type ModuleClusterKey = "event-pipeline" | "product-rag" | "shared";
 
 export interface ModuleCluster {
   key: ModuleClusterKey;
@@ -21,7 +21,6 @@ export const moduleMap = {
       files: [
         "app.py",
         "database.py",
-        "routers/*",
         "modules/connectors/*",
         "modules/pipeline.py",
         "modules/event_enrichment.py"
@@ -31,8 +30,15 @@ export const moduleMap = {
       key: "product-rag",
       title: "Product / Disclosure RAG",
       summary:
-        "Organizes structured disclosure knowledge, retrieval, and briefing outputs.",
-      files: ["modules/insights.py", "modules/briefing.py", "modules/rag/*"]
+        "Owns product, disclosure, and retrieval surfaces for the presentation workspace.",
+      files: ["routers/rag.py", "routers/disclosures.py", "modules/rag/*"]
+    },
+    {
+      key: "shared",
+      title: "Shared Intelligence",
+      summary:
+        "Cross-cutting analytics and briefing surfaces used by both intelligence lanes.",
+      files: ["modules/insights.py", "modules/briefing.py"]
     }
   ]
 } as const satisfies ModuleMap;
