@@ -20,17 +20,17 @@ wheels/
 .installed.cfg
 *.egg
 
-# 가상환경
+# Virtualenv
 venv/
 env/
 ENV/
 venv.bak/
 
-# 환경 변수
+# Environment
 .env
 .env.local
 
-# 데이터베이스
+# Database
 *.db
 *.sqlite
 *.sqlite3
@@ -46,7 +46,7 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# 로그
+# Logs
 *.log
 
 # Playwright
@@ -61,10 +61,7 @@ presentation-site/playwright-report/
 presentation-site/test-results/
 presentation-site/coverage/
 
-# 아카이브
-_archive/
-
-# 기타
+# Misc
 *.bak
 *.tmp
 .coverage
