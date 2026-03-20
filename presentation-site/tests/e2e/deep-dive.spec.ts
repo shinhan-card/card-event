@@ -42,6 +42,11 @@ test("deep dive renders contract-driven top boards with representative labels", 
     }),
   ).toBeVisible();
   await expect(
+    eventBoard.getByRole("heading", {
+      name: architectureContent.eventInterpretation.steps[6].title,
+    }),
+  ).toBeVisible();
+  await expect(
     productBoard.getByRole("heading", {
       name: architectureContent.productKnowledge.steps[3].title,
     }),
@@ -51,7 +56,15 @@ test("deep dive renders contract-driven top boards with representative labels", 
       name: architectureContent.productKnowledge.steps[5].title,
     }),
   ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", {
+      name: architectureContent.productKnowledge.steps[8].title,
+    }),
+  ).toBeVisible();
   await expect(productBoard.getByText("ChromaDB", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: architectureContent.evolutionRoadmap.title }),
+  ).toBeVisible();
 });
 
 test("deep dive stays readable on mobile after the top-board refresh", async ({ page }) => {
@@ -74,8 +87,18 @@ test("deep dive stays readable on mobile after the top-board refresh", async ({ 
     }),
   ).toBeVisible();
   await expect(
+    eventBoard.getByRole("heading", {
+      name: architectureContent.eventInterpretation.steps[6].title,
+    }),
+  ).toBeVisible();
+  await expect(
     productBoard.getByRole("heading", {
       name: architectureContent.productKnowledge.steps[5].title,
+    }),
+  ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", {
+      name: architectureContent.productKnowledge.steps[8].title,
     }),
   ).toBeVisible();
 

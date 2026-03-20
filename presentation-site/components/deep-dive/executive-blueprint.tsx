@@ -1,30 +1,36 @@
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
 
+const executiveBlueprint = architectureContent.executiveBlueprint;
+
+const executiveSummary = `${executiveBlueprint.inputLanes.length}개의 입력 레인, ${executiveBlueprint.processingLanes.length}개의 처리 레인, ${executiveBlueprint.deliverySurface.length}개의 전달 표면으로 공개 계약 전체 흐름을 요약합니다.`;
+
+const executiveEyebrow = `입력 ${executiveBlueprint.inputLanes.length} · 처리 ${executiveBlueprint.processingLanes.length} · 전달 ${executiveBlueprint.deliverySurface.length}`;
+
 const blueprintLanes = [
   {
     key: "input",
     label: "입력 레인",
-    items: architectureContent.executiveBlueprint.inputLanes,
+    items: executiveBlueprint.inputLanes,
   },
   {
     key: "processing",
     label: "처리 레인",
-    items: architectureContent.executiveBlueprint.processingLanes,
+    items: executiveBlueprint.processingLanes,
   },
   {
     key: "delivery",
     label: "전달 표면",
-    items: architectureContent.executiveBlueprint.deliverySurface,
+    items: executiveBlueprint.deliverySurface,
   },
 ] as const;
 
 export default function ExecutiveBlueprint() {
   return (
     <SectionShell
-      eyebrow={architectureContent.deepDive.eyebrow}
+      eyebrow={executiveEyebrow}
       title={architectureContent.copy.deepDiveExecutive}
-      summary={architectureContent.deepDive.summary}
+      summary={executiveSummary}
       id="executive-blueprint"
       headingLevel={1}
     >
@@ -51,7 +57,7 @@ export default function ExecutiveBlueprint() {
             <h2>입력, 처리, 전달을 잇는 공개 계약 기술 스택</h2>
           </div>
           <div className="diagram-chip-row">
-            {architectureContent.executiveBlueprint.technologyBadges.map((technology) => (
+            {executiveBlueprint.technologyBadges.map((technology) => (
               <span className="diagram-chip" key={technology}>
                 {technology}
               </span>
