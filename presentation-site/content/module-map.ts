@@ -50,15 +50,15 @@ const eventCollectionCluster = {
 const eventPipelineCluster = {
   key: "event-pipeline",
   title: "Event Pipeline",
-  summary: "Extraction and normalization responsibilities for event intelligence.",
-  files: ["modules/pipeline.py"],
+  summary: "Extraction, normalization, and pipeline responsibilities for event intelligence.",
+  files: ["modules/pipeline.py", "modules/extraction.py", "modules/normalization.py"],
 } as const satisfies ModuleCluster;
 
 const enrichmentCluster = {
   key: "shared",
   title: "Enrichment",
-  summary: "Event enrichment, insights, and classification responsibilities.",
-  files: ["modules/event_enrichment.py", "modules/insights.py"]
+  summary: "Event enrichment, classification, and insights responsibilities.",
+  files: ["modules/event_enrichment.py", "modules/classification.py", "modules/insights.py"]
 } as const satisfies ModuleCluster;
 
 const briefingAnalyticsCluster = {
@@ -128,13 +128,13 @@ export const moduleMap = {
     {
       key: "event-pipeline",
       title: "Event Pipeline",
-      summary: "Extraction and normalization responsibilities for event intelligence.",
+      summary: "Extraction, normalization, and pipeline responsibilities for event intelligence.",
       clusters: [eventPipelineCluster]
     },
     {
       key: "enrichment",
       title: "Enrichment",
-      summary: "Event enrichment, insights, and classification responsibilities.",
+      summary: "Event enrichment, classification, and insights responsibilities.",
       clusters: [enrichmentCluster]
     },
     {

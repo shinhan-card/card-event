@@ -71,6 +71,9 @@ describe("route smoke", () => {
     expect(
       screen.getByRole("heading", { name: /stage breakdown/i })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /orchestration map/i })
+    ).toBeInTheDocument();
   });
 
   it("renders deep dive axis split", () => {

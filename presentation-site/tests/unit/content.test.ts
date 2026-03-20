@@ -25,4 +25,24 @@ describe("content contracts", () => {
       "product-rag"
     ]);
   });
+
+  it("covers extraction normalization and classification responsibilities", () => {
+    const eventPipeline = moduleMap.sections.find((section) => section.key === "event-pipeline");
+    const enrichment = moduleMap.sections.find((section) => section.key === "enrichment");
+
+    expect(eventPipeline?.clusters[0].files).toEqual(
+      expect.arrayContaining([
+        "modules/pipeline.py",
+        "modules/extraction.py",
+        "modules/normalization.py"
+      ])
+    );
+    expect(enrichment?.clusters[0].files).toEqual(
+      expect.arrayContaining([
+        "modules/event_enrichment.py",
+        "modules/classification.py",
+        "modules/insights.py"
+      ])
+    );
+  });
 });

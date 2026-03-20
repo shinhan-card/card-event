@@ -1,4 +1,5 @@
 import ConceptArchitecture from "@/components/deep-dive/concept-architecture";
+import OrchestrationMap from "@/components/deep-dive/orchestration-map";
 import DualAxisArchitecture from "@/components/deep-dive/dual-axis-architecture";
 import DesignPrinciples from "@/components/deep-dive/design-principles";
 import EvolutionRoadmap from "@/components/deep-dive/evolution-roadmap";
@@ -31,6 +32,7 @@ export default function DeepDivePage() {
 
       <ConceptArchitecture />
       <StageBreakdown />
+      <OrchestrationMap />
       <DualAxisArchitecture />
       <RealModuleMap />
       <DesignPrinciples />
