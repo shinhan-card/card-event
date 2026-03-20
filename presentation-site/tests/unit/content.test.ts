@@ -2,15 +2,34 @@ import { architectureContent } from "@/content/architecture-content";
 import { moduleMap } from "@/content/module-map";
 import { siteContent } from "@/content/site-content";
 
-describe("executive atlas content contracts", () => {
-  it("shares a stable copy contract between site and architecture content", () => {
+describe("task 1 content contracts", () => {
+  it("shares the same flat copy contract between site and architecture exports", () => {
     expect(siteContent.copy).toBe(architectureContent.copy);
-    expect(siteContent.copy.navigation.overview).toBe("개요");
-    expect(siteContent.copy.evidence.implemented).toBe("구현됨");
-    expect(siteContent.copy.evidence.approved).toBe("승인된 설계");
+    expect(Object.keys(siteContent.copy)).toEqual([
+      "productName",
+      "deckTitle",
+      "navOverview",
+      "navArchitecture",
+      "navEvidence",
+      "navRoadmap",
+      "heroPrimaryCta",
+      "heroSecondaryCta",
+      "eventAxisLabel",
+      "productAxisLabel",
+      "deliverySurfaceLabel",
+      "evidenceImplemented",
+      "evidenceApproved",
+      "boardExecutiveBlueprint",
+      "boardDualAxisMacro",
+      "boardEventInterpretation",
+      "boardProductKnowledge",
+      "boardOrchestrationControl",
+      "boardEvidenceModuleMap",
+      "boardPrinciplesEvolution"
+    ]);
   });
 
-  it("exposes the required site content top-level fields", () => {
+  it("exports the plan-compliant site content shape", () => {
     expect(Object.keys(siteContent)).toEqual([
       "copy",
       "snapshotMeta",
@@ -20,9 +39,46 @@ describe("executive atlas content contracts", () => {
       "decisionSurfaces",
       "valueCards"
     ]);
+
+    expect(Object.keys(siteContent.snapshotMeta)).toEqual(["label", "capturedOn", "note"]);
+    expect(siteContent.snapshotMeta.capturedOn).toBe("2026-03-20");
+
+    siteContent.navigation.forEach((item) => {
+      expect(Object.keys(item)).toEqual(["key", "label", "href"]);
+    });
+
+    expect(Object.keys(siteContent.hero)).toEqual([
+      "eyebrow",
+      "title",
+      "summary",
+      "primaryCta",
+      "secondaryCta"
+    ]);
+    expect(Object.keys(siteContent.hero.primaryCta)).toEqual(["label", "href"]);
+    expect(Object.keys(siteContent.hero.secondaryCta)).toEqual(["label", "href"]);
+
+    expect(siteContent.landingScenes.map((scene) => scene.key)).toEqual([
+      "thesis",
+      "tension",
+      "dual-engine",
+      "decision-surfaces",
+      "system-value",
+      "deep-dive-handoff"
+    ]);
+    siteContent.landingScenes.forEach((scene) => {
+      expect(Object.keys(scene)).toEqual(["key", "title", "summary"]);
+    });
+
+    siteContent.decisionSurfaces.forEach((surface) => {
+      expect(Object.keys(surface)).toEqual(["key", "title", "summary"]);
+    });
+
+    siteContent.valueCards.forEach((card) => {
+      expect(Object.keys(card)).toEqual(["key", "title", "description"]);
+    });
   });
 
-  it("exposes the required architecture keys and board order", () => {
+  it("exports the plan-compliant architecture shape", () => {
     expect(Object.keys(architectureContent)).toEqual([
       "copy",
       "boardOrder",
@@ -45,12 +101,31 @@ describe("executive atlas content contracts", () => {
       "principles-evolution"
     ]);
 
-    expect(architectureContent.executiveBlueprint.boards.map((board) => board.key)).toEqual(
-      architectureContent.boardOrder
-    );
-  });
+    expect(architectureContent.axes.map((axis) => axis.key)).toEqual([
+      "event-intelligence",
+      "product-intelligence"
+    ]);
+    architectureContent.axes.forEach((axis) => {
+      expect(Object.keys(axis)).toEqual(["key", "title", "question", "technologyBadges"]);
+    });
 
-  it("keeps the event interpretation step keys in the approved order", () => {
+    expect(Object.keys(architectureContent.executiveBlueprint)).toEqual([
+      "inputLanes",
+      "processingLanes",
+      "deliverySurface",
+      "technologyBadges"
+    ]);
+    architectureContent.executiveBlueprint.inputLanes.forEach((lane) => {
+      expect(Object.keys(lane)).toEqual(["title", "summary"]);
+    });
+    architectureContent.executiveBlueprint.processingLanes.forEach((lane) => {
+      expect(Object.keys(lane)).toEqual(["title", "summary"]);
+    });
+    expect(Object.keys(architectureContent.executiveBlueprint.deliverySurface)).toEqual([
+      "title",
+      "summary"
+    ]);
+
     expect(architectureContent.eventInterpretation.steps.map((step) => step.key)).toEqual([
       "collect",
       "extract",
@@ -60,9 +135,10 @@ describe("executive atlas content contracts", () => {
       "briefing-summary",
       "deliver"
     ]);
-  });
+    architectureContent.eventInterpretation.steps.forEach((step) => {
+      expect(Object.keys(step)).toEqual(["key", "title", "summary", "technologies", "output"]);
+    });
 
-  it("keeps the product knowledge step keys in the approved order", () => {
     expect(architectureContent.productKnowledge.steps.map((step) => step.key)).toEqual([
       "collect-sources",
       "store-raw",
@@ -74,32 +150,31 @@ describe("executive atlas content contracts", () => {
       "compose-response",
       "deliver"
     ]);
+    architectureContent.productKnowledge.steps.forEach((step) => {
+      expect(Object.keys(step)).toEqual(["key", "title", "summary", "technologies", "output"]);
+    });
+
+    architectureContent.orchestrationColumns.forEach((column) => {
+      expect(Object.keys(column)).toEqual(["title", "nodes", "technologies"]);
+    });
+
+    expect(Array.isArray(architectureContent.principles)).toBe(true);
+    expect(Array.isArray(architectureContent.roadmap)).toBe(true);
+    architectureContent.principles.forEach((principle) => {
+      expect(typeof principle).toBe("string");
+    });
+    architectureContent.roadmap.forEach((item) => {
+      expect(typeof item).toBe("string");
+    });
   });
 
-  it("mentions the required technologies across the architecture story", () => {
+  it("keeps the required technologies visible in the exported architecture contract", () => {
     const corpus = [
-      architectureContent.axes.flatMap((axis) => [axis.title, axis.summary, ...axis.badges]),
-      architectureContent.executiveBlueprint.boards.flatMap((board) => [
-        board.title,
-        board.summary,
-        ...board.badges
-      ]),
-      architectureContent.eventInterpretation.steps.flatMap((step) => [
-        step.title,
-        step.summary,
-        ...step.badges
-      ]),
-      architectureContent.productKnowledge.steps.flatMap((step) => [
-        step.title,
-        step.summary,
-        ...step.badges
-      ]),
-      architectureContent.orchestrationColumns.flatMap((column) => [
-        column.title,
-        column.summary,
-        ...column.badges
-      ]),
-      moduleMap.clusters.flatMap((cluster) => [cluster.title, cluster.summary, ...cluster.badges])
+      architectureContent.axes.flatMap((axis) => axis.technologyBadges),
+      architectureContent.executiveBlueprint.technologyBadges,
+      architectureContent.eventInterpretation.steps.flatMap((step) => step.technologies),
+      architectureContent.productKnowledge.steps.flatMap((step) => step.technologies),
+      architectureContent.orchestrationColumns.flatMap((column) => column.technologies)
     ]
       .flat()
       .join(" ");
@@ -116,31 +191,9 @@ describe("executive atlas content contracts", () => {
     expect(corpus).toContain("PDF/HTML extraction");
   });
 
-  it("localizes reviewer-flagged UI and status labels that are not technology names", () => {
-    const corpus = [
-      architectureContent.copy.deckTitle,
-      architectureContent.executiveBlueprint.boards.flatMap((board) => board.badges),
-      architectureContent.eventInterpretation.steps.flatMap((step) => step.badges),
-      architectureContent.productKnowledge.steps.flatMap((step) => step.badges),
-      moduleMap.clusters.flatMap((cluster) => cluster.badges)
-    ]
-      .flat()
-      .join(" ");
+  it("exports the plan-compliant module map adapter shape", () => {
+    expect(Object.keys(moduleMap)).toEqual(["clusters"]);
 
-    expect(corpus).not.toContain("Executive Atlas");
-    expect(corpus).not.toContain("Rules Engine");
-    expect(corpus).not.toContain("Insights");
-    expect(corpus).not.toContain("Briefing");
-    expect(corpus).not.toContain("Dashboard");
-    expect(corpus).not.toContain("Product Links");
-    expect(corpus).not.toContain("Chunking");
-    expect(corpus).not.toContain("Embedding");
-    expect(corpus).not.toContain("Retriever");
-    expect(corpus).not.toContain("Approved Contract");
-    expect(corpus).not.toContain("Implemented Surface");
-  });
-
-  it("defines module clusters across the required groups only", () => {
     const groups = [...new Set(moduleMap.clusters.map((cluster) => cluster.group))].sort();
     expect(groups).toEqual([
       "delivery-surfaces",
@@ -148,70 +201,87 @@ describe("executive atlas content contracts", () => {
       "product-axis",
       "shared-core"
     ]);
+
+    moduleMap.clusters.forEach((cluster) => {
+      expect(Object.keys(cluster)).toEqual([
+        "key",
+        "group",
+        "title",
+        "summary",
+        "evidenceLevel",
+        "files"
+      ]);
+    });
   });
 
-  it("maps the required minimum paths with honest evidence levels", () => {
-    const findEntry = (group: string, path: string) =>
-      moduleMap.clusters
-        .filter((cluster) => cluster.group === group)
-        .flatMap((cluster) => cluster.entries)
-        .find((entry) => entry.path === path);
+  it("maps the required files through evidence-level clusters", () => {
+    const findCluster = (key: string) => moduleMap.clusters.find((cluster) => cluster.key === key);
 
-    expect(findEntry("shared-core", "app.py")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("shared-core", "database.py")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("shared-core", "routers/health.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("shared-core", "modules/api_utils.py")?.evidenceLevel).toBe("approved");
+    expect(findCluster("shared-core-implemented")?.files).toEqual(["app.py", "database.py"]);
+    expect(findCluster("shared-core-approved")?.files).toEqual([
+      "routers/health.py",
+      "modules/api_utils.py"
+    ]);
 
-    expect(findEntry("event-axis", "routers/events.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "routers/pipeline.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "routers/jobs.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "modules/connectors/*")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("event-axis", "modules/extraction.py")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("event-axis", "modules/normalization.py")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("event-axis", "modules/pipeline.py")?.evidenceLevel).toBe("implemented");
-    expect(findEntry("event-axis", "modules/event_enrichment.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "modules/classification.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "modules/condition_facts.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "modules/rules_engine.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("event-axis", "modules/insights.py")?.evidenceLevel).toBe("implemented");
+    expect(findCluster("event-axis-implemented")?.files).toEqual([
+      "modules/connectors/*",
+      "modules/extraction.py",
+      "modules/normalization.py",
+      "modules/pipeline.py",
+      "modules/insights.py"
+    ]);
+    expect(findCluster("event-axis-approved")?.files).toEqual([
+      "routers/events.py",
+      "routers/pipeline.py",
+      "routers/jobs.py",
+      "modules/event_enrichment.py",
+      "modules/classification.py",
+      "modules/condition_facts.py",
+      "modules/rules_engine.py"
+    ]);
 
-    expect(findEntry("product-axis", "routers/disclosures.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "routers/rag.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "modules/product_links.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "modules/rag/collector.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "modules/rag/chunker.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "modules/rag/embedder.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("product-axis", "modules/rag/product_scraper.py")?.evidenceLevel).toBe(
-      "approved"
-    );
-    expect(findEntry("product-axis", "modules/rag/catalog_summary.py")?.evidenceLevel).toBe(
-      "approved"
-    );
+    expect(findCluster("product-axis-approved")?.files).toEqual([
+      "routers/disclosures.py",
+      "routers/rag.py",
+      "modules/product_links.py",
+      "modules/rag/collector.py",
+      "modules/rag/chunker.py",
+      "modules/rag/embedder.py",
+      "modules/rag/product_scraper.py",
+      "modules/rag/catalog_summary.py"
+    ]);
 
-    expect(findEntry("delivery-surfaces", "routers/analytics.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("delivery-surfaces", "routers/briefing.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("delivery-surfaces", "routers/pages.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("delivery-surfaces", "modules/analytics_service.py")?.evidenceLevel).toBe(
-      "approved"
-    );
-    expect(findEntry("delivery-surfaces", "modules/briefing.py")?.evidenceLevel).toBe("approved");
-    expect(findEntry("delivery-surfaces", "templates/dashboard_luxury.html")?.evidenceLevel).toBe(
-      "implemented"
-    );
-    expect(findEntry("delivery-surfaces", "templates/dashboard_pro.html")?.evidenceLevel).toBe(
-      "implemented"
-    );
-    expect(
-      findEntry("delivery-surfaces", "templates/email_daily_briefing.html")?.evidenceLevel
-    ).toBe("approved");
-    expect(findEntry("delivery-surfaces", "templates/weekly_report.html")?.evidenceLevel).toBe(
-      "approved"
-    );
-    expect(findEntry("delivery-surfaces", "static/js/dashboard.js")?.evidenceLevel).toBe(
-      "implemented"
-    );
-    expect(findEntry("delivery-surfaces", "static/js/dashboard_extras.js")?.evidenceLevel).toBe(
-      "approved"
-    );
+    expect(findCluster("delivery-surfaces-implemented")?.files).toEqual([
+      "templates/dashboard_luxury.html",
+      "templates/dashboard_pro.html",
+      "static/js/dashboard.js"
+    ]);
+    expect(findCluster("delivery-surfaces-approved")?.files).toEqual([
+      "routers/analytics.py",
+      "routers/briefing.py",
+      "routers/pages.py",
+      "modules/analytics_service.py",
+      "modules/briefing.py",
+      "templates/email_daily_briefing.html",
+      "templates/weekly_report.html",
+      "static/js/dashboard_extras.js"
+    ]);
+  });
+
+  it("keeps reviewer-flagged UI labels localized", () => {
+    const corpus = [
+      ...Object.values(siteContent.copy),
+      ...siteContent.navigation.flatMap((item) => [item.label]),
+      ...siteContent.landingScenes.flatMap((scene) => [scene.title, scene.summary]),
+      ...siteContent.decisionSurfaces.flatMap((surface) => [surface.title, surface.summary]),
+      ...siteContent.valueCards.flatMap((card) => [card.title, card.description]),
+      ...architectureContent.principles,
+      ...architectureContent.roadmap
+    ].join(" ");
+
+    expect(corpus).not.toContain("Executive Atlas");
+    expect(corpus).not.toContain("Overview");
+    expect(corpus).not.toContain("How It Works");
+    expect(corpus).not.toContain("Deep Dive");
   });
 });
