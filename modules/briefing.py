@@ -402,8 +402,9 @@ def _collect_briefing_source_data(session: Session, report_type: str) -> dict:
     present_companies = sorted({_normalize_company_name(getattr(event, "company", None)) for event in all_events})
     missing_companies = [company for company in EXPECTED_COMPANIES if company not in present_companies]
 
+    product_scope_events = relevant_events if report_type == "weekly" else (new_events or relevant_events)
     source_products = []
-    for event in (new_events or relevant_events):
+    for event in product_scope_events:
         source_products.extend(_extract_event_products(event))
 
     unique_products = []
@@ -423,7 +424,9 @@ def _collect_briefing_source_data(session: Session, report_type: str) -> dict:
         "ended_events": ended_events,
         "notable_pairs": notable_pairs,
         "relevant_events": relevant_events,
+        "source_product_events": product_scope_events,
         "source_products": unique_products,
+        "source_product_rows": source_products,
         "coverage": {
             "expected_companies": list(EXPECTED_COMPANIES),
             "present_companies": present_companies,
@@ -438,6 +441,10 @@ def _build_period_label(source: dict, report_type: str) -> str:
     if report_type == "daily":
         return source["now"].strftime("%Y-%m-%d")
     return f"{source['period_start'].strftime('%m/%d')} ~ {source['now'].strftime('%m/%d')}"
+
+
+def _build_daily_date_label(source: dict) -> str:
+    return source["now"].strftime("%Y년 %m월 %d일")
 
 
 def _build_company_sections(source: dict, report_type: str) -> list:
@@ -483,8 +490,13 @@ def _build_company_sections(source: dict, report_type: str) -> list:
         evidence_pool = section["new_events"] or section["active_events"] or section["ended_events"]
         evidence_events = [event for event in evidence_pool if _extract_event_evidence(event)]
 
+        product_source_events = (
+            section["new_events"] + section["ended_events"]
+            if report_type == "weekly"
+            else (section["new_events"] or evidence_pool)
+        )
         product_rows = []
-        for event in section["new_events"] or evidence_pool:
+        for event in product_source_events:
             product_rows.extend(_extract_event_products(event))
 
         deduped_products = []
@@ -511,12 +523,11 @@ def _build_company_sections(source: dict, report_type: str) -> list:
 
     sections.sort(
         key=lambda section: (
-            section["new_events_count"],
-            section["active_events_count"],
+            -section["new_events_count"],
+            -section["active_events_count"],
             -section["ending_soon_count"],
             section["company"],
-        ),
-        reverse=True,
+        )
     )
     return sections[:8]
 
@@ -545,7 +556,7 @@ def _build_product_summary(source: dict, report_type: str) -> list:
     product_counter = Counter()
     product_examples = {}
 
-    for product in source["source_products"]:
+    for product in source["source_product_rows"]:
         key = (product["company"], product["product_name"])
         product_counter[key] += 1
         product_examples.setdefault(key, product)
@@ -666,7 +677,7 @@ def build_briefing_payload(session: Session, report_type: str) -> dict:
         "report_type": report_type,
         "generated_at": source["now"].isoformat(),
         "period_label": period_label,
-        "date_label": period_label if report_type == "daily" else "",
+        "date_label": _build_daily_date_label(source) if report_type == "daily" else "",
         "week_label": period_label if report_type == "weekly" else "",
         "delivery_mode": "digest",
         "company_sections": _build_company_sections(source, report_type),
