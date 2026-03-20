@@ -19,8 +19,6 @@ export const moduleMap = {
       summary:
         "Coordinates capture, normalization, enrichment, and delivery for event intelligence.",
       files: [
-        "app.py",
-        "database.py",
         "modules/connectors/*",
         "modules/pipeline.py",
         "modules/event_enrichment.py"
@@ -35,10 +33,15 @@ export const moduleMap = {
     },
     {
       key: "shared",
-      title: "Shared Intelligence",
+      title: "Shared Bootstrap / Storage / Delivery",
       summary:
-        "Cross-cutting analytics and briefing surfaces used by both intelligence lanes.",
-      files: ["modules/insights.py", "modules/briefing.py"]
+        "Cross-cutting bootstrap, storage, analytics, and briefing surfaces used by both intelligence lanes.",
+      files: [
+        "app.py",
+        "database.py",
+        "modules/insights.py",
+        "modules/briefing.py"
+      ]
     }
   ]
 } as const satisfies ModuleMap;
