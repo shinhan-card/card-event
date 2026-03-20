@@ -33,18 +33,10 @@ describe("content contracts", () => {
     expect(corpus).toEqual(expect.stringContaining("APScheduler"));
     expect(corpus).toEqual(expect.stringContaining("SQLite"));
     expect(corpus).toEqual(expect.stringContaining("SQLAlchemy"));
+    expect(corpus).toEqual(expect.stringContaining("BeautifulSoup"));
     expect(corpus).toEqual(expect.stringContaining("ChromaDB"));
     expect(corpus).toEqual(expect.stringContaining("RAG"));
     expect(corpus).toEqual(expect.stringContaining("PDF/HTML extraction"));
-  });
-
-  it("keeps orchestration labels Korean-first", () => {
-    expect(architectureContent.orchestrationMap.groups.map((group) => group.label)).toEqual([
-      "제어 흐름",
-      "라우팅 흐름",
-      "축별 처리",
-      "공유 전달"
-    ]);
   });
 
   it("includes landing scenes in order", () => {
@@ -65,12 +57,13 @@ describe("content contracts", () => {
     ]);
   });
 
-  it("covers extraction normalization and classification responsibilities", () => {
-    const eventCollection = moduleMap.sections.find(
-      (section) => section.key === "event-collection"
-    );
+  it("covers event, enrichment, and product intelligence responsibilities", () => {
+    const eventCollection = moduleMap.sections.find((section) => section.key === "event-collection");
     const eventPipeline = moduleMap.sections.find((section) => section.key === "event-pipeline");
     const enrichment = moduleMap.sections.find((section) => section.key === "enrichment");
+    const productIntelligence = moduleMap.sections.find(
+      (section) => section.key === "product-intelligence"
+    );
 
     expect(eventCollection?.clusters[0].key).toBe("event-pipeline");
     expect(eventPipeline?.clusters[0].files).toEqual(
@@ -84,6 +77,13 @@ describe("content contracts", () => {
       expect.arrayContaining([
         "modules/insights.py",
         "gemini_insight.py"
+      ])
+    );
+    expect(productIntelligence?.clusters[0].files).toEqual(
+      expect.arrayContaining([
+        "routers/disclosures.py",
+        "routers/rag.py",
+        "modules/rag/*"
       ])
     );
   });

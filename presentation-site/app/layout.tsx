@@ -5,8 +5,8 @@ import PresentationShell from "@/components/chrome/presentation-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Card Event Intelligence",
-  description: "Standalone presentation microsite for event and disclosure intelligence"
+  title: "카드 이벤트 인텔리전스 발표 사이트",
+  description: "이벤트 인텔리전스와 상품 / 공시 인텔리전스를 설명하는 독립형 프레젠테이션 사이트"
 };
 
 const displayFont = Space_Grotesk({
@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="ko" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)] antialiased">
         <a className="skip-link" href="#content">
-          Skip to content
+          본문으로 건너뛰기
         </a>
         <PresentationShell>{children}</PresentationShell>
       </body>

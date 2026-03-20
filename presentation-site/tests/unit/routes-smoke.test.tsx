@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import { within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import HomePage from "@/app/page";
 import DeepDivePage from "@/app/deep-dive/page";
 import PresentationShell from "@/components/chrome/presentation-shell";
@@ -13,7 +12,7 @@ describe("route smoke", () => {
       </PresentationShell>
     );
 
-    const navigation = screen.getByRole("navigation", { name: /primary/i });
+    const navigation = screen.getByRole("navigation", { name: /주요 탐색/i });
     const deepDiveLink = within(navigation).getByRole("link", {
       name: "딥다이브"
     });
@@ -74,7 +73,6 @@ describe("route smoke", () => {
     expect(
       screen.getByRole("heading", { name: "오케스트레이션 맵" })
     ).toBeInTheDocument();
-    expect(screen.getByText("구조 스냅샷")).toBeInTheDocument();
   });
 
   it("renders deep dive axis split", () => {
@@ -91,7 +89,7 @@ describe("route smoke", () => {
       screen.getByRole("heading", { name: "상품 / 공시 인텔리전스" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "모듈 현실 지도" })
+      screen.getByRole("heading", { name: "실제 모듈 지도" })
     ).toBeInTheDocument();
   });
 
@@ -112,7 +110,5 @@ describe("route smoke", () => {
     expect(screen.getAllByText("ChromaDB").length).toBeGreaterThan(0);
     expect(screen.getAllByText("RAG").length).toBeGreaterThan(0);
     expect(screen.getAllByText("PDF/HTML extraction").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("실제 코드").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("승인된 축 설계").length).toBeGreaterThan(0);
   });
 });

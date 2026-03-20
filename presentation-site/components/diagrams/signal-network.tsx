@@ -23,6 +23,7 @@ const itemVariants = {
 
 export default function SignalNetwork() {
   const prefersReducedMotion = useReducedMotion() ?? false;
+  const getAxisLabel = (index: number) => (index === 0 ? "이벤트 축" : "상품 / 공시 축");
 
   if (prefersReducedMotion) {
     return (
@@ -40,7 +41,7 @@ export default function SignalNetwork() {
               className={`signal-network-axis signal-network-axis--${index === 0 ? "signal" : "warm"}`}
               key={axis.key}
             >
-              <span className="signal-network-axis-key">{axis.key}</span>
+              <span className="signal-network-axis-key">{getAxisLabel(index)}</span>
               <h3>{axis.title}</h3>
               <p>{axis.question}</p>
               <div className="signal-network-pulse" aria-hidden="true" />
@@ -82,7 +83,7 @@ export default function SignalNetwork() {
             key={axis.key}
             variants={itemVariants}
           >
-            <span className="signal-network-axis-key">{axis.key}</span>
+            <span className="signal-network-axis-key">{getAxisLabel(index)}</span>
             <h3>{axis.title}</h3>
             <p>{axis.question}</p>
             <div className="signal-network-pulse" aria-hidden="true" />

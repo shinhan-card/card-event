@@ -5,9 +5,9 @@ import { architectureContent } from "@/content/architecture-content";
 export default function RealModuleMap() {
   return (
     <SectionShell
-      eyebrow="모듈 현실"
-      title="모듈 현실 지도"
-      summary="현재 워크트리의 실코드와 승인된 상품 / 공시 축 설계를 함께 놓고, 어떤 레이어가 실제 파일로 뒷받침되는지 구조적으로 보여줍니다."
+      eyebrow="실제 모듈"
+      title="실제 모듈 지도"
+      summary="현재 워크트리의 실제 코드와 승인된 상품 / 공시 축 설계를 함께 놓고, 어떤 레이어가 실제 파일로 뒷받침되는지 구조적으로 보여줍니다."
       id="module-reality"
     >
       <div className="module-cluster-map-intro">

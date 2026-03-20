@@ -1,11 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+const heroTitle = "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게";
+
 test("landing page links to deep dive", async ({ page }) => {
   await page.goto("/");
 
   await expect(
     page.getByRole("heading", {
-      name: "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게",
+      name: heroTitle,
       level: 1
     })
   ).toBeVisible();
@@ -26,7 +28,7 @@ test("landing page stays usable on mobile", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
   await expect(
     page.getByRole("heading", {
-      name: "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게",
+      name: heroTitle,
       level: 1
     })
   ).toBeVisible();

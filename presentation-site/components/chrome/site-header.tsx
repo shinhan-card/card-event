@@ -11,9 +11,11 @@ export default function SiteHeader() {
     <header className="site-header">
       <div>
         <p className="site-eyebrow">카드 이벤트 인텔리전스</p>
-        <p className="site-kicker">발표용 워크스페이스에서 현재 구현 구조를 한국어 중심으로 정리한 쇼룸</p>
+        <p className="site-kicker">
+          발표용 마이크로사이트에서 현재 구현 구조와 오케스트레이션을 한국어 중심으로 설명합니다.
+        </p>
       </div>
-      <nav aria-label="Primary">
+      <nav aria-label="주요 탐색">
         <ul className="site-nav">
           {navItems.map((item) => (
             <li key={item.href}>
