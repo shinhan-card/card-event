@@ -744,7 +744,10 @@ def render_briefing_html(data: dict, report_type: str = "daily",
     )
     try:
         tmpl = _jinja_env.get_template(template_name)
-        return tmpl.render(**data, dashboard_url=dashboard_url, report_type=report_type)
+        context = dict(data)
+        context["dashboard_url"] = dashboard_url
+        context["report_type"] = report_type
+        return tmpl.render(**context)
     except Exception as e:
         logger.error(f"브리핑 HTML 렌더링 실패: {e}")
         return f"<p>렌더링 오류: {e}</p>"

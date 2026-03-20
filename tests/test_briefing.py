@@ -1,6 +1,7 @@
 import json
 import importlib
 import inspect
+import asyncio
 import os
 import re
 import sys
@@ -8,6 +9,10 @@ import tempfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
+
+import httpx
+
+import app
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -568,6 +573,10 @@ def test_render_daily_briefing_uses_market_intelligence_sections():
     assert "테마 신호" in html
     assert "전환 및 마감 임박" in html
     assert "근거 이벤트" in html
+    assert "class=\"pill\"" not in html
+    assert "class=\"metric\"" not in html
+    assert "대시보드에서 전체 보기" not in html
+    assert "카드 마케팅 인텔리전스 브리핑 ·" not in html
     assert "quality_warnings" not in html
     assert "delivery_mode" not in html
     assert "template_version" not in html
@@ -586,9 +595,30 @@ def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
     assert "테마 변화" in html
     assert "제품/공시 요약" in html
     assert "근거 블록" in html
+    assert "class=\"pill\"" not in html
+    assert "class=\"metric\"" not in html
+    assert "대시보드에서 전체 보기" not in html
+    assert "주간 카드 마케팅 인텔리전스 리포트 ·" not in html
     assert "warning" not in html.lower()
     assert "delivery_mode" not in html
     assert "template_version" not in html
+
+
+def test_preview_routes_render_briefings_without_breaking():
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            for path, expected_text in (
+                ("/api/briefing/preview?type=daily", "핵심 요약"),
+                ("/api/briefing/preview?type=weekly", "주간 핵심 요약"),
+                ("/report/weekly", "주간 카드 마케팅 인텔리전스 리포트"),
+            ):
+                response = await client.get(path)
+                assert response.status_code == 200, f"{path} returned {response.status_code}"
+                assert expected_text in response.text
+                assert "대시보드에서 전체 보기" not in response.text
+
+    asyncio.run(_run())
 
 
 if __name__ == "__main__":
