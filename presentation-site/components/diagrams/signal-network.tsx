@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { architectureContent } from "@/content/architecture-content";
 
 const containerVariants = {
@@ -22,11 +22,13 @@ const itemVariants = {
 } as const;
 
 export default function SignalNetwork() {
+  const prefersReducedMotion = useReducedMotion() ?? false;
+
   return (
     <motion.section
       className="signal-network"
       aria-label="Signal network diagram"
-      initial="hidden"
+      initial={prefersReducedMotion ? false : "hidden"}
       animate="show"
       variants={containerVariants}
     >

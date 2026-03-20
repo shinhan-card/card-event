@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { architectureContent } from "@/content/architecture-content";
 
 const railVariants = {
@@ -21,11 +21,13 @@ const stageVariants = {
 } as const;
 
 export default function ProcessRail() {
+  const prefersReducedMotion = useReducedMotion() ?? false;
+
   return (
     <motion.div
       className="process-rail"
       aria-label="Signal processing rail"
-      initial="hidden"
+      initial={prefersReducedMotion ? false : "hidden"}
       animate="show"
       variants={railVariants}
     >

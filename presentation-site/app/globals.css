@@ -830,4 +830,31 @@ a:hover {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+
+  .signal-network,
+  .signal-network *,
+  .process-rail,
+  .process-rail * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .signal-network,
+  .process-rail,
+  .process-rail-stage,
+  .process-rail-track,
+  .signal-network-header,
+  .signal-network-grid,
+  .signal-network-axis,
+  .signal-network-bridge,
+  .signal-network-bridge-track,
+  .signal-network-axis-key,
+  .signal-network-pulse {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .scene-button:hover {
+    transform: none;
+  }
 }
