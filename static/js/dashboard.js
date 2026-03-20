@@ -91,6 +91,10 @@ async function loadAll() {
 // ============ 상단 배너 지표 ============
 let BRIEFING_STATUS = null;
 let BRIEFING_LOGS = [];
+let BRIEFING_STATUS_OK = false;
+let BRIEFING_LOGS_OK = false;
+let BRIEFING_STATUS_ERROR = '';
+let BRIEFING_LOGS_ERROR = '';
 let BRIEFING_SEND_BUSY = null;
 
 function briefingTypeLabel(type) {
@@ -149,6 +153,50 @@ function normalizeBriefingStatus(payload) {
   return { raw, daily, weekly, warnings, updatedAt: raw.updated_at || raw.generated_at || raw.last_updated || '' };
 }
 
+function briefingConsoleIsReady() {
+  return BRIEFING_STATUS_OK && BRIEFING_LOGS_OK;
+}
+
+function briefingConsoleHasFailure() {
+  return Boolean(BRIEFING_STATUS_ERROR || BRIEFING_LOGS_ERROR);
+}
+
+function briefingUnavailableDetails() {
+  const details = [];
+  if (!BRIEFING_STATUS_OK) details.push(BRIEFING_STATUS_ERROR || 'briefing status unavailable');
+  if (!BRIEFING_LOGS_OK) details.push(BRIEFING_LOGS_ERROR || 'briefing logs unavailable');
+  return details;
+}
+
+function renderBriefingUnavailablePanel(title, details, emptyCopy) {
+  const safeDetails = Array.isArray(details) ? details.filter(Boolean) : [];
+  return `
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800 shadow-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-[11px] font-semibold tracking-[0.08em] text-rose-600">${esc(title)}</div>
+          <p class="mt-1 text-sm font-semibold text-rose-900">${esc(emptyCopy || '브리핑 데이터를 불러오지 못했습니다.')}</p>
+        </div>
+        <span class="inline-flex items-center rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">unavailable</span>
+      </div>
+      ${safeDetails.length ? `
+        <ul class="mt-3 space-y-2 text-xs leading-5 text-rose-700">
+          ${safeDetails.map(item => `<li class="rounded-xl border border-rose-200 bg-white px-3 py-2">${esc(item)}</li>`).join('')}
+        </ul>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderBriefingLoadingPanel(title, copy) {
+  return `
+    <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500 shadow-sm">
+      <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-400">${esc(title)}</div>
+      <p class="mt-1 text-sm text-slate-600">${esc(copy || '브리핑 데이터를 불러오는 중입니다.')}</p>
+    </div>
+  `;
+}
+
 function briefingReadinessMeta(period) {
   const status = String(period?.readinessStatus || '').toLowerCase();
   const warningCount = Number(period?.warningCount || 0);
@@ -165,6 +213,22 @@ function renderBriefingStatusCards() {
   const grid = document.getElementById('opsBriefingStatusGrid');
   if (!grid) return;
   const status = BRIEFING_STATUS || normalizeBriefingStatus({});
+  if (briefingConsoleHasFailure()) {
+    grid.innerHTML = `
+      <div class="md:col-span-2 xl:col-span-2">
+        ${renderBriefingUnavailablePanel('status', briefingUnavailableDetails(), '브리핑 상태를 확인할 수 없습니다.')}
+      </div>
+    `;
+    return;
+  }
+  if (!briefingConsoleIsReady()) {
+    grid.innerHTML = `
+      <div class="md:col-span-2 xl:col-span-2">
+        ${renderBriefingLoadingPanel('status', '브리핑 상태를 불러오는 중입니다.')}
+      </div>
+    `;
+    return;
+  }
   const renderCard = (period) => {
     const readiness = briefingReadinessMeta(period);
     const sources = period.sourceCounts.length
@@ -201,6 +265,18 @@ function renderBriefingStatusCards() {
 function renderBriefingWarnings() {
   const container = document.getElementById('opsBriefingWarnings');
   if (!container) return;
+  if (briefingConsoleHasFailure()) {
+    container.innerHTML = renderBriefingUnavailablePanel(
+      'warnings',
+      briefingUnavailableDetails(),
+      '브리핑 경고를 확인할 수 없습니다.'
+    );
+    return;
+  }
+  if (!briefingConsoleIsReady()) {
+    container.innerHTML = renderBriefingLoadingPanel('warnings', '브리핑 경고를 불러오는 중입니다.');
+    return;
+  }
   const warnings = [
     ...(Array.isArray(BRIEFING_STATUS?.warnings) ? BRIEFING_STATUS.warnings : []),
     ...(Array.isArray(BRIEFING_STATUS?.daily?.warnings) ? BRIEFING_STATUS.daily.warnings : []),
@@ -242,10 +318,12 @@ function renderBriefingWarnings() {
 function renderBriefingActions() {
   const container = document.getElementById('opsBriefingActions');
   if (!container) return;
+  const isReady = briefingConsoleIsReady();
+  const isFailure = briefingConsoleHasFailure();
   const renderButton = (type, mode, label, primary = false) => {
     const busy = BRIEFING_SEND_BUSY === `${type}:${mode}`;
     return `
-      <button type="button" class="${primary ? 'btn btn-primary' : 'btn btn-secondary'}" data-briefing-send="${type}:${mode}" ${busy ? 'disabled' : ''}>
+      <button type="button" class="${primary ? 'btn btn-primary' : 'btn btn-secondary'} ${(!isReady || busy) ? 'opacity-60 cursor-not-allowed' : ''}" data-briefing-send="${type}:${mode}" ${(!isReady || busy) ? 'disabled' : ''}>
         <i class="fas ${busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'} mr-1"></i>${esc(busy ? '발송 중...' : label)}
       </button>
     `;
@@ -260,6 +338,9 @@ function renderBriefingActions() {
           </div>
           <a href="/api/briefing/preview?type=daily" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
+        ${isFailure
+          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">브리핑 데이터를 불러오지 못해 발송이 비활성화되었습니다.</div>`
+          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">브리핑 상태와 로그를 불러오는 중입니다.</div>` : '')}
         <div class="mt-3 flex flex-wrap gap-2">
           ${renderButton('daily', 'test', 'Test send')}
           ${renderButton('daily', 'production', 'Production send', true)}
@@ -273,6 +354,9 @@ function renderBriefingActions() {
           </div>
           <a href="/api/briefing/preview?type=weekly" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
+        ${isFailure
+          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">브리핑 데이터를 불러오지 못해 발송이 비활성화되었습니다.</div>`
+          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">브리핑 상태와 로그를 불러오는 중입니다.</div>` : '')}
         <div class="mt-3 flex flex-wrap gap-2">
           ${renderButton('weekly', 'test', 'Test send')}
           ${renderButton('weekly', 'production', 'Production send', true)}
@@ -281,6 +365,7 @@ function renderBriefingActions() {
     </div>
   `;
   container.onclick = (event) => {
+    if (!isReady) return;
     const button = event.target.closest('[data-briefing-send]');
     if (!button || button.disabled) return;
     const [type, mode] = String(button.dataset.briefingSend || '').split(':');
@@ -291,6 +376,18 @@ function renderBriefingActions() {
 function renderBriefingLogTable() {
   const container = document.getElementById('opsBriefingLogTable');
   if (!container) return;
+  if (BRIEFING_LOGS_ERROR) {
+    container.innerHTML = renderBriefingUnavailablePanel(
+      'log table',
+      [BRIEFING_LOGS_ERROR || 'briefing logs unavailable'],
+      '브리핑 로그를 확인할 수 없습니다.'
+    );
+    return;
+  }
+  if (!BRIEFING_LOGS_OK) {
+    container.innerHTML = renderBriefingLoadingPanel('log table', '브리핑 로그를 불러오는 중입니다.');
+    return;
+  }
   const logs = Array.isArray(BRIEFING_LOGS) ? BRIEFING_LOGS : [];
   if (!logs.length) {
     container.innerHTML = `
@@ -348,25 +445,49 @@ function renderBriefingConsole() {
 }
 
 async function loadBriefingStatus() {
+  BRIEFING_STATUS_OK = false;
+  BRIEFING_LOGS_OK = false;
+  BRIEFING_STATUS_ERROR = '';
+  BRIEFING_LOGS_ERROR = '';
   try {
-    const [statusR, logsR] = await Promise.all([
+    renderBriefingConsole();
+    const [statusR, logsR] = await Promise.allSettled([
       fetch('/api/briefing/status'),
       fetch('/api/briefing/logs'),
     ]);
-    const status = statusR.ok ? await statusR.json().catch(() => ({})) : {};
-    BRIEFING_STATUS = normalizeBriefingStatus(status);
-    BRIEFING_LOGS = logsR.ok ? await logsR.json().catch(() => []) : [];
-    renderBriefingConsole();
+    if (statusR.status === 'fulfilled' && statusR.value.ok) {
+      const status = await statusR.value.json().catch(() => ({}));
+      BRIEFING_STATUS = normalizeBriefingStatus(status);
+      BRIEFING_STATUS_OK = true;
+    } else {
+      BRIEFING_STATUS = normalizeBriefingStatus({});
+      BRIEFING_STATUS_ERROR = statusR.status === 'fulfilled'
+        ? `briefing status request failed (${statusR.value.status})`
+        : `briefing status request failed (${statusR.reason?.message || 'network error'})`;
+    }
+
+    if (logsR.status === 'fulfilled' && logsR.value.ok) {
+      BRIEFING_LOGS = await logsR.value.json().catch(() => []);
+      BRIEFING_LOGS_OK = true;
+    } else {
+      BRIEFING_LOGS = [];
+      BRIEFING_LOGS_ERROR = logsR.status === 'fulfilled'
+        ? `briefing logs request failed (${logsR.value.status})`
+        : `briefing logs request failed (${logsR.reason?.message || 'network error'})`;
+    }
   } catch (error) {
     console.error('briefing console load failed', error);
     BRIEFING_STATUS = normalizeBriefingStatus({});
     BRIEFING_LOGS = [];
+    BRIEFING_STATUS_ERROR = error.message || 'briefing status request failed';
+    BRIEFING_LOGS_ERROR = error.message || 'briefing logs request failed';
+  } finally {
     renderBriefingConsole();
   }
 }
 
 async function sendBriefingAction(type, mode) {
-  if (BRIEFING_SEND_BUSY) return;
+  if (BRIEFING_SEND_BUSY || !briefingConsoleIsReady()) return;
   const key = `${type}:${mode}`;
   const label = `${briefingTypeLabel(type)} 브리핑`;
   if (!confirm(`${label}을(를) ${mode === 'test' ? 'test' : 'production'} 모드로 발송할까요?`)) return;
