@@ -1,3 +1,4 @@
+import json
 import importlib
 import os
 import sys
@@ -39,8 +40,26 @@ def test_create_briefing_log_persists_new_metadata():
             )
 
             persisted = session.query(database.BriefingLog).filter_by(id=created.id).one()
+            assert persisted.period_label == "2026-03-20"
+            assert persisted.source_event_count == 5
+            assert persisted.source_product_count == 2
+            assert persisted.ai_summary_status == "rule"
+            assert persisted.template_version == "v3"
+            assert persisted.warning_json == json.dumps({"warnings": ["late_renewal"]}, ensure_ascii=False)
             assert persisted.delivery_mode == "digest"
             assert persisted.warning_count == 2
         finally:
             session.close()
             database.engine.dispose()
+
+
+if __name__ == "__main__":
+    for name, fn in list(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            try:
+                fn()
+                print(f"  PASS {name}")
+            except AssertionError as exc:
+                print(f"  FAIL {name}: {exc}")
+                raise
+    print("Done.")
