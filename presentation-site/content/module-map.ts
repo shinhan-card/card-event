@@ -1,9 +1,12 @@
+type ClusterGroup = "shared-core" | "event-axis" | "product-axis" | "delivery-surfaces";
+type EvidenceLevel = "implemented" | "approved";
+
 type PublicCluster = {
   key: string;
-  group: "shared-core" | "event-axis" | "product-axis" | "delivery-surfaces";
+  group: ClusterGroup;
   title: string;
   summary: string;
-  evidenceLevel: "implemented" | "approved";
+  evidenceLevel: EvidenceLevel;
   files: readonly string[];
 };
 
@@ -39,60 +42,44 @@ const defineHidden = <T extends object, K extends PropertyKey, V>(
   return target as T & Record<K, V>;
 };
 
-const cluster = (
-  key: PublicCluster["key"],
-  group: PublicCluster["group"],
-  title: string,
-  summary: string,
-  evidenceLevel: PublicCluster["evidenceLevel"],
-  files: readonly string[],
-): PublicCluster => ({
-  key,
-  group,
-  title,
-  summary,
-  evidenceLevel,
-  files,
-});
-
-const clusters = [
-  cluster(
-    "shared-core-implemented",
-    "shared-core",
-    "공유 코어 구현",
-    "현재 브랜치에서 실제로 확인되는 애플리케이션 진입점과 저장 계층입니다.",
-    "implemented",
-    ["app.py", "database.py"],
-  ),
-  cluster(
-    "shared-core-approved",
-    "shared-core",
-    "공유 코어 승인 경로",
-    "브랜치에는 아직 없지만 계획상 포함된 헬스 체크와 API 유틸 경로입니다.",
-    "approved",
-    ["routers/health.py", "modules/api_utils.py"],
-  ),
-  cluster(
-    "event-axis-implemented",
-    "event-axis",
-    "이벤트 축 구현 경로",
-    "이벤트 수집, 추출, 정규화, 파이프라인, 인사이트 생성의 실제 구현 묶음입니다.",
-    "implemented",
-    [
+const detailedClusters = [
+  {
+    key: "shared-core-implemented",
+    group: "shared-core",
+    title: "공유 코어 구현",
+    summary: "현재 브랜치에서 실제로 확인되는 애플리케이션 진입점과 저장 계층입니다.",
+    evidenceLevel: "implemented",
+    files: ["app.py", "database.py"],
+  },
+  {
+    key: "shared-core-approved",
+    group: "shared-core",
+    title: "공유 코어 승인 경로",
+    summary: "브랜치에는 아직 없지만 계획상 포함된 헬스 체크와 API 유틸 경로입니다.",
+    evidenceLevel: "approved",
+    files: ["routers/health.py", "modules/api_utils.py"],
+  },
+  {
+    key: "event-axis-implemented",
+    group: "event-axis",
+    title: "이벤트 축 구현 경로",
+    summary: "이벤트 수집, 추출, 정규화, 파이프라인, 인사이트 생성의 실제 구현 묶음입니다.",
+    evidenceLevel: "implemented",
+    files: [
       "modules/connectors/*",
       "modules/extraction.py",
       "modules/normalization.py",
       "modules/pipeline.py",
       "modules/insights.py",
     ],
-  ),
-  cluster(
-    "event-axis-approved",
-    "event-axis",
-    "이벤트 축 승인 경로",
-    "계획에는 있지만 이 브랜치에는 아직 반영되지 않은 라우터와 세부 해석 모듈입니다.",
-    "approved",
-    [
+  },
+  {
+    key: "event-axis-approved",
+    group: "event-axis",
+    title: "이벤트 축 승인 경로",
+    summary: "계획에는 있지만 이 브랜치에는 아직 반영되지 않은 라우터와 세부 해석 모듈입니다.",
+    evidenceLevel: "approved",
+    files: [
       "routers/events.py",
       "routers/pipeline.py",
       "routers/jobs.py",
@@ -101,14 +88,14 @@ const clusters = [
       "modules/condition_facts.py",
       "modules/rules_engine.py",
     ],
-  ),
-  cluster(
-    "product-axis-approved",
-    "product-axis",
-    "상품 축 승인 경로",
-    "상품 설명서, 공시, RAG 파이프라인을 구성하는 승인 상태의 경로입니다.",
-    "approved",
-    [
+  },
+  {
+    key: "product-axis-approved",
+    group: "product-axis",
+    title: "상품 축 승인 경로",
+    summary: "상품 설명서, 공시, RAG 파이프라인을 구성하는 승인 상태의 경로입니다.",
+    evidenceLevel: "approved",
+    files: [
       "routers/disclosures.py",
       "routers/rag.py",
       "modules/product_links.py",
@@ -118,26 +105,26 @@ const clusters = [
       "modules/rag/product_scraper.py",
       "modules/rag/catalog_summary.py",
     ],
-  ),
-  cluster(
-    "delivery-surfaces-implemented",
-    "delivery-surfaces",
-    "전달면 구현 경로",
-    "현재 브랜치에서 확인 가능한 실제 대시보드 템플릿과 프런트엔드 스크립트입니다.",
-    "implemented",
-    [
+  },
+  {
+    key: "delivery-surfaces-implemented",
+    group: "delivery-surfaces",
+    title: "전달면 구현 경로",
+    summary: "현재 브랜치에서 확인 가능한 실제 대시보드 템플릿과 프런트엔드 스크립트입니다.",
+    evidenceLevel: "implemented",
+    files: [
       "templates/dashboard_luxury.html",
       "templates/dashboard_pro.html",
       "static/js/dashboard.js",
     ],
-  ),
-  cluster(
-    "delivery-surfaces-approved",
-    "delivery-surfaces",
-    "전달면 승인 경로",
-    "브리핑, 애널리틱스, 이메일 리포트 표면을 구성하는 승인 상태의 경로입니다.",
-    "approved",
-    [
+  },
+  {
+    key: "delivery-surfaces-approved",
+    group: "delivery-surfaces",
+    title: "전달면 승인 경로",
+    summary: "브리핑, 애널리틱스, 이메일 리포트 표면을 구성하는 승인 상태의 경로입니다.",
+    evidenceLevel: "approved",
+    files: [
       "routers/analytics.py",
       "routers/briefing.py",
       "routers/pages.py",
@@ -147,7 +134,76 @@ const clusters = [
       "templates/weekly_report.html",
       "static/js/dashboard_extras.js",
     ],
-  ),
+  },
+] as const satisfies readonly PublicCluster[];
+
+const publicClusters = [
+  {
+    key: "shared-core",
+    group: "shared-core",
+    title: "공유 코어",
+    summary: "앱 진입점, 저장 계층, 헬스 체크와 API 유틸이 함께 놓이는 공용 기반입니다.",
+    evidenceLevel: "implemented",
+    files: ["app.py", "database.py", "routers/health.py", "modules/api_utils.py"],
+  },
+  {
+    key: "event-axis",
+    group: "event-axis",
+    title: "이벤트 축",
+    summary: "경쟁 카드 이벤트를 수집하고 해석하는 구현 경로와 승인 경로를 한 축으로 묶었습니다.",
+    evidenceLevel: "implemented",
+    files: [
+      "modules/connectors/*",
+      "modules/extraction.py",
+      "modules/normalization.py",
+      "modules/pipeline.py",
+      "modules/insights.py",
+      "routers/events.py",
+      "routers/pipeline.py",
+      "routers/jobs.py",
+      "modules/event_enrichment.py",
+      "modules/classification.py",
+      "modules/condition_facts.py",
+      "modules/rules_engine.py",
+    ],
+  },
+  {
+    key: "product-axis",
+    group: "product-axis",
+    title: "상품 축",
+    summary: "상품 설명서와 공시를 RAG 기반 지식으로 바꾸는 승인 경로를 별도 축으로 유지합니다.",
+    evidenceLevel: "approved",
+    files: [
+      "routers/disclosures.py",
+      "routers/rag.py",
+      "modules/product_links.py",
+      "modules/rag/collector.py",
+      "modules/rag/chunker.py",
+      "modules/rag/embedder.py",
+      "modules/rag/product_scraper.py",
+      "modules/rag/catalog_summary.py",
+    ],
+  },
+  {
+    key: "delivery-surfaces",
+    group: "delivery-surfaces",
+    title: "전달면",
+    summary: "대시보드, 브리핑, 애널리틱스, 이메일 리포트를 잇는 결과 표면입니다.",
+    evidenceLevel: "implemented",
+    files: [
+      "templates/dashboard_luxury.html",
+      "templates/dashboard_pro.html",
+      "static/js/dashboard.js",
+      "routers/analytics.py",
+      "routers/briefing.py",
+      "routers/pages.py",
+      "modules/analytics_service.py",
+      "modules/briefing.py",
+      "templates/email_daily_briefing.html",
+      "templates/weekly_report.html",
+      "static/js/dashboard_extras.js",
+    ],
+  },
 ] as const satisfies readonly PublicCluster[];
 
 const evidenceLabel = {
@@ -155,7 +211,7 @@ const evidenceLabel = {
   approved: "승인된 설계",
 } as const;
 
-const technologiesByGroup: Record<PublicCluster["group"], readonly string[]> = {
+const technologiesByGroup: Record<ClusterGroup, readonly string[]> = {
   "shared-core": ["FastAPI", "SQLite", "SQLAlchemy"],
   "event-axis": ["Playwright", "BeautifulSoup", "Gemini"],
   "product-axis": ["PDF/HTML extraction", "ChromaDB", "RAG"],
@@ -164,7 +220,7 @@ const technologiesByGroup: Record<PublicCluster["group"], readonly string[]> = {
 
 export const moduleMap: LegacyModuleMap = defineHidden(
   {
-    clusters,
+    clusters: publicClusters,
   },
   "sections",
   [
@@ -172,57 +228,45 @@ export const moduleMap: LegacyModuleMap = defineHidden(
       key: "shared-foundation",
       title: "공유 코어와 전달면",
       summary: "애플리케이션 공통 기반과 결과를 보여주는 전달면을 하나의 기둥으로 묶습니다.",
-      clusters: [
-        ...clusters
-          .filter((item) => item.group === "shared-core")
-          .map((item) => ({
-            key: "shared",
-            title: item.title,
-            summary: item.summary,
-            technologies: technologiesByGroup[item.group],
-            evidence: evidenceLabel[item.evidenceLevel],
-            files: item.files,
-          })),
-        ...clusters
-          .filter((item) => item.group === "delivery-surfaces")
-          .map((item) => ({
-            key: "shared",
-            title: item.title,
-            summary: item.summary,
-            technologies: technologiesByGroup[item.group],
-            evidence: evidenceLabel[item.evidenceLevel],
-            files: item.files,
-          })),
-      ],
+      clusters: detailedClusters
+        .filter((cluster) => cluster.group === "shared-core" || cluster.group === "delivery-surfaces")
+        .map((cluster) => ({
+          key: "shared",
+          title: cluster.title,
+          summary: cluster.summary,
+          technologies: technologiesByGroup[cluster.group],
+          evidence: evidenceLabel[cluster.evidenceLevel],
+          files: cluster.files,
+        })),
     },
     {
       key: "event-pipeline",
       title: "이벤트 파이프라인",
       summary: "경쟁 카드 이벤트를 수집하고 해석하는 실제 경로와 승인 경로를 함께 배치합니다.",
-      clusters: clusters
-        .filter((item) => item.group === "event-axis")
-        .map((item) => ({
+      clusters: detailedClusters
+        .filter((cluster) => cluster.group === "event-axis")
+        .map((cluster) => ({
           key: "event-pipeline",
-          title: item.title,
-          summary: item.summary,
-          technologies: technologiesByGroup[item.group],
-          evidence: evidenceLabel[item.evidenceLevel],
-          files: item.files,
+          title: cluster.title,
+          summary: cluster.summary,
+          technologies: technologiesByGroup[cluster.group],
+          evidence: evidenceLabel[cluster.evidenceLevel],
+          files: cluster.files,
         })),
     },
     {
       key: "product-rag",
       title: "상품 지식 파이프라인",
       summary: "상품 설명서와 공시를 RAG 기반 지식으로 바꾸는 승인 경로를 별도 축으로 유지합니다.",
-      clusters: clusters
-        .filter((item) => item.group === "product-axis")
-        .map((item) => ({
+      clusters: detailedClusters
+        .filter((cluster) => cluster.group === "product-axis")
+        .map((cluster) => ({
           key: "product-rag",
-          title: item.title,
-          summary: item.summary,
-          technologies: technologiesByGroup[item.group],
-          evidence: evidenceLabel[item.evidenceLevel],
-          files: item.files,
+          title: cluster.title,
+          summary: cluster.summary,
+          technologies: technologiesByGroup[cluster.group],
+          evidence: evidenceLabel[cluster.evidenceLevel],
+          files: cluster.files,
         })),
     },
   ],

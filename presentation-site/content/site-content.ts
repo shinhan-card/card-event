@@ -2,10 +2,11 @@ import { architectureContent } from "@/content/architecture-content";
 
 type SiteHref =
   | "/"
+  | "/#axes"
+  | "/#how-it-works"
+  | "/#value"
   | "/deep-dive"
-  | "/deep-dive#executive-blueprint"
-  | "/deep-dive#module-map"
-  | "/deep-dive#roadmap";
+  | "/deep-dive#executive-blueprint";
 
 type PublicSiteContent = {
   copy: typeof architectureContent.copy;
@@ -94,7 +95,10 @@ type LegacySiteContent = PublicSiteContent & {
       title: string;
       summary: string;
       supportingCopy: string;
-      cta: PublicSiteContent["hero"]["primaryCta"];
+      cta: {
+        label: string;
+        href: SiteHref;
+      };
     };
   };
 };
@@ -117,16 +121,17 @@ const defineHidden = <T extends object, K extends PropertyKey, V>(
 const copy = architectureContent.copy;
 
 const snapshotMeta = {
-  label: "스냅샷 기준",
+  label: copy.snapshotLabel,
   capturedOn: "2026-03-20",
   note: "Task 1 공개 계약을 기준으로 랜딩과 딥다이브의 콘텐츠 스키마를 다시 맞췄습니다.",
 } as const satisfies PublicSiteContent["snapshotMeta"];
 
 const navigation = [
   { href: "/", label: copy.navOverview },
-  { href: "/deep-dive", label: copy.navArchitecture },
-  { href: "/deep-dive#module-map", label: copy.navEvidence },
-  { href: "/deep-dive#roadmap", label: copy.navRoadmap },
+  { href: "/#axes", label: copy.navAxes },
+  { href: "/#how-it-works", label: copy.navHowItWorks },
+  { href: "/#value", label: copy.navValue },
+  { href: "/deep-dive", label: copy.navDeepDive },
 ] as const satisfies PublicSiteContent["navigation"];
 
 const hero = {
@@ -135,11 +140,11 @@ const hero = {
   summary:
     "랜딩은 질문의 축, 전달면, 시스템 가치를 먼저 정리해 의사결정자가 왜 이 구조가 필요한지 빠르게 이해하도록 돕습니다.",
   primaryCta: {
-    label: copy.heroPrimaryCta,
+    label: copy.ctaPrimary,
     href: "/deep-dive",
   },
   secondaryCta: {
-    label: copy.heroSecondaryCta,
+    label: copy.ctaSecondary,
     href: "/deep-dive#executive-blueprint",
   },
 } as const satisfies PublicSiteContent["hero"];
@@ -148,52 +153,52 @@ const landingScenes = [
   {
     key: "thesis",
     anchorId: "overview",
-    title: "두 개의 인텔리전스 축을 한 장의 지도에 올립니다",
+    title: copy.landingThesis,
     summary: "이벤트 변화 신호와 상품 문서 근거를 함께 보여주되, 질문은 섞지 않고 분리해서 설명합니다.",
   },
   {
     key: "tension",
-    anchorId: "problem",
-    title: "시장 신호와 상품 근거는 다른 속도로 움직입니다",
+    anchorId: "axes",
+    title: copy.landingTension,
     summary: "이벤트는 빠른 변화 신호를 다루고, 상품 지식은 긴 문서 근거를 다루기 때문에 다른 처리 축이 필요합니다.",
   },
   {
     key: "dual-engine",
     anchorId: "how-it-works",
-    title: "듀얼 엔진 구조로 수집과 해석을 분리합니다",
+    title: copy.landingEngine,
     summary: "이벤트 해석 엔진과 상품 지식 엔진이 같은 전달면으로 합류하지만, 처리 레인은 끝까지 분리됩니다.",
   },
   {
     key: "decision-surfaces",
     anchorId: "decision-surfaces",
-    title: "운영 판단이 필요한 화면만 남깁니다",
+    title: copy.landingDecision,
     summary: "브리핑, 분석, 발표 화면이 같은 구조 결과를 소비하도록 정렬해 의사결정 흐름을 짧게 만듭니다.",
   },
   {
     key: "system-value",
-    anchorId: "outcomes",
-    title: "가치는 근거 추적과 재사용성에서 나옵니다",
+    anchorId: "value",
+    title: copy.landingValue,
     summary: "어떤 근거가 어떤 응답으로 이어졌는지 설명 가능해야 시스템 가치가 유지됩니다.",
   },
   {
     key: "deep-dive-handoff",
     anchorId: "deep-dive-cta",
-    title: "딥다이브에서 실제 모듈 경계와 증거 수준을 확인합니다",
+    title: copy.landingHandoff,
     summary: "랜딩은 질문과 가치에 집중하고, 딥다이브는 보드 순서와 모듈 근거를 상세히 보여줍니다.",
   },
 ] as const satisfies PublicSiteContent["landingScenes"];
 
 const decisionSurfaces = [
   {
-    title: copy.eventAxisLabel,
+    title: architectureContent.axes[0].title,
     summary: "Playwright, BeautifulSoup, Gemini를 통해 경쟁 카드 이벤트 변화를 읽고 운영 브리핑으로 전달합니다.",
   },
   {
-    title: copy.productAxisLabel,
+    title: architectureContent.axes[1].title,
     summary: "PDF/HTML extraction, ChromaDB, RAG를 통해 상품 설명서와 공시를 검색 가능한 지식으로 전환합니다.",
   },
   {
-    title: copy.deliverySurfaceLabel,
+    title: "공유 전달면",
     summary: "FastAPI, SQLite, SQLAlchemy를 통해 브리핑과 분석 화면이 같은 결과를 소비하도록 연결합니다.",
   },
 ] as const satisfies PublicSiteContent["decisionSurfaces"];
@@ -205,7 +210,7 @@ const valueCards = [
   },
   {
     title: "근거 추적이 쉬워집니다",
-    summary: "모듈 맵에서 구현됨과 승인된 설계를 구분해, 어떤 경로가 실제 코드인지 바로 설명할 수 있습니다.",
+    summary: "모듈 맵에서 구현된 경로와 승인된 설계를 함께 읽어 현재 상태를 바로 설명할 수 있습니다.",
   },
   {
     title: "랜딩에서 딥다이브로 자연스럽게 넘어갑니다",
@@ -221,7 +226,7 @@ const publicSiteContent = {
   landingScenes,
   decisionSurfaces,
   valueCards,
-} satisfies PublicSiteContent;
+} as const satisfies PublicSiteContent;
 
 export const siteContent: LegacySiteContent = defineHidden(
   defineHidden(publicSiteContent, "snapshot", snapshotMeta),
@@ -255,7 +260,7 @@ export const siteContent: LegacySiteContent = defineHidden(
       eyebrow: "공유 전달면",
       title: "두 축은 같은 의사결정 표면으로 수렴합니다",
       summary: "오케스트레이션은 분리된 질문을 유지하면서도 운영자가 보는 결과 화면은 하나의 언어로 맞춥니다.",
-      sharedDeliveryLabel: copy.deliverySurfaceLabel,
+      sharedDeliveryLabel: "공유 전달면",
       sharedDeliverySummary:
         "브리핑, 분석, 발표 화면이 같은 구조 결과를 소비하도록 정렬하면 전달 비용이 줄고 설명 가능성이 올라갑니다.",
     },

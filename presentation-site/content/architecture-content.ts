@@ -8,6 +8,7 @@ type BoardKey =
   | "principles-evolution";
 
 type AxisKey = "event-intelligence" | "product-intelligence";
+type RoadmapStage = "now" | "next" | "later";
 
 type EventInterpretationStepKey =
   | "collect"
@@ -33,26 +34,30 @@ type CopyContract = {
   productName: string;
   deckTitle: string;
   navOverview: string;
-  navArchitecture: string;
-  navEvidence: string;
-  navRoadmap: string;
-  heroPrimaryCta: string;
-  heroSecondaryCta: string;
-  eventAxisLabel: string;
-  productAxisLabel: string;
-  deliverySurfaceLabel: string;
-  evidenceImplemented: string;
-  evidenceApproved: string;
-  boardExecutiveBlueprint: string;
-  boardDualAxisMacro: string;
-  boardEventInterpretation: string;
-  boardProductKnowledge: string;
-  boardOrchestrationControl: string;
-  boardEvidenceModuleMap: string;
-  boardPrinciplesEvolution: string;
+  navAxes: string;
+  navHowItWorks: string;
+  navValue: string;
+  navDeepDive: string;
+  ctaPrimary: string;
+  ctaSecondary: string;
+  landingThesis: string;
+  landingTension: string;
+  landingEngine: string;
+  landingDecision: string;
+  landingValue: string;
+  landingHandoff: string;
+  deepDiveExecutive: string;
+  deepDiveDualAxis: string;
+  deepDiveEvent: string;
+  deepDiveProduct: string;
+  deepDiveOrchestration: string;
+  deepDiveModules: string;
+  deepDivePrinciples: string;
+  snapshotLabel: string;
 };
 
 type PublicAxis = {
+  key: AxisKey;
   title: string;
   question: string;
   summary: string;
@@ -62,7 +67,7 @@ type PublicAxis = {
 type PublicArchitectureContent = {
   copy: CopyContract;
   boardOrder: readonly BoardKey[];
-  axes: Record<AxisKey, PublicAxis>;
+  axes: readonly PublicAxis[];
   executiveBlueprint: {
     inputLanes: readonly string[];
     processingLanes: readonly string[];
@@ -101,30 +106,11 @@ type PublicArchitectureContent = {
   roadmap: readonly {
     title: string;
     caption: string;
-    stage: string;
+    stage: RoadmapStage;
   }[];
 };
 
-type LegacyAxis = PublicAxis & { key: AxisKey };
-
-type LegacyStage = {
-  key: string;
-  title: string;
-  technology: readonly string[];
-  description: string;
-};
-
 type LegacyArchitectureContent = PublicArchitectureContent & {
-  axes: PublicArchitectureContent["axes"] & {
-    map: <T>(
-      callback: (axis: LegacyAxis, index: number, axes: readonly LegacyAxis[]) => T,
-    ) => T[];
-    forEach: (
-      callback: (axis: LegacyAxis, index: number, axes: readonly LegacyAxis[]) => void,
-    ) => void;
-    readonly length: number;
-    [Symbol.iterator]: () => IterableIterator<LegacyAxis>;
-  };
   deepDive: {
     eyebrow: string;
     title: string;
@@ -218,7 +204,12 @@ type LegacyArchitectureContent = PublicArchitectureContent & {
       next: string;
     }[];
   };
-  stages: readonly LegacyStage[];
+  stages: readonly {
+    key: string;
+    title: string;
+    technology: readonly string[];
+    description: string;
+  }[];
   orchestration: {
     summary: string;
   };
@@ -243,23 +234,26 @@ const copy = {
   productName: "카드 이벤트 인텔리전스",
   deckTitle: "실행 아틀라스",
   navOverview: "개요",
-  navArchitecture: "아키텍처",
-  navEvidence: "근거 모듈 맵",
-  navRoadmap: "로드맵",
-  heroPrimaryCta: "딥다이브 보기",
-  heroSecondaryCta: "핵심 흐름 보기",
-  eventAxisLabel: "이벤트 인텔리전스",
-  productAxisLabel: "상품 지식 인텔리전스",
-  deliverySurfaceLabel: "공유 전달면",
-  evidenceImplemented: "구현됨",
-  evidenceApproved: "승인된 설계",
-  boardExecutiveBlueprint: "이그제큐티브 블루프린트",
-  boardDualAxisMacro: "듀얼 축 매크로",
-  boardEventInterpretation: "이벤트 해석",
-  boardProductKnowledge: "상품 지식",
-  boardOrchestrationControl: "오케스트레이션 제어",
-  boardEvidenceModuleMap: "근거 모듈 맵",
-  boardPrinciplesEvolution: "원칙과 진화",
+  navAxes: "두 축",
+  navHowItWorks: "작동 흐름",
+  navValue: "가치",
+  navDeepDive: "딥다이브",
+  ctaPrimary: "딥다이브 보기",
+  ctaSecondary: "핵심 흐름 보기",
+  landingThesis: "두 개의 인텔리전스 축을 한 장의 지도에 올립니다",
+  landingTension: "시장 신호와 상품 근거는 다른 속도로 움직입니다",
+  landingEngine: "듀얼 엔진 구조로 수집과 해석을 분리합니다",
+  landingDecision: "운영 판단이 필요한 화면만 남깁니다",
+  landingValue: "가치는 근거 추적과 재사용성에서 나옵니다",
+  landingHandoff: "딥다이브에서 실제 모듈 경계와 증거 수준을 확인합니다",
+  deepDiveExecutive: "이그제큐티브 블루프린트",
+  deepDiveDualAxis: "듀얼 축 매크로",
+  deepDiveEvent: "이벤트 해석",
+  deepDiveProduct: "상품 지식",
+  deepDiveOrchestration: "오케스트레이션 제어",
+  deepDiveModules: "근거 모듈 맵",
+  deepDivePrinciples: "원칙과 진화",
+  snapshotLabel: "스냅샷 기준",
 } as const satisfies CopyContract;
 
 const boardOrder = [
@@ -272,61 +266,27 @@ const boardOrder = [
   "principles-evolution",
 ] as const satisfies readonly BoardKey[];
 
-const axisEntries = [
-  defineHidden(
-    {
-      title: copy.eventAxisLabel,
-      question: "경쟁 카드 이벤트에서 지금 무엇이 달라지고 있고, 운영자는 무엇을 먼저 읽어야 하는가?",
-      summary: "빠르게 변하는 시장 신호를 수집하고 해석해 운영 브리핑으로 연결하는 축입니다.",
-      technologyBadges: ["Playwright", "BeautifulSoup", "Gemini"],
-    },
-    "key",
-    "event-intelligence" as const,
-  ),
-  defineHidden(
-    {
-      title: copy.productAxisLabel,
-      question: "상품 설명서와 공시 원문에서 어떤 근거를 구조화해 검색 가능한 지식으로 바꿀 것인가?",
-      summary: "느리지만 깊은 문서 근거를 정리해 설명 가능한 응답으로 전달하는 축입니다.",
-      technologyBadges: ["PDF/HTML extraction", "RAG", "ChromaDB"],
-    },
-    "key",
-    "product-intelligence" as const,
-  ),
-] as const satisfies readonly LegacyAxis[];
-
-const axesRecord = {
-  "event-intelligence": axisEntries[0],
-  "product-intelligence": axisEntries[1],
-} satisfies PublicArchitectureContent["axes"];
-
-const axes = defineHidden(
-  defineHidden(
-    defineHidden(
-      defineHidden(
-        axesRecord,
-        "map",
-        <T>(callback: (axis: LegacyAxis, index: number, axes: readonly LegacyAxis[]) => T) =>
-          axisEntries.map((axis, index) => callback(axis, index, axisEntries)),
-      ),
-      "forEach",
-      (callback: (axis: LegacyAxis, index: number, axes: readonly LegacyAxis[]) => void) => {
-        axisEntries.forEach((axis, index) => callback(axis, index, axisEntries));
-      },
-    ),
-    "length",
-    axisEntries.length,
-  ),
-  Symbol.iterator,
-  function* iterateAxes() {
-    yield* axisEntries;
+const axes = [
+  {
+    key: "event-intelligence",
+    title: "이벤트 인텔리전스",
+    question: "경쟁 카드 이벤트에서 지금 무엇이 달라지고 있고, 운영자는 무엇을 먼저 읽어야 하는가?",
+    summary: "빠르게 변하는 시장 신호를 수집하고 해석해 운영 브리핑으로 연결하는 축입니다.",
+    technologyBadges: ["Playwright", "BeautifulSoup", "Gemini"],
   },
-);
+  {
+    key: "product-intelligence",
+    title: "상품 지식 인텔리전스",
+    question: "상품 설명서와 공시 원문에서 어떤 근거를 구조화해 검색 가능한 지식으로 바꿀 것인가?",
+    summary: "느리지만 깊은 문서 근거를 정리해 설명 가능한 응답으로 전달하는 축입니다.",
+    technologyBadges: ["PDF/HTML extraction", "RAG", "ChromaDB"],
+  },
+] as const satisfies PublicArchitectureContent["axes"];
 
 const executiveBlueprint = {
   inputLanes: [
     "이벤트 페이지와 커넥터 신호를 수집합니다.",
-    "상품 설명서, 공시, 링크 원문을 근거 묶음으로 확보합니다.",
+    "상품 설명서와 공시 원문을 근거 묶음으로 확보합니다.",
   ],
   processingLanes: [
     "이벤트 축은 추출, 구조화, 규칙 해석, Gemini 보강으로 이어집니다.",
@@ -348,7 +308,7 @@ const executiveBlueprint = {
 } as const satisfies PublicArchitectureContent["executiveBlueprint"];
 
 const eventInterpretation = {
-  title: "이벤트 해석 흐름",
+  title: copy.deepDiveEvent,
   steps: [
     {
       key: "collect",
@@ -403,7 +363,7 @@ const eventInterpretation = {
 } as const satisfies PublicArchitectureContent["eventInterpretation"];
 
 const productKnowledge = {
-  title: "상품 지식 흐름",
+  title: copy.deepDiveProduct,
   steps: [
     {
       key: "collect-sources",
@@ -488,7 +448,7 @@ const orchestrationColumns = [
     technologies: ["PDF/HTML extraction", "ChromaDB", "RAG"],
   },
   {
-    title: copy.deliverySurfaceLabel,
+    title: "공유 전달면",
     nodes: ["브리핑", "분석", "발표 화면"],
     technologies: ["FastAPI", "SQLite", "SQLAlchemy"],
   },
@@ -513,17 +473,17 @@ const roadmap = [
   {
     title: "공개 계약 고정",
     caption: "랜딩과 딥다이브가 같은 복사 계약과 보드 순서를 소비하도록 공개 계약을 고정합니다.",
-    stage: "지금",
+    stage: "now",
   },
   {
     title: "모듈 근거 정렬",
-    caption: "구현됨과 승인된 설계를 근거 수준으로 나눠 모듈 맵에 유지합니다.",
-    stage: "다음",
+    caption: "구현됨과 승인된 설계를 같은 지도에서 읽되, 공용 계약은 단순하게 유지합니다.",
+    stage: "next",
   },
   {
     title: "승인 경로 구현 승격",
-    caption: "라우터와 RAG 경로가 코드로 채워지면 승인된 설계를 구현됨으로 올립니다.",
-    stage: "이후",
+    caption: "라우터와 RAG 경로가 코드로 채워지면 승인된 설계를 구현된 흐름으로 올립니다.",
+    stage: "later",
   },
 ] as const satisfies PublicArchitectureContent["roadmap"];
 
@@ -537,14 +497,14 @@ const publicArchitectureContent = {
   orchestrationColumns,
   principles,
   roadmap,
-} satisfies PublicArchitectureContent;
+} as const satisfies PublicArchitectureContent;
 
-const legacyStages = eventInterpretation.steps.map((step) => ({
+const legacyStages: LegacyArchitectureContent["stages"] = eventInterpretation.steps.map((step) => ({
   key: step.key,
   title: step.title,
   technology: step.technologies,
   description: step.summary,
-})) as readonly LegacyStage[];
+}));
 
 export const architectureContent: LegacyArchitectureContent = defineHidden(
   defineHidden(
@@ -575,20 +535,18 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
                       {
                         key: "inputs",
                         title: "입력 레인",
-                        summary:
-                          "이벤트 페이지 신호와 상품 설명서 원문이 각 축의 시작점으로 들어옵니다.",
+                        summary: "이벤트 페이지 신호와 상품 설명서 원문이 각 축의 시작점으로 들어옵니다.",
                         technologies: ["Playwright", "PDF/HTML extraction", "FastAPI"],
                       },
                       {
                         key: "processing",
                         title: "처리 레인",
-                        summary:
-                          "이벤트 해석과 상품 지식 처리가 각자의 도구 체인으로 끝까지 분리됩니다.",
+                        summary: "이벤트 해석과 상품 지식 처리가 각자의 도구 체인으로 끝까지 분리됩니다.",
                         technologies: ["BeautifulSoup", "Gemini", "RAG", "ChromaDB"],
                       },
                       {
                         key: "delivery",
-                        title: copy.deliverySurfaceLabel,
+                        title: "공유 전달면",
                         summary: "브리핑, 분석, 발표 화면이 같은 결과를 소비하는 마지막 면입니다.",
                         technologies: ["FastAPI", "SQLite", "SQLAlchemy"],
                       },
@@ -599,8 +557,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
                 {
                   eyebrow: "처리 단계 구조",
                   title: "처리 단계 구조",
-                  summary:
-                    "입력 확보, 해석 조합, 전달 정렬의 세 단계로 나눠 현재 앱이 설명하는 흐름을 유지합니다.",
+                  summary: "입력 확보, 해석 조합, 전달 정렬의 세 단계로 나눠 현재 앱이 설명하는 흐름을 유지합니다.",
                   cards: [
                     {
                       key: "capture",
@@ -633,8 +590,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
               {
                 eyebrow: "오케스트레이션 맵",
                 title: "오케스트레이션 맵",
-                summary:
-                  "제어면이 두 개의 처리 축과 공유 전달면을 엮어 운영 가능한 시스템으로 만듭니다.",
+                summary: "제어면이 두 개의 처리 축과 공유 전달면을 엮어 운영 가능한 시스템으로 만듭니다.",
                 groups: orchestrationColumns.map((column, index) => ({
                   key: ["control", "event", "product", "delivery"][index] ?? `group-${index}`,
                   label: column.title,
@@ -648,7 +604,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
                           ? "상품 문서 근거를 검색 가능한 지식으로 바꾸는 처리면입니다."
                           : "브리핑과 분석, 발표 화면이 같은 결과를 소비하는 전달면입니다.",
                   items: column.nodes.map((node, nodeIndex) => ({
-                    key: `${["control", "event", "product", "delivery"][index] ?? "group"}-${nodeIndex}`,
+                    key: `${column.title}-${nodeIndex}`,
                     title: node,
                     summary: `${node} 단계가 다음 처리면으로 이어질 수 있도록 결과를 정리합니다.`,
                     technologies: column.technologies,
@@ -663,8 +619,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
           {
             eyebrow: "설계 원칙",
             title: "설계 원칙",
-            summary:
-              "공개 계약을 좁게 유지하면서도 현재 소비자에게 필요한 설명 축은 그대로 이어지도록 설계했습니다.",
+            summary: "공개 계약은 좁게 유지하면서도 현재 소비자에게 필요한 설명 축은 그대로 이어지도록 설계했습니다.",
             cards: principles.map((principle, index) => ({
               key: `principle-${index + 1}`,
               title: principle.title,
@@ -676,12 +631,11 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
         {
           eyebrow: "이중 축 아키텍처",
           title: "이벤트와 상품 지식의 분리된 엔진",
-          summary:
-            "두 축은 같은 전달면을 바라보지만, 처리 단계와 질문 문맥은 끝까지 따로 유지됩니다.",
+          summary: "두 축은 같은 전달면을 바라보지만, 처리 단계와 질문 문맥은 끝까지 따로 유지됩니다.",
           lanes: [
             {
-              title: copy.eventAxisLabel,
-              summary: axesRecord["event-intelligence"].summary,
+              title: "이벤트 인텔리전스",
+              summary: axes[0].summary,
               items: eventInterpretation.steps.slice(0, 4).map((step) => ({
                 key: step.key,
                 title: step.title,
@@ -691,7 +645,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
             },
             {
               title: "상품 / 공시 인텔리전스",
-              summary: axesRecord["product-intelligence"].summary,
+              summary: axes[1].summary,
               items: productKnowledge.steps.slice(0, 4).map((step) => ({
                 key: step.key,
                 title: step.title,
@@ -701,7 +655,7 @@ export const architectureContent: LegacyArchitectureContent = defineHidden(
             },
           ],
           bridge: {
-            title: copy.deliverySurfaceLabel,
+            title: "공유 전달면",
             summary: "두 축의 결과가 브리핑, 분석, 발표 화면으로 다시 정렬되는 공용 연결부입니다.",
             items: [
               {

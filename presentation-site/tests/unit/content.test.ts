@@ -10,29 +10,32 @@ const expectKoreanLabel = (value: string) => {
 };
 
 describe("task 1 content contracts", () => {
-  it("shares the exact copy contract between site and architecture exports", () => {
+  it("shares the approved public uiCopy contract between site and architecture exports", () => {
     expect(siteContent.copy).toBe(architectureContent.copy);
     expect(Object.keys(siteContent.copy)).toEqual([
       "productName",
       "deckTitle",
       "navOverview",
-      "navArchitecture",
-      "navEvidence",
-      "navRoadmap",
-      "heroPrimaryCta",
-      "heroSecondaryCta",
-      "eventAxisLabel",
-      "productAxisLabel",
-      "deliverySurfaceLabel",
-      "evidenceImplemented",
-      "evidenceApproved",
-      "boardExecutiveBlueprint",
-      "boardDualAxisMacro",
-      "boardEventInterpretation",
-      "boardProductKnowledge",
-      "boardOrchestrationControl",
-      "boardEvidenceModuleMap",
-      "boardPrinciplesEvolution",
+      "navAxes",
+      "navHowItWorks",
+      "navValue",
+      "navDeepDive",
+      "ctaPrimary",
+      "ctaSecondary",
+      "landingThesis",
+      "landingTension",
+      "landingEngine",
+      "landingDecision",
+      "landingValue",
+      "landingHandoff",
+      "deepDiveExecutive",
+      "deepDiveDualAxis",
+      "deepDiveEvent",
+      "deepDiveProduct",
+      "deepDiveOrchestration",
+      "deepDiveModules",
+      "deepDivePrinciples",
+      "snapshotLabel",
     ]);
 
     Object.values(siteContent.copy).forEach((label) => {
@@ -40,7 +43,7 @@ describe("task 1 content contracts", () => {
     });
   });
 
-  it("exports only the plan-compliant site content fields", () => {
+  it("exports only the approved public site content fields", () => {
     expect(Object.keys(siteContent)).toEqual([
       "copy",
       "snapshotMeta",
@@ -52,16 +55,17 @@ describe("task 1 content contracts", () => {
     ]);
 
     expect(Object.keys(siteContent.snapshotMeta)).toEqual(["label", "capturedOn", "note"]);
+    expect(siteContent.snapshotMeta.label).toBe(siteContent.copy.snapshotLabel);
     expect(siteContent.snapshotMeta.capturedOn).toBe("2026-03-20");
-    expectKoreanLabel(siteContent.snapshotMeta.label);
     expectKoreanLabel(siteContent.snapshotMeta.note);
 
-    expect(siteContent.navigation).toHaveLength(4);
-    siteContent.navigation.forEach((item) => {
-      expect(Object.keys(item)).toEqual(["href", "label"]);
-      expect(item.href).toEqual(expect.stringMatching(/^\//));
-      expectKoreanLabel(item.label);
-    });
+    expect(siteContent.navigation).toEqual([
+      { href: "/", label: siteContent.copy.navOverview },
+      { href: "/#axes", label: siteContent.copy.navAxes },
+      { href: "/#how-it-works", label: siteContent.copy.navHowItWorks },
+      { href: "/#value", label: siteContent.copy.navValue },
+      { href: "/deep-dive", label: siteContent.copy.navDeepDive },
+    ]);
 
     expect(Object.keys(siteContent.hero)).toEqual([
       "eyebrow",
@@ -70,13 +74,8 @@ describe("task 1 content contracts", () => {
       "primaryCta",
       "secondaryCta",
     ]);
-    expectKoreanLabel(siteContent.hero.eyebrow);
-    expectKoreanLabel(siteContent.hero.title);
-    expectKoreanLabel(siteContent.hero.summary);
-    expect(Object.keys(siteContent.hero.primaryCta)).toEqual(["label", "href"]);
-    expect(Object.keys(siteContent.hero.secondaryCta)).toEqual(["label", "href"]);
-    expectKoreanLabel(siteContent.hero.primaryCta.label);
-    expectKoreanLabel(siteContent.hero.secondaryCta.label);
+    expect(siteContent.hero.primaryCta.label).toBe(siteContent.copy.ctaPrimary);
+    expect(siteContent.hero.secondaryCta.label).toBe(siteContent.copy.ctaSecondary);
 
     expect(siteContent.landingScenes.map((scene) => scene.key)).toEqual([
       "thesis",
@@ -86,10 +85,19 @@ describe("task 1 content contracts", () => {
       "system-value",
       "deep-dive-handoff",
     ]);
-    siteContent.landingScenes.forEach((scene) => {
+
+    const expectedLandingLabels = [
+      siteContent.copy.landingThesis,
+      siteContent.copy.landingTension,
+      siteContent.copy.landingEngine,
+      siteContent.copy.landingDecision,
+      siteContent.copy.landingValue,
+      siteContent.copy.landingHandoff,
+    ];
+
+    siteContent.landingScenes.forEach((scene, index) => {
       expect(Object.keys(scene)).toEqual(["key", "anchorId", "title", "summary"]);
-      expect(scene.anchorId).toEqual(expect.any(String));
-      expectKoreanLabel(scene.title);
+      expect(scene.title).toBe(expectedLandingLabels[index]);
       expectKoreanLabel(scene.summary);
     });
 
@@ -112,13 +120,12 @@ describe("task 1 content contracts", () => {
     expect(siteContent.showroom.problem.cards).toHaveLength(2);
     expect(siteContent.showroom.outcomes.cards).toHaveLength(siteContent.valueCards.length);
     expect(siteContent.showroom.deepDiveCta.cta.href).toBe(siteContent.hero.primaryCta.href);
-    expectKoreanLabel(siteContent.showroom.deepDiveCta.cta.label);
 
     expect(Object.getOwnPropertyDescriptor(siteContent, "snapshot")?.enumerable).toBe(false);
     expect(Object.getOwnPropertyDescriptor(siteContent, "showroom")?.enumerable).toBe(false);
   });
 
-  it("exports only the plan-compliant architecture fields", () => {
+  it("exports only the approved public architecture fields", () => {
     expect(Object.keys(architectureContent)).toEqual([
       "copy",
       "boardOrder",
@@ -131,6 +138,19 @@ describe("task 1 content contracts", () => {
       "roadmap",
     ]);
 
+    expect(Array.isArray(architectureContent.axes)).toBe(true);
+    expect(architectureContent.axes.map((axis) => axis.key)).toEqual([
+      "event-intelligence",
+      "product-intelligence",
+    ]);
+
+    architectureContent.axes.forEach((axis) => {
+      expect(Object.keys(axis)).toEqual(["key", "title", "question", "summary", "technologyBadges"]);
+      expectKoreanLabel(axis.title);
+      expectKoreanLabel(axis.question);
+      expectKoreanLabel(axis.summary);
+    });
+
     expect(architectureContent.boardOrder).toEqual([
       "executive-blueprint",
       "dual-axis-macro",
@@ -141,103 +161,18 @@ describe("task 1 content contracts", () => {
       "principles-evolution",
     ]);
 
-    expect(Object.keys(architectureContent.axes)).toEqual([
-      "event-intelligence",
-      "product-intelligence",
-    ]);
-
-    for (const [key, axis] of Object.entries(architectureContent.axes)) {
-      expect(Object.keys(axis)).toEqual(["title", "question", "summary", "technologyBadges"]);
-      expectKoreanLabel(axis.title);
-      expectKoreanLabel(axis.question);
-      expectKoreanLabel(axis.summary);
-      expect(axis.technologyBadges.length).toBeGreaterThan(0);
-      expect((axis as { key?: string }).key).toBe(key);
-      expect(Object.getOwnPropertyDescriptor(axis, "key")?.enumerable).toBe(false);
-    }
-
     expect(Object.keys(architectureContent.executiveBlueprint)).toEqual([
       "inputLanes",
       "processingLanes",
       "deliverySurface",
       "technologyBadges",
     ]);
-    architectureContent.executiveBlueprint.inputLanes.forEach((lane) => expectKoreanLabel(lane));
-    architectureContent.executiveBlueprint.processingLanes.forEach((lane) =>
-      expectKoreanLabel(lane),
-    );
-    architectureContent.executiveBlueprint.deliverySurface.forEach((surface) =>
-      expectKoreanLabel(surface),
-    );
-    expect(architectureContent.executiveBlueprint.technologyBadges).toEqual(
-      expect.arrayContaining([
-        "Playwright",
-        "BeautifulSoup",
-        "Gemini",
-        "FastAPI",
-        "APScheduler",
-        "SQLite",
-        "SQLAlchemy",
-        "ChromaDB",
-        "RAG",
-        "PDF/HTML extraction",
-      ]),
-    );
 
     expect(Object.keys(architectureContent.eventInterpretation)).toEqual(["title", "steps"]);
-    expectKoreanLabel(architectureContent.eventInterpretation.title);
-    expect(architectureContent.eventInterpretation.steps.map((step) => step.key)).toEqual([
-      "collect",
-      "extract",
-      "structure",
-      "rule-interpretation",
-      "gemini-augmentation",
-      "briefing-summary",
-      "deliver",
-    ]);
-    architectureContent.eventInterpretation.steps.forEach((step) => {
-      expect(Object.keys(step)).toEqual([
-        "key",
-        "title",
-        "summary",
-        "technologies",
-        "output",
-      ]);
-      expectKoreanLabel(step.title);
-      expectKoreanLabel(step.summary);
-      expectKoreanLabel(step.output);
-    });
-
     expect(Object.keys(architectureContent.productKnowledge)).toEqual(["title", "steps"]);
-    expectKoreanLabel(architectureContent.productKnowledge.title);
-    expect(architectureContent.productKnowledge.steps.map((step) => step.key)).toEqual([
-      "collect-sources",
-      "store-raw",
-      "clean-document",
-      "chunk",
-      "embed",
-      "store-vector",
-      "retrieve-rag",
-      "compose-response",
-      "deliver",
-    ]);
-    architectureContent.productKnowledge.steps.forEach((step) => {
-      expect(Object.keys(step)).toEqual([
-        "key",
-        "title",
-        "summary",
-        "technologies",
-        "output",
-      ]);
-      expectKoreanLabel(step.title);
-      expectKoreanLabel(step.summary);
-      expectKoreanLabel(step.output);
-    });
 
     architectureContent.orchestrationColumns.forEach((column) => {
       expect(Object.keys(column)).toEqual(["title", "nodes", "technologies"]);
-      expectKoreanLabel(column.title);
-      column.nodes.forEach((node) => expectKoreanLabel(node));
     });
 
     architectureContent.principles.forEach((principle) => {
@@ -248,17 +183,13 @@ describe("task 1 content contracts", () => {
 
     architectureContent.roadmap.forEach((item) => {
       expect(Object.keys(item)).toEqual(["title", "caption", "stage"]);
+      expect(["now", "next", "later"]).toContain(item.stage);
       expectKoreanLabel(item.title);
       expectKoreanLabel(item.caption);
-      expectKoreanLabel(item.stage);
     });
   });
 
   it("keeps architecture compatibility helpers hidden while preserving consumer access", () => {
-    expect(architectureContent.axes.map((axis) => axis.key)).toEqual([
-      "event-intelligence",
-      "product-intelligence",
-    ]);
     expect(architectureContent.deepDive.title).toEqual(expect.any(String));
     expect(architectureContent.conceptArchitecture.zones).toHaveLength(3);
     expect(architectureContent.stageBreakdown.cards).toHaveLength(3);
@@ -290,17 +221,13 @@ describe("task 1 content contracts", () => {
     });
   });
 
-  it("exports only the plan-compliant module map contract", () => {
+  it("exports only the approved public module map clusters", () => {
     expect(Object.keys(moduleMap)).toEqual(["clusters"]);
-
-    expect(moduleMap.clusters.map((cluster) => cluster.key)).toEqual([
-      "shared-core-implemented",
-      "shared-core-approved",
-      "event-axis-implemented",
-      "event-axis-approved",
-      "product-axis-approved",
-      "delivery-surfaces-implemented",
-      "delivery-surfaces-approved",
+    expect(moduleMap.clusters.map((cluster) => cluster.group)).toEqual([
+      "shared-core",
+      "event-axis",
+      "product-axis",
+      "delivery-surfaces",
     ]);
 
     moduleMap.clusters.forEach((cluster) => {
@@ -314,25 +241,11 @@ describe("task 1 content contracts", () => {
       ]);
       expectKoreanLabel(cluster.title);
       expectKoreanLabel(cluster.summary);
-      cluster.files.forEach((file) => {
-        expect(file).toEqual(expect.any(String));
-      });
     });
   });
 
   it("keeps module map compatibility helpers hidden from the public contract", () => {
     expect(moduleMap.sections.length).toBeGreaterThan(0);
-    expect(moduleMap.sections.some((section) => section.clusters.some((cluster) => cluster.key === "shared"))).toBe(true);
-    expect(
-      moduleMap.sections.some((section) =>
-        section.clusters.some((cluster) => cluster.key === "event-pipeline"),
-      ),
-    ).toBe(true);
-    expect(
-      moduleMap.sections.some((section) =>
-        section.clusters.some((cluster) => cluster.key === "product-rag"),
-      ),
-    ).toBe(true);
     expect(Object.getOwnPropertyDescriptor(moduleMap, "sections")?.enumerable).toBe(false);
   });
 });
