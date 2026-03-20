@@ -70,6 +70,35 @@ describe("route smoke", () => {
     });
   });
 
+  it("renders the Korean showroom landing headings from the public contract", () => {
+    render(
+      <PresentationShell>
+        <HomePage />
+      </PresentationShell>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: siteContent.hero.title, level: 1 }),
+    ).toBeInTheDocument();
+
+    siteContent.landingScenes.slice(1).forEach((scene) => {
+      expect(screen.getByRole("heading", { name: scene.title })).toBeInTheDocument();
+    });
+  });
+
+  it("surfaces landing technology labels for the showroom narrative", () => {
+    render(
+      <PresentationShell>
+        <HomePage />
+      </PresentationShell>,
+    );
+
+    expect(screen.getAllByText("Playwright").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("BeautifulSoup").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Gemini").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("FastAPI").length).toBeGreaterThan(0);
+  });
+
   it("renders signal flow labels", () => {
     render(
       <PresentationShell>
@@ -77,8 +106,8 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
-    expect(screen.getByText("수집")).toBeInTheDocument();
-    expect(screen.getByText("전달")).toBeInTheDocument();
+    expect(screen.getAllByText("수집").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("전달").length).toBeGreaterThan(0);
   });
 
   it("renders deep dive heading", () => {

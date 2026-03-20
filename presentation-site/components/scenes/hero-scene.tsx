@@ -1,8 +1,12 @@
 import Link from "next/link";
 import SectionShell from "@/components/chrome/section-shell";
 import SignalNetwork from "@/components/diagrams/signal-network";
-import { architectureContent } from "@/content/architecture-content";
 import { siteContent } from "@/content/site-content";
+import { getLandingScene } from "@/components/scenes/landing-scene-content";
+
+const thesisScene = getLandingScene("thesis");
+
+const heroTechnologies = ["Playwright", "BeautifulSoup", "Gemini", "FastAPI"] as const;
 
 export default function HeroScene() {
   return (
@@ -10,12 +14,13 @@ export default function HeroScene() {
       eyebrow={siteContent.hero.eyebrow}
       title={siteContent.hero.title}
       summary={siteContent.hero.summary}
-      id="overview"
+      id={thesisScene.anchorId}
       headingLevel={1}
     >
       <div className="scene-hero">
         <div className="scene-hero-copy">
-          <p className="scene-intro">{siteContent.showroom.hero.intro}</p>
+          <p className="scene-intro">{thesisScene.title}</p>
+          <p className="scene-intro">{thesisScene.summary}</p>
 
           <div className="scene-actions">
             <Link
@@ -32,10 +37,10 @@ export default function HeroScene() {
             </Link>
           </div>
 
-          <div className="scene-badge-row" aria-label="인텔리전스 축">
-            {architectureContent.axes.map((axis) => (
-              <span className="scene-badge" key={axis.key}>
-                {axis.title}
+          <div className="scene-badge-row" aria-label="핵심 기술">
+            {heroTechnologies.map((technology) => (
+              <span className="scene-badge" key={technology}>
+                {technology}
               </span>
             ))}
           </div>

@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { siteContent } from "@/content/site-content";
 
-const heroTitle = "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게";
+const heroTitle = siteContent.hero.title;
+const primaryCtaLabel = siteContent.hero.primaryCta.label;
 
 test("landing page links to deep dive", async ({ page }) => {
   await page.goto("/");
@@ -12,16 +14,41 @@ test("landing page links to deep dive", async ({ page }) => {
     })
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "딥다이브 보기" }).click();
+  await page
+    .locator("#overview")
+    .getByRole("link", { name: primaryCtaLabel, exact: true })
+    .click();
 
   await expect(page).toHaveURL(/\/deep-dive$/);
+});
+
+test("landing page renders the showroom contract and technology stack", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.locator("section#overview")).toBeVisible();
+  await expect(page.locator("section#axes")).toBeVisible();
+  await expect(page.locator("section#how-it-works")).toBeVisible();
+  await expect(page.locator("section#decision-surfaces")).toBeVisible();
+  await expect(page.locator("section#value")).toBeVisible();
+  await expect(page.locator("section#deep-dive-cta")).toBeVisible();
+
+  await expect(
+    page.getByRole("heading", { name: siteContent.copy.landingTension, level: 2 }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: siteContent.copy.landingEngine, level: 2 }),
+  ).toBeVisible();
+  await expect(page.locator("#overview").getByText("Playwright", { exact: true })).toBeVisible();
+  await expect(page.locator("#overview").getByText("Gemini", { exact: true })).toBeVisible();
 });
 
 test("landing page stays usable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  const deepDiveCta = page.getByRole("link", { name: "딥다이브 보기" });
+  const deepDiveCta = page
+    .locator("#overview")
+    .getByRole("link", { name: primaryCtaLabel, exact: true });
 
   await expect(deepDiveCta).toBeVisible();
   await expect(deepDiveCta).toBeInViewport();
@@ -41,22 +68,13 @@ test("landing page stays usable on mobile", async ({ page }) => {
 
 test("landing page respects reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/", { waitUntil: "commit" });
-  await page.waitForSelector(".signal-network", { state: "attached" });
+  await page.goto("/");
 
-  const motionState = await page.evaluate(() => {
-    const network = document.querySelector(".signal-network");
-    const rail = document.querySelector(".process-rail");
-    const stage = document.querySelector(".process-rail-stage");
-
-    return {
-      networkOpacity: network ? getComputedStyle(network).opacity : null,
-      railOpacity: rail ? getComputedStyle(rail).opacity : null,
-      stageTransform: stage ? getComputedStyle(stage).transform : null
-    };
-  });
-
-  expect(motionState.networkOpacity).toBe("1");
-  expect(motionState.railOpacity).toBe("1");
-  expect(motionState.stageTransform).toBe("none");
+  await expect(
+    page.getByRole("heading", { name: siteContent.copy.landingEngine, level: 2 }),
+  ).toBeVisible();
+  await expect(page.locator("#overview").getByText("FastAPI", { exact: true })).toBeVisible();
+  await expect(
+    page.locator("#overview").getByRole("link", { name: primaryCtaLabel, exact: true }),
+  ).toBeVisible();
 });

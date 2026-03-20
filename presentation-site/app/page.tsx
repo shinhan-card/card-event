@@ -1,19 +1,19 @@
-import DeepDiveCtaScene from "@/components/scenes/deep-dive-cta-scene";
+import AxisTensionScene from "@/components/scenes/axis-tension-scene";
+import DeepDiveHandoffScene from "@/components/scenes/deep-dive-handoff-scene";
+import DecisionSurfaceScene from "@/components/scenes/decision-surface-scene";
+import DualEngineScene from "@/components/scenes/dual-engine-scene";
 import HeroScene from "@/components/scenes/hero-scene";
-import OutcomeScene from "@/components/scenes/outcome-scene";
-import OrchestrationScene from "@/components/scenes/orchestration-scene";
-import ProblemScene from "@/components/scenes/problem-scene";
-import SignalFlowScene from "@/components/scenes/signal-flow-scene";
+import SystemValueScene from "@/components/scenes/system-value-scene";
 
 export default function HomePage() {
   return (
     <>
       <HeroScene />
-      <ProblemScene />
-      <SignalFlowScene />
-      <OrchestrationScene />
-      <OutcomeScene />
-      <DeepDiveCtaScene />
+      <AxisTensionScene />
+      <DualEngineScene />
+      <DecisionSurfaceScene />
+      <SystemValueScene />
+      <DeepDiveHandoffScene />
     </>
   );
 }
