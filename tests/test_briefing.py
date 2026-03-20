@@ -403,6 +403,54 @@ def test_weekly_payload_falls_back_to_rule_summary(monkeypatch):
     assert payload["executive_summary"]
 
 
+def test_daily_executive_summary_omits_internal_warning_codes(monkeypatch):
+    monkeypatch.setattr(briefing, "_build_quality_warnings", lambda *args, **kwargs: [
+        {"code": "company_coverage_low", "severity": "high"},
+        {"code": "insufficient_evidence_events", "severity": "high"},
+    ])
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    session = _FakeSession(
+        [
+            _make_event(
+                14,
+                company="Alpha Card",
+                one_line_summary="Daily offer summary.",
+                evidence=["Daily evidence"],
+            )
+        ]
+    )
+
+    payload = briefing.build_daily_briefing_data(session)
+
+    assert "Warnings:" not in payload["executive_summary"]
+    assert "company_coverage_low" not in payload["executive_summary"]
+    assert "insufficient_evidence_events" not in payload["executive_summary"]
+
+
+def test_weekly_executive_summary_omits_internal_warning_codes(monkeypatch):
+    monkeypatch.setattr(briefing, "_build_quality_warnings", lambda *args, **kwargs: [
+        {"code": "company_coverage_low", "severity": "high"},
+        {"code": "insufficient_evidence_events", "severity": "high"},
+    ])
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    session = _FakeSession(
+        [
+            _make_event(
+                15,
+                company="Alpha Card",
+                one_line_summary="Weekly offer summary.",
+                evidence=["Weekly evidence"],
+            )
+        ]
+    )
+
+    payload = briefing.build_weekly_briefing_data(session)
+
+    assert "Warnings:" not in payload["executive_summary"]
+    assert "company_coverage_low" not in payload["executive_summary"]
+    assert "insufficient_evidence_events" not in payload["executive_summary"]
+
+
 def test_weekly_payload_includes_products_from_ended_events(monkeypatch):
     monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
     session = _FakeSession(
@@ -604,7 +652,12 @@ def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
     assert "template_version" not in html
 
 
-def test_preview_routes_render_briefings_without_breaking():
+def test_preview_routes_render_briefings_without_breaking(monkeypatch):
+    monkeypatch.setattr(briefing, "_build_quality_warnings", lambda *args, **kwargs: [
+        {"code": "company_coverage_low", "severity": "high"},
+        {"code": "insufficient_evidence_events", "severity": "high"},
+    ])
+
     async def _run():
         transport = httpx.ASGITransport(app=app.app)
         async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
@@ -617,6 +670,9 @@ def test_preview_routes_render_briefings_without_breaking():
                 assert response.status_code == 200, f"{path} returned {response.status_code}"
                 assert expected_text in response.text
                 assert "대시보드에서 전체 보기" not in response.text
+                assert "Warnings:" not in response.text
+                assert "company_coverage_low" not in response.text
+                assert "insufficient_evidence_events" not in response.text
 
     asyncio.run(_run())
 
