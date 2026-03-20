@@ -38,6 +38,15 @@ describe("content contracts", () => {
     expect(corpus).toEqual(expect.stringContaining("PDF/HTML extraction"));
   });
 
+  it("keeps orchestration labels Korean-first", () => {
+    expect(architectureContent.orchestrationMap.groups.map((group) => group.label)).toEqual([
+      "제어 흐름",
+      "라우팅 흐름",
+      "축별 처리",
+      "공유 전달"
+    ]);
+  });
+
   it("includes landing scenes in order", () => {
     expect(siteContent.landingScenes.map((scene) => scene.key)).toEqual([
       "hero",

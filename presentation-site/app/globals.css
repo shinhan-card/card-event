@@ -173,6 +173,33 @@ a:hover {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.deep-dive-overview {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.2fr 1fr 0.95fr;
+}
+
+.deep-dive-overview-card {
+  display: grid;
+  gap: 0.7rem;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(126, 224, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.deep-dive-overview-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.9rem);
+  line-height: 1.15;
+}
+
+.deep-dive-overview-card p:last-of-type {
+  margin: 0;
+  color: var(--text-muted);
+}
+
 .diagram-card {
   border: 1px solid var(--line);
   border-radius: 1.2rem;
@@ -904,6 +931,7 @@ a:hover {
   .scene-hero,
   .signal-network-grid,
   .dual-axis-map,
+  .deep-dive-overview,
   .module-cluster-map,
   .deep-dive-concept-grid,
   .deep-dive-stage-grid,

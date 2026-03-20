@@ -4,6 +4,7 @@ test("deep dive shows Korean-first architecture structure and technology labels"
   await page.goto("/deep-dive");
 
   await expect(page.getByRole("heading", { name: "개념 아키텍처" })).toBeVisible();
+  await expect(page.getByText("구조 스냅샷")).toBeVisible();
   await expect(page.getByRole("heading", { name: "수집", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "강화", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "모듈 현실 지도" })).toBeVisible();
@@ -15,9 +16,12 @@ test("deep dive shows Korean-first architecture structure and technology labels"
   await expect(page.getByText("APScheduler", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("SQLite", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("SQLAlchemy", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("BeautifulSoup", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("ChromaDB", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("RAG", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("PDF/HTML extraction", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("실제 코드", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("승인된 축 설계", { exact: true }).first()).toBeVisible();
 });
 
 test("deep dive stays readable on mobile", async ({ page }) => {

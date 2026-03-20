@@ -74,6 +74,7 @@ describe("route smoke", () => {
     expect(
       screen.getByRole("heading", { name: "오케스트레이션 맵" })
     ).toBeInTheDocument();
+    expect(screen.getByText("구조 스냅샷")).toBeInTheDocument();
   });
 
   it("renders deep dive axis split", () => {
@@ -107,8 +108,11 @@ describe("route smoke", () => {
     expect(screen.getAllByText("APScheduler").length).toBeGreaterThan(0);
     expect(screen.getAllByText("SQLite").length).toBeGreaterThan(0);
     expect(screen.getAllByText("SQLAlchemy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("BeautifulSoup").length).toBeGreaterThan(0);
     expect(screen.getAllByText("ChromaDB").length).toBeGreaterThan(0);
     expect(screen.getAllByText("RAG").length).toBeGreaterThan(0);
     expect(screen.getAllByText("PDF/HTML extraction").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("실제 코드").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("승인된 축 설계").length).toBeGreaterThan(0);
   });
 });

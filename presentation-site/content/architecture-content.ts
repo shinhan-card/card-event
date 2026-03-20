@@ -235,7 +235,7 @@ const orchestrationGroups = [
     key: "scheduler",
     title: "제어 평면",
     summary: "실행 타이밍과 잡 상태를 관리해 전체 파이프라인이 끊기지 않도록 유지합니다.",
-    label: "control plane",
+    label: "제어 흐름",
     items: [
       {
         key: "timed-runs",
@@ -255,7 +255,7 @@ const orchestrationGroups = [
     key: "routers",
     title: "라우팅 평면",
     summary: "FastAPI 엔드포인트가 이벤트 흐름과 상품/공시 흐름을 각각의 책임 경로로 보냅니다.",
-    label: "routing",
+    label: "라우팅 흐름",
     items: [
       {
         key: "event-router",
@@ -275,7 +275,7 @@ const orchestrationGroups = [
     key: "lane-processing",
     title: "축별 처리 평면",
     summary: "여기서부터 이벤트 축과 상품/공시 축이 갈라지며, 다시 공유 전달면으로 합류합니다.",
-    label: "lane processing",
+    label: "축별 처리",
     items: [
       {
         key: "event-pipeline",
@@ -301,7 +301,7 @@ const orchestrationGroups = [
     key: "delivery",
     title: "공유 전달 평면",
     summary: "브리핑, 분석, 발표 사이트가 같은 결과 구조를 받아 운영자에게 전달합니다.",
-    label: "delivery",
+    label: "공유 전달",
     items: [
       {
         key: "briefing",

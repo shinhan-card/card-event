@@ -51,21 +51,21 @@ export default function ModuleClusterMap() {
   const columns = [
     {
       key: "shared",
-      label: "shared core",
+      label: "공유 코어",
       title: "공유 코어",
       summary: "앱 초기화, 저장, API, 전달면이 두 축을 받쳐 줍니다.",
       sections: sharedSections
     },
     {
       key: "event",
-      label: "event intelligence",
+      label: "이벤트 인텔리전스",
       title: "이벤트 축",
       summary: "현재 워크트리의 실코드 근거가 가장 강한 수집-정제-강화 흐름입니다.",
       sections: eventSections
     },
     {
       key: "product",
-      label: "product disclosure intelligence",
+      label: "상품 / 공시 인텔리전스",
       title: "상품 / 공시 축",
       summary: "발표에서 승인된 PDF·임베딩·RAG 레인을 별도 구조로 유지합니다.",
       sections: productSections
