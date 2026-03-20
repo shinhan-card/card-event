@@ -1,17 +1,22 @@
 import { render, screen } from "@testing-library/react";
-import HomePage from "@/app/page";
-import DeepDivePage from "@/app/deep-dive/page";
-import SiteHeader from "@/components/chrome/site-header";
-import { siteContent } from "@/content/site-content";
 import { within } from "@testing-library/react";
+import { vi } from "vitest";
+import HomePage from "@/app/page";
+import RootLayout from "@/app/layout";
+import DeepDivePage from "@/app/deep-dive/page";
+import { siteContent } from "@/content/site-content";
+
+vi.mock("next/font/google", () => ({
+  Space_Grotesk: () => ({ variable: "" }),
+  Source_Sans_3: () => ({ variable: "" })
+}));
 
 describe("route smoke", () => {
   it("renders shared navigation", () => {
     render(
-      <>
-        <SiteHeader />
+      <RootLayout>
         <HomePage />
-      </>
+      </RootLayout>
     );
 
     const navigation = screen.getByRole("navigation", { name: /primary/i });
@@ -24,7 +29,11 @@ describe("route smoke", () => {
   });
 
   it("renders landing CTAs", () => {
-    render(<HomePage />);
+    render(
+      <RootLayout>
+        <HomePage />
+      </RootLayout>
+    );
     const cta = screen.getByRole("link", {
       name: siteContent.hero.primaryCta.label
     });
@@ -34,9 +43,13 @@ describe("route smoke", () => {
   });
 
   it("renders deep dive heading", () => {
-    render(<DeepDivePage />);
+    render(
+      <RootLayout>
+        <DeepDivePage />
+      </RootLayout>
+    );
     expect(
-      screen.getByRole("heading", { name: /architecture deep dive/i })
+      screen.getByRole("heading", { name: /architecture deep dive/i, level: 1 })
     ).toBeInTheDocument();
   });
 });

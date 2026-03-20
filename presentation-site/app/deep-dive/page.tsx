@@ -5,10 +5,11 @@ export default function DeepDivePage() {
   return (
     <>
       <SectionShell
-        eyebrow="Architecture deep dive"
-        title="Systems Atlas"
+        eyebrow="Systems Atlas"
+        title="Architecture Deep Dive"
         summary="A clean landing zone for architecture stages, orchestration, and design principles."
         id="deep-dive"
+        headingLevel={1}
       >
         <div className="diagram-grid">
           <article className="diagram-card">

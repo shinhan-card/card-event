@@ -23,6 +23,21 @@ export default function HomePage() {
       </SectionShell>
 
       <SectionShell
+        eyebrow="Problem"
+        title="Why the lanes stay separate"
+        summary="Event intelligence and product / disclosure intelligence solve related but different problems, so the presentation keeps them visually distinct."
+        id="problem"
+      >
+        <div className="diagram-card">
+          <p className="section-shell-eyebrow">Anchor target</p>
+          <p>
+            This section exists so the secondary CTA can land on a real problem
+            block without interfering with the how-it-works navigation.
+          </p>
+        </div>
+      </SectionShell>
+
+      <SectionShell
         eyebrow="Landing scenes"
         title="Showroom flow"
         summary="The landing page keeps clear placeholders for each scene in the narrative."

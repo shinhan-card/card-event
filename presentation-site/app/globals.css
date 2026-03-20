@@ -148,6 +148,13 @@ a:hover {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.sticky-stage-copy {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
 }
 
 .sticky-stage-visual {
@@ -183,6 +190,10 @@ a:hover {
   .sticky-stage {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .sticky-stage-copy {
+    position: static;
   }
 }
 
