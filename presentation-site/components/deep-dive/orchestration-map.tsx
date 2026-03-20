@@ -4,6 +4,7 @@ import { architectureContent } from "@/content/architecture-content";
 export default function OrchestrationMap() {
   return (
     <StickyStageLayout
+      id="orchestration-control"
       eyebrow={architectureContent.orchestrationMap.eyebrow}
       title={architectureContent.orchestrationMap.title}
       summary={architectureContent.orchestrationMap.summary}

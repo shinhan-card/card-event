@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import HomePage from "@/app/page";
 import DeepDivePage from "@/app/deep-dive/page";
 import PresentationShell from "@/components/chrome/presentation-shell";
+import { architectureContent } from "@/content/architecture-content";
 import { siteContent } from "@/content/site-content";
 
 describe("route smoke", () => {
@@ -43,6 +44,20 @@ describe("route smoke", () => {
     expect(cta).toHaveAttribute("href", siteContent.hero.primaryCta.href);
   });
 
+  it("renders landing sections in public contract order", () => {
+    render(
+      <PresentationShell>
+        <HomePage />
+      </PresentationShell>,
+    );
+
+    const sectionIds = Array.from(document.querySelectorAll("main > section[id]")).map(
+      (section) => section.id,
+    );
+
+    expect(sectionIds).toEqual(siteContent.landingScenes.map((scene) => scene.anchorId));
+  });
+
   it("renders the public landing anchor ids", () => {
     render(
       <PresentationShell>
@@ -50,15 +65,8 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
-    [
-      "overview",
-      "axes",
-      "how-it-works",
-      "decision-surfaces",
-      "value",
-      "deep-dive-cta",
-    ].forEach((id) => {
-      expect(document.getElementById(id)).toBeInTheDocument();
+    siteContent.landingScenes.forEach((scene) => {
+      expect(document.getElementById(scene.anchorId)).toBeInTheDocument();
     });
   });
 
@@ -80,8 +88,22 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
     expect(
-      screen.getByRole("heading", { name: "아키텍처 딥다이브", level: 1 }),
+      screen.getByRole("heading", { name: architectureContent.deepDive.title, level: 1 }),
     ).toBeInTheDocument();
+  });
+
+  it("renders deep dive sections in public board order", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>,
+    );
+
+    const sectionIds = Array.from(document.querySelectorAll("main > section[id]")).map(
+      (section) => section.id,
+    );
+
+    expect(sectionIds).toEqual(architectureContent.boardOrder);
   });
 
   it("renders the executive blueprint anchor on deep dive", () => {
@@ -101,9 +123,15 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
-    expect(screen.getByRole("heading", { name: "개념 아키텍처" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "처리 단계 구조" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "오케스트레이션 맵" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.conceptArchitecture.title }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.stageBreakdown.title }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.orchestrationMap.title }),
+    ).toBeInTheDocument();
   });
 
   it("renders deep dive axis split", () => {
@@ -113,8 +141,12 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
-    expect(screen.getByRole("heading", { name: "이벤트 인텔리전스" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "상품 / 공시 인텔리전스" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.dualAxisArchitecture.lanes[0].title }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.dualAxisArchitecture.lanes[1].title }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "실제 모듈 지도" })).toBeInTheDocument();
   });
 

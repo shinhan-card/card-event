@@ -7,7 +7,7 @@ export default function StageBreakdown() {
       eyebrow={architectureContent.stageBreakdown.eyebrow}
       title={architectureContent.stageBreakdown.title}
       summary={architectureContent.stageBreakdown.summary}
-      id="stage-breakdown"
+      id="product-knowledge"
     >
       <div className="deep-dive-stage-grid">
         {architectureContent.stageBreakdown.cards.map((stage, index) => (

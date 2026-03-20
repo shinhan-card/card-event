@@ -7,7 +7,7 @@ export default function ConceptArchitecture() {
       eyebrow={architectureContent.conceptArchitecture.eyebrow}
       title={architectureContent.conceptArchitecture.title}
       summary={architectureContent.conceptArchitecture.summary}
-      id="concept-architecture"
+      id="event-interpretation"
     >
       <div className="deep-dive-concept-grid" aria-label="개념 아키텍처 레이어">
         {architectureContent.conceptArchitecture.zones.map((zone, index) => (

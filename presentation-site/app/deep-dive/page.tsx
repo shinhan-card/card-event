@@ -61,10 +61,10 @@ export default function DeepDivePage() {
         </section>
       </SectionShell>
 
+      <DualAxisArchitecture />
       <ConceptArchitecture />
       <StageBreakdown />
       <OrchestrationMap />
-      <DualAxisArchitecture />
       <RealModuleMap />
       <DesignPrinciples />
       <EvolutionRoadmap />

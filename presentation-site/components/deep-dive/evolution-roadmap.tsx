@@ -7,7 +7,6 @@ export default function EvolutionRoadmap() {
       eyebrow={architectureContent.evolutionRoadmap.eyebrow}
       title={architectureContent.evolutionRoadmap.title}
       summary={architectureContent.evolutionRoadmap.summary}
-      id="evolution-roadmap"
     >
       <div className="diagram-grid">
         {architectureContent.evolutionRoadmap.phases.map((phase) => (

@@ -7,7 +7,7 @@ export default function DesignPrinciples() {
       eyebrow={architectureContent.principlesSection.eyebrow}
       title={architectureContent.principlesSection.title}
       summary={architectureContent.principlesSection.summary}
-      id="design-principles"
+      id="principles-evolution"
     >
       <div className="diagram-grid">
         {architectureContent.principlesSection.cards.map((card) => (

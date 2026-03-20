@@ -8,7 +8,7 @@ export default function DualAxisArchitecture() {
       eyebrow={architectureContent.dualAxisArchitecture.eyebrow}
       title={architectureContent.dualAxisArchitecture.title}
       summary={architectureContent.dualAxisArchitecture.summary}
-      id="dual-axis-architecture"
+      id="dual-axis-macro"
     >
       <DualAxisMap />
     </SectionShell>

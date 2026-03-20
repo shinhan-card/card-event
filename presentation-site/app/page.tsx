@@ -11,8 +11,8 @@ export default function HomePage() {
       <HeroScene />
       <ProblemScene />
       <SignalFlowScene />
-      <OutcomeScene />
       <OrchestrationScene />
+      <OutcomeScene />
       <DeepDiveCtaScene />
     </>
   );
