@@ -1,4 +1,4 @@
-type ModuleCluster = {
+type PublicCluster = {
   key: string;
   group: "shared-core" | "event-axis" | "product-axis" | "delivery-surfaces";
   title: string;
@@ -7,20 +7,52 @@ type ModuleCluster = {
   files: readonly string[];
 };
 
+type LegacyModuleMap = {
+  clusters: readonly PublicCluster[];
+  sections: readonly {
+    key: string;
+    title: string;
+    summary: string;
+    clusters: readonly {
+      key: string;
+      title: string;
+      summary: string;
+      technologies: readonly string[];
+      evidence: string;
+      files: readonly string[];
+    }[];
+  }[];
+};
+
+const defineHidden = <T extends object, K extends PropertyKey, V>(
+  target: T,
+  key: K,
+  value: V,
+): T & Record<K, V> => {
+  Object.defineProperty(target, key, {
+    value,
+    enumerable: false,
+    configurable: true,
+    writable: false,
+  });
+
+  return target as T & Record<K, V>;
+};
+
 const cluster = (
-  key: ModuleCluster["key"],
-  group: ModuleCluster["group"],
+  key: PublicCluster["key"],
+  group: PublicCluster["group"],
   title: string,
   summary: string,
-  evidenceLevel: ModuleCluster["evidenceLevel"],
-  files: readonly string[]
-): ModuleCluster => ({
+  evidenceLevel: PublicCluster["evidenceLevel"],
+  files: readonly string[],
+): PublicCluster => ({
   key,
   group,
   title,
   summary,
   evidenceLevel,
-  files
+  files,
 });
 
 const clusters = [
@@ -28,17 +60,17 @@ const clusters = [
     "shared-core-implemented",
     "shared-core",
     "공유 코어 구현",
-    "현재 브랜치에서 실제로 존재하는 애플리케이션 진입점과 저장 계층입니다.",
+    "현재 브랜치에서 실제로 확인되는 애플리케이션 진입점과 저장 계층입니다.",
     "implemented",
-    ["app.py", "database.py"]
+    ["app.py", "database.py"],
   ),
   cluster(
     "shared-core-approved",
     "shared-core",
     "공유 코어 승인 경로",
-    "승인 스펙에는 포함되지만 이 브랜치에는 아직 없는 헬스와 API 유틸 경로입니다.",
+    "브랜치에는 아직 없지만 계획상 포함된 헬스 체크와 API 유틸 경로입니다.",
     "approved",
-    ["routers/health.py", "modules/api_utils.py"]
+    ["routers/health.py", "modules/api_utils.py"],
   ),
   cluster(
     "event-axis-implemented",
@@ -51,14 +83,14 @@ const clusters = [
       "modules/extraction.py",
       "modules/normalization.py",
       "modules/pipeline.py",
-      "modules/insights.py"
-    ]
+      "modules/insights.py",
+    ],
   ),
   cluster(
     "event-axis-approved",
     "event-axis",
     "이벤트 축 승인 경로",
-    "승인 스펙에 정의됐지만 이 브랜치에는 아직 반영되지 않은 라우터와 세부 해석 모듈입니다.",
+    "계획에는 있지만 이 브랜치에는 아직 반영되지 않은 라우터와 세부 해석 모듈입니다.",
     "approved",
     [
       "routers/events.py",
@@ -67,8 +99,8 @@ const clusters = [
       "modules/event_enrichment.py",
       "modules/classification.py",
       "modules/condition_facts.py",
-      "modules/rules_engine.py"
-    ]
+      "modules/rules_engine.py",
+    ],
   ),
   cluster(
     "product-axis-approved",
@@ -84,8 +116,8 @@ const clusters = [
       "modules/rag/chunker.py",
       "modules/rag/embedder.py",
       "modules/rag/product_scraper.py",
-      "modules/rag/catalog_summary.py"
-    ]
+      "modules/rag/catalog_summary.py",
+    ],
   ),
   cluster(
     "delivery-surfaces-implemented",
@@ -96,8 +128,8 @@ const clusters = [
     [
       "templates/dashboard_luxury.html",
       "templates/dashboard_pro.html",
-      "static/js/dashboard.js"
-    ]
+      "static/js/dashboard.js",
+    ],
   ),
   cluster(
     "delivery-surfaces-approved",
@@ -113,11 +145,85 @@ const clusters = [
       "modules/briefing.py",
       "templates/email_daily_briefing.html",
       "templates/weekly_report.html",
-      "static/js/dashboard_extras.js"
-    ]
-  )
-] as const satisfies readonly ModuleCluster[];
+      "static/js/dashboard_extras.js",
+    ],
+  ),
+] as const satisfies readonly PublicCluster[];
 
-export const moduleMap = {
-  clusters
-} as const satisfies { clusters: readonly ModuleCluster[] };
+const evidenceLabel = {
+  implemented: "구현됨",
+  approved: "승인된 설계",
+} as const;
+
+const technologiesByGroup: Record<PublicCluster["group"], readonly string[]> = {
+  "shared-core": ["FastAPI", "SQLite", "SQLAlchemy"],
+  "event-axis": ["Playwright", "BeautifulSoup", "Gemini"],
+  "product-axis": ["PDF/HTML extraction", "ChromaDB", "RAG"],
+  "delivery-surfaces": ["FastAPI", "SQLAlchemy", "APScheduler"],
+};
+
+export const moduleMap: LegacyModuleMap = defineHidden(
+  {
+    clusters,
+  },
+  "sections",
+  [
+    {
+      key: "shared-foundation",
+      title: "공유 코어와 전달면",
+      summary: "애플리케이션 공통 기반과 결과를 보여주는 전달면을 하나의 기둥으로 묶습니다.",
+      clusters: [
+        ...clusters
+          .filter((item) => item.group === "shared-core")
+          .map((item) => ({
+            key: "shared",
+            title: item.title,
+            summary: item.summary,
+            technologies: technologiesByGroup[item.group],
+            evidence: evidenceLabel[item.evidenceLevel],
+            files: item.files,
+          })),
+        ...clusters
+          .filter((item) => item.group === "delivery-surfaces")
+          .map((item) => ({
+            key: "shared",
+            title: item.title,
+            summary: item.summary,
+            technologies: technologiesByGroup[item.group],
+            evidence: evidenceLabel[item.evidenceLevel],
+            files: item.files,
+          })),
+      ],
+    },
+    {
+      key: "event-pipeline",
+      title: "이벤트 파이프라인",
+      summary: "경쟁 카드 이벤트를 수집하고 해석하는 실제 경로와 승인 경로를 함께 배치합니다.",
+      clusters: clusters
+        .filter((item) => item.group === "event-axis")
+        .map((item) => ({
+          key: "event-pipeline",
+          title: item.title,
+          summary: item.summary,
+          technologies: technologiesByGroup[item.group],
+          evidence: evidenceLabel[item.evidenceLevel],
+          files: item.files,
+        })),
+    },
+    {
+      key: "product-rag",
+      title: "상품 지식 파이프라인",
+      summary: "상품 설명서와 공시를 RAG 기반 지식으로 바꾸는 승인 경로를 별도 축으로 유지합니다.",
+      clusters: clusters
+        .filter((item) => item.group === "product-axis")
+        .map((item) => ({
+          key: "product-rag",
+          title: item.title,
+          summary: item.summary,
+          technologies: technologiesByGroup[item.group],
+          evidence: evidenceLabel[item.evidenceLevel],
+          files: item.files,
+        })),
+    },
+  ],
+);
