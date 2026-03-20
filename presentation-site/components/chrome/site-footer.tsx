@@ -7,7 +7,7 @@ export default function SiteFooter() {
       <div>
         <p className="site-footer-label">{siteContent.snapshot.label}</p>
         <p className="site-footer-copy">
-          {siteContent.snapshot.capturedOn} · {siteContent.snapshot.note}
+          {siteContent.snapshot.capturedOn} - {siteContent.snapshot.note}
         </p>
       </div>
       <div className="site-footer-links">
