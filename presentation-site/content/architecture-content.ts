@@ -28,6 +28,19 @@ export interface OrchestrationNode {
   summary: string;
 }
 
+export interface OrchestrationGroupItem {
+  key: string;
+  title: string;
+  summary: string;
+}
+
+export interface OrchestrationGroup {
+  key: string;
+  title: string;
+  summary: string;
+  items: readonly OrchestrationGroupItem[];
+}
+
 export interface ArchitectureContent {
   deepDive: {
     eyebrow: string;
@@ -56,7 +69,7 @@ export interface ArchitectureContent {
     eyebrow: string;
     title: string;
     summary: string;
-    nodes: readonly OrchestrationNode[];
+    groups: readonly OrchestrationGroup[];
   };
   designPrinciples: readonly string[];
 }
@@ -151,41 +164,79 @@ const stages = [
   }
 ] as const;
 
-const orchestrationNodes = [
+const orchestrationGroups = [
   {
     key: "scheduler",
     title: "Scheduler",
-    summary: "Coordinates when capture and downstream processing run."
+    summary: "Launches timed runs and keeps the control plane in motion.",
+    items: [
+      {
+        key: "timed-runs",
+        title: "Timed runs",
+        summary: "Start collection on a predictable cadence."
+      },
+      {
+        key: "work-queue",
+        title: "Work queue",
+        summary: "Move the right task to the next processing step."
+      }
+    ]
   },
   {
     key: "routers",
     title: "Routers",
-    summary: "Direct requests and results into the correct lane."
+    summary: "Route requests into the event and product paths.",
+    items: [
+      {
+        key: "event-router",
+        title: "Event route",
+        summary: "Send event signals into the event pipeline."
+      },
+      {
+        key: "product-router",
+        title: "Product route",
+        summary: "Send disclosures and retrieval work into the product lane."
+      }
+    ]
   },
   {
-    key: "event-pipeline",
-    title: "Event Pipeline",
-    summary: "Owns event capture, normalization, and enrichment."
+    key: "lane-processing",
+    title: "Lane-specific processing",
+    summary: "Event and product intelligence diverge here before the shared handoff.",
+    items: [
+      {
+        key: "event-pipeline",
+        title: "Event Pipeline",
+        summary: "Owns event capture, normalization, and enrichment."
+      },
+      {
+        key: "disclosures",
+        title: "Disclosures",
+        summary: "Interprets product documents and structured disclosures."
+      },
+      {
+        key: "rag",
+        title: "RAG",
+        summary: "Supports product intelligence with retrieval and generation."
+      }
+    ]
   },
   {
-    key: "briefing",
-    title: "Briefing",
-    summary: "Turns structured output into decision-ready summaries."
-  },
-  {
-    key: "analytics",
-    title: "Analytics",
-    summary: "Surfaces trends, comparisons, and reporting views."
-  },
-  {
-    key: "disclosures",
-    title: "Disclosures",
-    summary: "Interprets product documents and source disclosures."
-  },
-  {
-    key: "rag",
-    title: "RAG",
-    summary: "Retrieval and generation support product intelligence questions."
+    key: "delivery",
+    title: "Delivery surfaces",
+    summary: "Briefing and analytics consume the shared shaped output.",
+    items: [
+      {
+        key: "briefing",
+        title: "Briefing",
+        summary: "Turn structured output into decision-ready summaries."
+      },
+      {
+        key: "analytics",
+        title: "Analytics",
+        summary: "Surface trends, comparisons, and reporting views."
+      }
+    ]
   }
 ] as const;
 
@@ -221,7 +272,7 @@ export const architectureContent = {
     title: "Orchestration Map",
     summary:
       "These surfaces coordinate scheduling, routing, and lane-specific delivery without erasing ownership boundaries.",
-    nodes: orchestrationNodes
+    groups: orchestrationGroups
   },
   designPrinciples: [
     "Keep event intelligence and product intelligence separate.",
