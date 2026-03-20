@@ -15,21 +15,21 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy.orm import Session
 
 import database as db
+from modules.connectors import CONNECTORS
 
 logger = logging.getLogger(__name__)
 
 BRIEFING_TEMPLATE_VERSION = "v3"
+DEFAULT_EXPECTED_COMPANIES = tuple(CONNECTORS.keys())
 
-EXPECTED_COMPANIES = (
-    "신한카드",
-    "삼성카드",
-    "KB국민카드",
-    "현대카드",
-    "롯데카드",
-    "하나카드",
-    "우리카드",
-    "NH농협카드",
-)
+
+def _load_expected_companies() -> tuple[str, ...]:
+    raw = os.getenv("BRIEFING_EXPECTED_COMPANIES", "")
+    configured = tuple(company.strip() for company in raw.split(",") if company.strip())
+    return configured or DEFAULT_EXPECTED_COMPANIES
+
+
+EXPECTED_COMPANIES = _load_expected_companies()
 
 # ---------------------------------------------------------------------------
 # Jinja2 템플릿 환경 (templates/ 폴더 기준)
@@ -401,7 +401,9 @@ def _collect_briefing_source_data(session: Session, report_type: str) -> dict:
     if not relevant_events:
         relevant_events = list(active_events)
 
-    present_companies = sorted({_normalize_company_name(getattr(event, "company", None)) for event in all_events})
+    present_companies = sorted(
+        {_normalize_company_name(getattr(event, "company", None)) for event in relevant_events}
+    )
     missing_companies = [company for company in EXPECTED_COMPANIES if company not in present_companies]
 
     product_scope_events = relevant_events if report_type == "weekly" else (new_events or relevant_events)
@@ -699,6 +701,10 @@ def build_briefing_status_snapshot(payload: dict) -> dict:
     }
 
 
+def production_send_blocked(payload: dict) -> bool:
+    return build_briefing_status_snapshot(payload)["readiness_status"] == "blocked"
+
+
 def build_briefing_log_metadata(
     payload: dict,
     *,
@@ -746,7 +752,7 @@ def build_briefing_payload(session: Session, report_type: str) -> dict:
         "evidence_events": _pick_evidence_events(source, report_type),
         "evidence_products": _pick_evidence_products(source, report_type),
         "data_coverage": source["coverage"],
-        "source_event_count": len(source["all_events"]),
+        "source_event_count": len(source["relevant_events"]),
         "source_product_count": len(source["source_products"]),
         "total_active": len(source["active_events"]),
         "new_events": _serialize_events(source["new_events"][:20]),
@@ -854,12 +860,11 @@ def send_briefing_email(html_content: str, subject: str, recipients: list) -> tu
         return False, str(e)
 
 
-def get_recipients() -> list:
-    """환경변수에서 수신자 목록 파싱."""
-    raw = os.getenv("EMAIL_RECIPIENTS", "")
+def get_recipients(mode: str = "production") -> list:
+    """Return recipients for the requested delivery mode."""
+    raw_key = "EMAIL_TEST_RECIPIENTS" if mode == "test" else "EMAIL_RECIPIENTS"
+    raw = os.getenv(raw_key, "")
     return [r.strip() for r in raw.split(",") if r.strip()]
-
-
 def get_dashboard_url() -> str:
     return os.getenv("DASHBOARD_BASE_URL", "http://localhost:8000")
 
@@ -874,9 +879,12 @@ async def send_daily_briefing_job():
     session = db.SessionLocal()
     try:
         data = build_daily_briefing_data(session)
+        if production_send_blocked(data):
+            logger.warning("[briefing] skipped scheduled daily send because readiness is blocked")
+            return
         dashboard_url = get_dashboard_url()
         html = render_briefing_html(data, "daily", dashboard_url)
-        recipients = get_recipients()
+        recipients = get_recipients(mode="production")
         subject = f"[카드 이벤트 인텔리전스] {data['date_label']} 일간 브리핑"
 
         success, error = send_briefing_email(html, subject, recipients)
@@ -904,9 +912,12 @@ async def send_weekly_briefing_job():
     session = db.SessionLocal()
     try:
         data = build_weekly_briefing_data(session)
+        if production_send_blocked(data):
+            logger.warning("[briefing] skipped scheduled weekly send because readiness is blocked")
+            return
         dashboard_url = get_dashboard_url()
         html = render_briefing_html(data, "weekly", dashboard_url)
-        recipients = get_recipients()
+        recipients = get_recipients(mode="production")
         subject = f"[카드 이벤트 인텔리전스] {data['week_label']} 주간 경쟁 리포트"
 
         success, error = send_briefing_email(html, subject, recipients)
@@ -1038,7 +1049,7 @@ async def check_new_products_job():
 
             # 이메일 발송
             email_enabled = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
-            recipients = get_recipients()
+            recipients = get_recipients(mode="production")
 
             if email_enabled and recipients:
                 dashboard_url = get_dashboard_url()

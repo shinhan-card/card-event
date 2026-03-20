@@ -7,8 +7,28 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+
+@pytest.fixture(autouse=True)
+def _restore_database_import_state():
+    original_database_url = os.environ.get("DATABASE_URL")
+    original_database_module = sys.modules.get("database")
+    try:
+        yield
+    finally:
+        if original_database_url is None:
+            os.environ.pop("DATABASE_URL", None)
+        else:
+            os.environ["DATABASE_URL"] = original_database_url
+
+        if original_database_module is None:
+            sys.modules.pop("database", None)
+        else:
+            sys.modules["database"] = original_database_module
 
 
 def test_init_db_adds_new_event_columns():
