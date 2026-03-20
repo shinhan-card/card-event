@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 interface StickyStageLayoutProps {
+  id?: string;
   eyebrow: string;
   title: string;
   summary: string;
@@ -8,13 +9,14 @@ interface StickyStageLayoutProps {
 }
 
 export default function StickyStageLayout({
+  id,
   eyebrow,
   title,
   summary,
   children
 }: StickyStageLayoutProps) {
   return (
-    <section className="sticky-stage">
+    <section className="sticky-stage" id={id}>
       <div className="sticky-stage-copy">
         <p className="section-shell-eyebrow">{eyebrow}</p>
         <h2>{title}</h2>

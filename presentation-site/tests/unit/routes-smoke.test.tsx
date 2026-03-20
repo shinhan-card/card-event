@@ -36,6 +36,17 @@ describe("route smoke", () => {
     expect(cta).toHaveAttribute("href", siteContent.hero.primaryCta.href);
   });
 
+  it("renders signal flow labels", () => {
+    render(
+      <PresentationShell>
+        <HomePage />
+      </PresentationShell>
+    );
+
+    expect(screen.getByText("Collect")).toBeInTheDocument();
+    expect(screen.getByText("Deliver")).toBeInTheDocument();
+  });
+
   it("renders deep dive heading", () => {
     render(
       <PresentationShell>
