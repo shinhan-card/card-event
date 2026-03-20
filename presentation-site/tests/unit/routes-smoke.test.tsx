@@ -318,6 +318,54 @@ describe("route smoke", () => {
     expect(document.querySelectorAll("main > section")).toHaveLength(architectureContent.boardOrder.length);
   });
 
+  it("derives orchestration summary technologies from the public contract data", () => {
+    const columnsDescriptor = Object.getOwnPropertyDescriptor(
+      architectureContent,
+      "orchestrationColumns",
+    );
+    const customColumns = [
+      {
+        title: "테스트 제어면",
+        nodes: ["수집 시작", "상태 동기화"],
+        technologies: ["SchedulerX", "ControlDB"],
+      },
+      {
+        title: "테스트 전달면",
+        nodes: ["결과 전달"],
+        technologies: ["SurfaceAPI", "TraceBus"],
+      },
+    ] as const;
+
+    Object.defineProperty(architectureContent, "orchestrationColumns", {
+      configurable: true,
+      value: customColumns,
+    });
+
+    try {
+      render(
+        <PresentationShell>
+          <DeepDivePage />
+        </PresentationShell>,
+      );
+    } finally {
+      if (columnsDescriptor) {
+        Object.defineProperty(architectureContent, "orchestrationColumns", columnsDescriptor);
+      }
+    }
+
+    const orchestrationBoard = document.getElementById("orchestration-control");
+    const summaryCard = document.querySelector(".orchestration-control-summary");
+
+    expect(orchestrationBoard).toBeInTheDocument();
+    expect(summaryCard).toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).getByText("SchedulerX")).toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).getByText("ControlDB")).toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).getByText("SurfaceAPI")).toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).getByText("TraceBus")).toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).queryByText("APScheduler")).not.toBeInTheDocument();
+    expect(within(summaryCard as HTMLElement).queryByText("FastAPI")).not.toBeInTheDocument();
+  });
+
   it("renders lower-board headings and evidence in the deep dive page", () => {
     render(
       <PresentationShell>
@@ -336,6 +384,13 @@ describe("route smoke", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("modules/pipeline.py")).toBeInTheDocument();
     expect(screen.getAllByText(/modules\/rag\//).length).toBeGreaterThan(0);
+
+    const ragEvidenceCard = screen
+      .getByText("modules/rag/collector.py")
+      .closest("[data-evidence-level]");
+
+    expect(ragEvidenceCard).toHaveAttribute("data-evidence-level", "approved");
+    expect(within(ragEvidenceCard as HTMLElement).getByText("승인 경로")).toBeInTheDocument();
   });
 
   it("keeps lower-board UI chrome in Korean instead of raw English tokens", () => {

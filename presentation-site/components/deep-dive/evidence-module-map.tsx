@@ -19,12 +19,17 @@ export default function EvidenceModuleMap() {
     <SectionShell
       eyebrow={`근거 클러스터 ${moduleMap.clusters.length}개`}
       title={architectureContent.copy.deepDiveModules}
-      summary="공개 계약에 포함된 파일 경로만으로 이벤트 축, 상품 축, 공유 전달면의 근거 위치를 바로 추적할 수 있게 정리합니다."
+      summary="공개 계약에 포함된 파일 경로를 클러스터별 근거 수준과 함께 배치해, 어떤 경로가 구현 근거인지 승인 경로인지 바로 구분할 수 있게 정리합니다."
       id="evidence-module-map"
     >
       <div className="diagram-grid evidence-module-map-grid" aria-label="근거 모듈 맵">
         {moduleMap.clusters.map((cluster) => (
-          <article className="diagram-card evidence-module-map-card" key={cluster.key}>
+          <article
+            className="diagram-card evidence-module-map-card"
+            data-cluster-group={cluster.group}
+            data-evidence-level={cluster.evidenceLevel}
+            key={cluster.key}
+          >
             <p className="module-cluster-map-step-label">{groupLabels[cluster.group]}</p>
             <h3>{cluster.title}</h3>
             <p>{cluster.summary}</p>

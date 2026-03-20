@@ -84,6 +84,15 @@ test("deep dive renders all seven contract-driven boards with lower-board eviden
 
   await expect(modulesBoard.getByText("modules/pipeline.py", { exact: true })).toBeVisible();
   await expect(modulesBoard.getByText(/modules\/rag\//).first()).toBeVisible();
+  const approvedRagCard = modulesBoard.locator('[data-evidence-level="approved"]', {
+    hasText: "modules/rag/collector.py",
+  });
+  await expect(
+    approvedRagCard,
+  ).toHaveCount(1);
+  await expect(
+    approvedRagCard.getByText("승인 경로", { exact: true }),
+  ).toBeVisible();
 
   await expect(
     principlesBoard.getByText(architectureContent.principles[0].title, { exact: true }),

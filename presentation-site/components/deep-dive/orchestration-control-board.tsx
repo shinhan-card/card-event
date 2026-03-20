@@ -1,25 +1,23 @@
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
 
-const highlightedTechnologies = ["APScheduler", "FastAPI", "SQLite", "SQLAlchemy"] as const;
-
 export default function OrchestrationControlBoard() {
   const columns = architectureContent.orchestrationColumns;
-  const surfacedTechnologies = highlightedTechnologies.filter((technology) =>
-    columns.some((column) => column.technologies.includes(technology)),
+  const surfacedTechnologies = Array.from(
+    new Set(columns.flatMap((column) => column.technologies)),
   );
 
   return (
     <SectionShell
       eyebrow={`공개 계약 ${columns.length}열`}
       title={architectureContent.copy.deepDiveOrchestration}
-      summary={`${columns[0].title}부터 ${columns.at(-1)?.title}까지, 스케줄링과 API 실행이 두 개의 인텔리전스 축과 전달면을 같은 제어 보드로 묶습니다.`}
+      summary={`${columns[0].title}부터 ${columns.at(-1)?.title}까지, 계약에 포함된 노드와 기술 배지를 그대로 연결해 제어 흐름을 펼칩니다.`}
       id="orchestration-control"
     >
       <div className="diagram-card orchestration-control-summary">
         <p>
-          APScheduler, FastAPI, SQLite, SQLAlchemy가 실제 실행 순서를 제어하고, 각 컬럼의 노드는
-          이벤트 해석과 상품 근거화를 거쳐 같은 전달면으로 이어집니다.
+          각 제어 열의 노드와 기술 배지는 모두 공개 계약 데이터에서 바로 읽어 오며, 같은 순서로
+          아래 제어 보드에 다시 배치됩니다.
         </p>
         <div className="diagram-chip-row">
           {surfacedTechnologies.map((technology) => (
@@ -36,7 +34,7 @@ export default function OrchestrationControlBoard() {
             <article className="diagram-card deep-dive-orchestration-group-card">
               <p className="section-shell-eyebrow">{`제어 열 0${index + 1}`}</p>
               <h3>{column.title}</h3>
-              <p>{`${column.nodes.length}개 노드가 같은 컬럼 안에서 순차적으로 연결됩니다.`}</p>
+              <p>{`${column.nodes.length}개 노드가 같은 열 안에서 순차적으로 연결됩니다.`}</p>
               <div className="diagram-chip-row">
                 {column.technologies.map((technology) => (
                   <span className="diagram-chip" key={technology}>
