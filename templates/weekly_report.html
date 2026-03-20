@@ -260,7 +260,7 @@
             </div>
             <div class="product-meta">
               {% if product.match_method %}<span class="chip chip-soft">연결 방식 {{ product.match_method }}</span>{% endif %}
-              {% if product.confidence is not none %}<span class="chip chip-soft">신뢰도 {{ (product.confidence * 100)|round(0)|int }}%</span>{% endif %}
+              {% if product.confidence is defined and product.confidence is not none %}<span class="chip chip-soft">신뢰도 {{ (product.confidence * 100)|round(0)|int }}%</span>{% endif %}
             </div>
           </div>
         </div>
@@ -299,7 +299,7 @@
               <div class="evidence-title">{{ product.company }} · {{ product.product_name }}</div>
               <div class="evidence-meta">
                 {% if product.match_method %}연결 방식 {{ product.match_method }}{% endif %}
-                {% if product.confidence is not none %}{% if product.match_method %} · {% endif %}신뢰도 {{ (product.confidence * 100)|round(0)|int }}%{% endif %}
+                {% if product.confidence is defined and product.confidence is not none %}{% if product.match_method %} · {% endif %}신뢰도 {{ (product.confidence * 100)|round(0)|int }}%{% endif %}
               </div>
             </div>
           </div>
