@@ -572,7 +572,10 @@ def _build_product_summary(source: dict, report_type: str) -> list:
 
 def _pick_evidence_events(source: dict, report_type: str) -> list:
     candidate_events = _dedupe_events(
-        source["new_events"] + [event for event, _reasons in source["notable_pairs"]] + source["active_events"]
+        source["new_events"]
+        + [event for event, _reasons in source["notable_pairs"]]
+        + source["active_events"]
+        + (source["ended_events"] if report_type == "weekly" else [])
     )
     evidence_events = [event for event in candidate_events if _extract_event_evidence(event)]
     serialized = _serialize_events(evidence_events[:5])

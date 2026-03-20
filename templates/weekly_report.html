@@ -47,6 +47,13 @@
     font-size: 14px;
     line-height: 1.6;
   }
+  .hero-meta {
+    margin-top: 14px;
+    color: #d7e3ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
   .section {
     margin-top: 16px;
     background: #fff;
@@ -180,7 +187,7 @@
         <p class="eyebrow">주간 경쟁 인텔리전스 브리핑</p>
         <h1>{{ week_label }} 주간 카드 마케팅 인텔리전스 리포트</h1>
         <p>이번 주의 신규 전개, 종료 흐름, 테마 이동, 상품 신호를 경영진 관점으로 재구성했습니다.</p>
-        <p style="margin-top:14px;color:#d7e3ff;font-size:12px;font-weight:700;letter-spacing:.04em;">기간: {{ period_label }}</p>
+        <div class="hero-meta">기간: {{ period_label }}</div>
       </div>
 
       <div class="section">
@@ -248,21 +255,13 @@
         <div class="product-card">
           <div class="product-head">
             <div>
-              <div class="product-name">{{ product.product_name }}</div>
-              <div class="product-meta">{{ product.company }} · {{ product.event_count }}건의 연결 이벤트</div>
+              <div class="product-name">{{ product.company }} · {{ product.product_name }}</div>
+              <div class="product-meta">연결 이벤트 {{ product.event_count }}건</div>
             </div>
             <div class="product-meta">
-              {% if product.companies %}
-              관련 카드사: {{ product.companies|join(', ') }}
-              {% endif %}
+              {% if product.match_method %}<span class="chip chip-soft">연결 방식 {{ product.match_method }}</span>{% endif %}
+              {% if product.confidence is not none %}<span class="chip chip-soft">신뢰도 {{ (product.confidence * 100)|round(0)|int }}%</span>{% endif %}
             </div>
-          </div>
-          <div class="product-body">
-            {% if product.example_event and product.example_event.one_line_summary %}
-            {{ product.example_event.one_line_summary }}
-            {% else %}
-            이번 주에 해당 상품을 둘러싼 공시와 이벤트 노출이 확인되었습니다.
-            {% endif %}
           </div>
         </div>
         {% endfor %}
@@ -298,16 +297,10 @@
           <div class="evidence-card">
             <div class="evidence-head">
               <div class="evidence-title">{{ product.company }} · {{ product.product_name }}</div>
-              {% if product.link_text %}
-              <div class="evidence-meta">{{ product.link_text }}</div>
-              {% endif %}
-            </div>
-            <div class="evidence-body">
-              {% if product.benefit_summary %}
-              {{ product.benefit_summary }}
-              {% else %}
-              이번 주 상품 근거를 대시보드에서 확인할 수 있습니다.
-              {% endif %}
+              <div class="evidence-meta">
+                {% if product.match_method %}연결 방식 {{ product.match_method }}{% endif %}
+                {% if product.confidence is not none %}{% if product.match_method %} · {% endif %}신뢰도 {{ (product.confidence * 100)|round(0)|int }}%{% endif %}
+              </div>
             </div>
           </div>
           {% endfor %}
