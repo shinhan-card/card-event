@@ -6,6 +6,7 @@ import json
 import logging
 import sys
 import os
+from pathlib import Path
 
 # Windows cp949 콘솔에서 유니코드(— 등) 출력 시 인코딩 오류 방지
 if getattr(sys.stdout, "reconfigure", None) and (sys.stdout.encoding or "").upper().startswith("CP949"):
@@ -29,6 +30,7 @@ from pydantic import BaseModel
 import uvicorn
 
 import database as db
+from routers.briefing import router as briefing_router
 
 logger = logging.getLogger(__name__)
 COMPANY_BRIEF_TTL_SEC = 600
@@ -72,6 +74,118 @@ def _pjson(value):
 
 def _ratio(n, d):
     return round(n / d * 100) if d > 0 else 0
+
+
+def _load_json_file(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _card_terms_paths() -> tuple[Path, Path]:
+    base_dir = Path(__file__).resolve().parent / "data" / "card_terms"
+    return base_dir / "manifest.json", base_dir / "product_disclosures.json"
+
+
+def _build_objective_scoreboard(session: Session) -> dict:
+    events = [event for event in session.query(db.CardEvent).all() if db.has_meaningful_info(event)]
+    companies = sorted({(event.company or "").strip() for event in events if (event.company or "").strip()})
+    today = date.today()
+    month_ago = today - timedelta(days=30)
+
+    def _count(predicate):
+        values = {}
+        for company in companies:
+            values[company] = sum(
+                1 for event in events if (event.company or "").strip() == company and predicate(event)
+            )
+        return values
+
+    return {
+        "generated_at": datetime.now().isoformat(),
+        "title": "Objective Scoreboard",
+        "companies": companies,
+        "rows": [
+            {
+                "key": "active_events",
+                "metric": "Active Events",
+                "unit": "count",
+                "values": _count(lambda event: bool(event.period_end and event.period_end >= today)),
+            },
+            {
+                "key": "monthly_new",
+                "metric": "New Events (30d)",
+                "unit": "count",
+                "values": _count(lambda event: bool(event.period_start and event.period_start >= month_ago)),
+            },
+            {
+                "key": "ending_soon",
+                "metric": "Ending Soon (7d)",
+                "unit": "count",
+                "values": _count(
+                    lambda event: bool(
+                        event.period_end and today <= event.period_end <= today + timedelta(days=7)
+                    )
+                ),
+            },
+        ],
+        "summary": [],
+    }
+
+
+def _build_rag_stats_snapshot() -> dict:
+    manifest_path, disclosures_path = _card_terms_paths()
+    manifest = _load_json_file(manifest_path).get("products", {})
+    disclosures = _load_json_file(disclosures_path).get("products", {})
+    total_cards = len(set(manifest.keys()) | set(disclosures.keys()))
+    return {
+        "status": "manifest" if total_cards else "not_ready",
+        "message": "manifest-backed stats" if total_cards else "product manifests not available",
+        "total_chunks": 0,
+        "total_cards": total_cards,
+        "collection": "card_products",
+    }
+
+
+def _build_disclosure_stats_snapshot() -> dict:
+    _manifest_path, disclosures_path = _card_terms_paths()
+    products = _load_json_file(disclosures_path).get("products", {})
+    by_company = {}
+    total_new = 0
+
+    for info in products.values():
+        if not isinstance(info, dict):
+            continue
+        company = (info.get("company") or "Unknown").strip() or "Unknown"
+        row = by_company.setdefault(
+            company,
+            {"total": 0, "active": 0, "discontinued": 0, "new": 0, "latest_launch": ""},
+        )
+        row["total"] += 1
+        if info.get("status") == "discontinued":
+            row["discontinued"] += 1
+        else:
+            row["active"] += 1
+        if info.get("revision_type") == "\uc2e0\uaddc\ucd9c\uc2dc":
+            row["new"] += 1
+            total_new += 1
+        launch_date = str(info.get("launch_date") or "")
+        if launch_date > row["latest_launch"]:
+            row["latest_launch"] = launch_date
+
+    last_updated = None
+    if disclosures_path.exists():
+        last_updated = datetime.fromtimestamp(disclosures_path.stat().st_mtime).isoformat()
+
+    return {
+        "total_products": len(products),
+        "total_new": total_new,
+        "by_company": by_company,
+        "last_updated": last_updated,
+    }
 
 
 # ===========================================================================
@@ -640,6 +754,7 @@ else:
 
 templates = Jinja2Templates(directory="templates")
 db.init_db()
+app.include_router(briefing_router)
 
 
 # ---------------------------------------------------------------------------
@@ -843,6 +958,11 @@ async def get_statistics(db_session: Session = Depends(db.get_db)):
 @app.get("/api/analytics/company-overview")
 async def get_company_overview(db_session: Session = Depends(db.get_db)):
     return build_company_overview(db_session)
+
+
+@app.get("/api/analytics/objective-scoreboard")
+async def get_objective_scoreboard(db_session: Session = Depends(db.get_db)):
+    return _cached("objective_scoreboard", lambda: _build_objective_scoreboard(db_session), ttl=300)
 
 
 @app.get("/api/analytics/trends")
@@ -1338,6 +1458,16 @@ async def get_pipeline_progress():
     """전체 추출 진행 상태 (실제 처리 건수·성공·실패)."""
     from modules.pipeline import get_pipeline_progress as _get
     return _get()
+
+
+@app.get("/api/rag/stats")
+async def get_rag_stats():
+    return _build_rag_stats_snapshot()
+
+
+@app.get("/api/disclosures/stats")
+async def get_disclosure_stats():
+    return _build_disclosure_stats_snapshot()
 
 
 @app.post("/api/pipeline/ingest")
