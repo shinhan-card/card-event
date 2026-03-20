@@ -18,6 +18,8 @@ import database as db
 
 logger = logging.getLogger(__name__)
 
+BRIEFING_TEMPLATE_VERSION = "v3"
+
 EXPECTED_COMPANIES = (
     "신한카드",
     "삼성카드",
@@ -666,6 +668,64 @@ def _build_executive_summary(payload: dict, report_type: str) -> tuple[str, str]
     return summary, "rule"
 
 
+def _infer_briefing_readiness_status(warnings: list) -> str:
+    if not warnings:
+        return "ready"
+
+    severities = {
+        (warning.get("severity") or "").lower()
+        for warning in warnings
+        if isinstance(warning, dict)
+    }
+    if "high" in severities:
+        return "blocked"
+    if "medium" in severities:
+        return "needs_review"
+    return "ready"
+
+
+def build_briefing_status_snapshot(payload: dict) -> dict:
+    warnings = list(payload.get("quality_warnings") or [])
+    return {
+        "report_type": payload.get("report_type", ""),
+        "period_label": payload.get("period_label", ""),
+        "generated_at": payload.get("generated_at"),
+        "warning_count": payload.get("warning_count", len(warnings)),
+        "warnings": warnings,
+        "ai_summary_status": payload.get("ai_summary_status", "rule"),
+        "source_event_count": payload.get("source_event_count", 0),
+        "source_product_count": payload.get("source_product_count", 0),
+        "readiness_status": _infer_briefing_readiness_status(warnings),
+    }
+
+
+def build_briefing_log_metadata(
+    payload: dict,
+    *,
+    delivery_mode: str,
+    recipient_count: int = 0,
+    status: str = "sent",
+    error_msg: str | None = None,
+) -> dict:
+    return {
+        "briefing_type": payload.get("report_type", ""),
+        "recipient_count": recipient_count,
+        "new_events_count": payload.get("new_events_count", 0),
+        "high_threat_count": payload.get("notable_count", 0),
+        "ending_soon_count": payload.get("ending_soon_count", 0),
+        "status": status,
+        "error_msg": error_msg,
+        "period_label": payload.get("period_label", ""),
+        "source_event_count": payload.get("source_event_count", 0),
+        "source_product_count": payload.get("source_product_count", 0),
+        "warning_count": payload.get("warning_count", 0),
+        "warning_json": list(payload.get("quality_warnings") or []),
+        "ai_summary_status": payload.get("ai_summary_status", "rule"),
+        "delivery_mode": delivery_mode,
+        "template_version": payload.get("template_version", BRIEFING_TEMPLATE_VERSION),
+    }
+
+
 def build_briefing_payload(session: Session, report_type: str) -> dict:
     source = _collect_briefing_source_data(session, report_type)
     period_label = _build_period_label(source, report_type)
@@ -679,6 +739,7 @@ def build_briefing_payload(session: Session, report_type: str) -> dict:
         "date_label": _build_daily_date_label(source) if report_type == "daily" else "",
         "week_label": period_label if report_type == "weekly" else "",
         "delivery_mode": "digest",
+        "template_version": BRIEFING_TEMPLATE_VERSION,
         "company_sections": _build_company_sections(source, report_type),
         "theme_summary": _build_theme_summary(source, report_type),
         "product_summary": _build_product_summary(source, report_type),
@@ -822,13 +883,13 @@ async def send_daily_briefing_job():
 
         db.create_briefing_log(
             session,
-            briefing_type="daily",
-            recipient_count=len(recipients),
-            new_events_count=data["new_events_count"],
-            high_threat_count=data.get("notable_count", 0),
-            ending_soon_count=data["ending_soon_count"],
-            status="sent" if success else "failed",
-            error_msg=error or None,
+            **build_briefing_log_metadata(
+                data,
+                delivery_mode="production",
+                recipient_count=len(recipients),
+                status="sent" if success else "failed",
+                error_msg=error or None,
+            ),
         )
         logger.info(f"[브리핑] 일간 완료. 신규={data['new_events_count']}, 주목={data.get('notable_count', 0)}")
     except Exception as e:
@@ -852,13 +913,13 @@ async def send_weekly_briefing_job():
 
         db.create_briefing_log(
             session,
-            briefing_type="weekly",
-            recipient_count=len(recipients),
-            new_events_count=data["new_events_count"],
-            high_threat_count=data.get("notable_count", 0),
-            ending_soon_count=0,
-            status="sent" if success else "failed",
-            error_msg=error or None,
+            **build_briefing_log_metadata(
+                data,
+                delivery_mode="production",
+                recipient_count=len(recipients),
+                status="sent" if success else "failed",
+                error_msg=error or None,
+            ),
         )
         logger.info(f"[브리핑] 주간 완료. 신규={data['new_events_count']}, 주목={data.get('notable_count', 0)}")
     except Exception as e:

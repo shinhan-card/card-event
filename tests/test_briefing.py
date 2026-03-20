@@ -606,6 +606,138 @@ def test_create_briefing_log_persists_new_metadata():
             database.engine.dispose()
 
 
+def test_build_briefing_status_snapshot_infers_readiness_from_warnings():
+    snapshot = briefing.build_briefing_status_snapshot(
+        {
+            "report_type": "daily",
+            "period_label": "2026-03-20",
+            "generated_at": "2026-03-20T09:00:00",
+            "warning_count": 2,
+            "quality_warnings": [
+                {"code": "company_coverage_low", "severity": "high", "message": "Coverage needs review."}
+            ],
+            "ai_summary_status": "rule",
+            "source_event_count": 12,
+            "source_product_count": 4,
+        }
+    )
+
+    assert snapshot["report_type"] == "daily"
+    assert snapshot["period_label"] == "2026-03-20"
+    assert snapshot["warning_count"] == 2
+    assert snapshot["warnings"][0]["code"] == "company_coverage_low"
+    assert snapshot["ai_summary_status"] == "rule"
+    assert snapshot["source_event_count"] == 12
+    assert snapshot["source_product_count"] == 4
+    assert snapshot["readiness_status"] == "blocked"
+
+
+def test_send_now_briefing_route_returns_mode_and_metadata(monkeypatch):
+    sample_payload = {
+        "report_type": "daily",
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "2026-03-20",
+        "date_label": "2026-03-20",
+        "week_label": "",
+        "warning_count": 1,
+        "quality_warnings": [{"code": "no_new_events", "severity": "medium"}],
+        "ai_summary_status": "rule",
+        "source_event_count": 5,
+        "source_product_count": 2,
+        "notable_count": 3,
+        "ending_soon_count": 1,
+        "template_version": "v3",
+    }
+    captured_log = {}
+
+    monkeypatch.setattr(briefing, "build_daily_briefing_data", lambda _session: sample_payload)
+    monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
+    monkeypatch.setattr(briefing, "render_briefing_html", lambda *args, **kwargs: "<html></html>")
+    monkeypatch.setattr(briefing, "get_recipients", lambda: ["tester@example.com"])
+    monkeypatch.setattr(briefing, "send_briefing_email", lambda *args, **kwargs: (True, ""))
+
+    import routers.briefing as briefing_router
+
+    monkeypatch.setattr(
+        briefing_router.db,
+        "create_briefing_log",
+        lambda _session, **kwargs: captured_log.update(kwargs),
+    )
+
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.post("/api/briefing/send-now?type=daily&mode=test")
+            assert response.status_code == 200
+            body = response.json()
+            assert body["delivery_mode"] == "test"
+            assert body["warning_count"] == 1
+            assert body["ai_summary_status"] == "rule"
+            assert body["period_label"] == "2026-03-20"
+            assert body["source_event_count"] == 5
+            assert body["source_product_count"] == 2
+            assert body["warning_json"] == sample_payload["quality_warnings"]
+
+    asyncio.run(_run())
+
+    assert captured_log["delivery_mode"] == "test"
+    assert captured_log["warning_count"] == 1
+    assert captured_log["ai_summary_status"] == "rule"
+    assert captured_log["period_label"] == "2026-03-20"
+    assert captured_log["source_event_count"] == 5
+    assert captured_log["source_product_count"] == 2
+    assert captured_log["template_version"] == "v3"
+    assert captured_log["warning_json"] == sample_payload["quality_warnings"]
+
+
+def test_briefing_logs_route_exposes_richer_metadata(monkeypatch):
+    import routers.briefing as briefing_router
+
+    rows = [
+        SimpleNamespace(
+            id=7,
+            briefing_type="weekly",
+            sent_at=datetime(2026, 3, 20, 9, 15, 0),
+            recipient_count=3,
+            new_events_count=2,
+            high_threat_count=1,
+            ending_soon_count=4,
+            period_label="03/13 ~ 03/20",
+            source_event_count=18,
+            source_product_count=6,
+            warning_count=2,
+            warning_json=json.dumps(
+                [{"code": "company_coverage_low", "severity": "high"}],
+                ensure_ascii=False,
+            ),
+            ai_summary_status="rule",
+            delivery_mode="production",
+            template_version="v3",
+            status="sent",
+            error_msg=None,
+        )
+    ]
+
+    monkeypatch.setattr(briefing_router.db, "get_briefing_logs", lambda _session, limit=20: rows)
+
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.get("/api/briefing/logs?limit=1")
+            assert response.status_code == 200
+            body = response.json()
+            assert body[0]["period_label"] == "03/13 ~ 03/20"
+            assert body[0]["source_event_count"] == 18
+            assert body[0]["source_product_count"] == 6
+            assert body[0]["warning_count"] == 2
+            assert body[0]["ai_summary_status"] == "rule"
+            assert body[0]["delivery_mode"] == "production"
+            assert body[0]["template_version"] == "v3"
+            assert body[0]["warning_json"][0]["code"] == "company_coverage_low"
+
+    asyncio.run(_run())
+
+
 def test_render_daily_briefing_uses_market_intelligence_sections():
     html = briefing.render_briefing_html(
         _sample_briefing_payload(report_type="daily"),
