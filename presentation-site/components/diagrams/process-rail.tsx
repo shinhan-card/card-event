@@ -23,11 +23,30 @@ const stageVariants = {
 export default function ProcessRail() {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
+  if (prefersReducedMotion) {
+    return (
+      <div className="process-rail" aria-label="Signal processing rail">
+        <div className="process-rail-track" aria-hidden="true" />
+
+        <div className="process-rail-stages">
+          {architectureContent.stages.map((stage, index) => (
+            <article className="process-rail-stage" key={stage.key}>
+              <span className="process-rail-index">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{stage.title}</h3>
+              <p className="process-rail-technology">{stage.technology}</p>
+              <p>{stage.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className="process-rail"
       aria-label="Signal processing rail"
-      initial={prefersReducedMotion ? false : "hidden"}
+      initial="hidden"
       animate="show"
       variants={railVariants}
     >

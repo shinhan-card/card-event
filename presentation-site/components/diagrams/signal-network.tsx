@@ -24,11 +24,48 @@ const itemVariants = {
 export default function SignalNetwork() {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
+  if (prefersReducedMotion) {
+    return (
+      <section className="signal-network" aria-label="Signal network diagram">
+        <div className="signal-network-header">
+          <p className="section-shell-eyebrow">Signal network</p>
+          <p className="signal-network-copy">
+            Separate lanes keep event and product intelligence legible before
+            delivery.
+          </p>
+        </div>
+
+        <div className="signal-network-grid">
+          {architectureContent.axes.map((axis, index) => (
+            <article
+              className={`signal-network-axis signal-network-axis--${index === 0 ? "signal" : "warm"}`}
+              key={axis.key}
+            >
+              <span className="signal-network-axis-key">{axis.key}</span>
+              <h3>{axis.title}</h3>
+              <p>{axis.question}</p>
+              <div className="signal-network-pulse" aria-hidden="true" />
+            </article>
+          ))}
+        </div>
+
+        <div className="signal-network-bridge">
+          <span className="signal-network-bridge-label">Shared delivery</span>
+          <div className="signal-network-bridge-track" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <motion.section
       className="signal-network"
       aria-label="Signal network diagram"
-      initial={prefersReducedMotion ? false : "hidden"}
+      initial="hidden"
       animate="show"
       variants={containerVariants}
     >
