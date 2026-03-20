@@ -1,3 +1,6 @@
+import { snapshotMetadata } from "@/content/architecture-content";
+import type { SnapshotMetadata } from "@/content/architecture-content";
+
 export type ModuleClusterKey = "event-pipeline" | "product-rag" | "shared";
 
 export interface ModuleAxisRoot {
@@ -21,6 +24,7 @@ export interface ModuleSection {
 }
 
 export interface ModuleMap {
+  snapshot: SnapshotMetadata;
   axisRoots: readonly ModuleAxisRoot[];
   clusters: readonly ModuleCluster[];
   sections: readonly ModuleSection[];
@@ -84,6 +88,7 @@ const uiLayerCluster = {
 } as const satisfies ModuleCluster;
 
 export const moduleMap = {
+  snapshot: snapshotMetadata,
   axisRoots: [
     {
       key: "event-pipeline",

@@ -1,5 +1,11 @@
 export type ArchitectureAxisKey = "event-intelligence" | "product-intelligence";
 
+export interface SnapshotMetadata {
+  label: string;
+  capturedOn: string;
+  note: string;
+}
+
 export interface ArchitectureAxis {
   key: ArchitectureAxisKey;
   title: string;
@@ -80,6 +86,7 @@ export interface RoadmapPhase {
 }
 
 export interface ArchitectureContent {
+  snapshot: SnapshotMetadata;
   deepDive: {
     eyebrow: string;
     title: string;
@@ -124,6 +131,12 @@ export interface ArchitectureContent {
   };
   designPrinciples: readonly string[];
 }
+
+export const snapshotMetadata = {
+  label: "Current snapshot",
+  capturedOn: "2026-03-20",
+  note: "Authoring guide and architecture maps are current as of this presentation workspace snapshot."
+} as const satisfies SnapshotMetadata;
 
 const axes = [
   {
@@ -407,6 +420,7 @@ const roadmapPhases = [
 ] as const;
 
 export const architectureContent = {
+  snapshot: snapshotMetadata,
   deepDive: {
     eyebrow: "Systems Atlas",
     title: "Architecture Deep Dive",

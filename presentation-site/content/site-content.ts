@@ -1,3 +1,6 @@
+import { snapshotMetadata } from "@/content/architecture-content";
+import type { SnapshotMetadata } from "@/content/architecture-content";
+
 export type LandingSceneKey =
   | "hero"
   | "problem"
@@ -60,6 +63,7 @@ export interface LandingShowroomContent {
 }
 
 export interface SiteContent {
+  snapshot: SnapshotMetadata;
   hero: {
     eyebrow: string;
     title: string;
@@ -77,6 +81,7 @@ const openDeepDiveCta = {
 } as const;
 
 export const siteContent = {
+  snapshot: snapshotMetadata,
   hero: {
     eyebrow: "Showroom preview",
     title: "Event and disclosure intelligence, staged as a living presentation",

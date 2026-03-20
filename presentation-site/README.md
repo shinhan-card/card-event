@@ -2,34 +2,51 @@
 
 This is the standalone presentation workspace for `card-event-intelligence`. It lives under `presentation-site/` and is intentionally separate from the FastAPI app at the repo root.
 
-The initial App Router bootstrap lives in:
+## Local Workflow
 
-- `presentation-site/app/layout.tsx`
-- `presentation-site/app/page.tsx`
-- `presentation-site/app/deep-dive/page.tsx`
-- `presentation-site/app/globals.css`
+From `presentation-site/`:
 
-The first smoke test for the workspace lives in:
+```bash
+npm install
+npm run dev
+```
 
-- `presentation-site/tests/unit/routes-smoke.test.tsx`
+Use these commands while editing:
 
-The placeholder Playwright entrypoint lives in:
+- `npm run lint` for static checks.
+- `npm run test` for the unit suite.
+- `npm run test:e2e` for the Playwright flows.
+- `npm run build` for a production check.
 
-- `presentation-site/tests/e2e/bootstrap-placeholder.spec.ts`
+## Where To Edit Content
 
-## Scripts
+- Landing copy, showroom scenes, and CTA text live in [`content/site-content.ts`](./content/site-content.ts).
+- Deep-dive narrative, axis split, orchestration, principles, and roadmap content live in [`content/architecture-content.ts`](./content/architecture-content.ts).
+- The real module-ownership map lives in [`content/module-map.ts`](./content/module-map.ts).
+- Route shells and presentation components live under `app/` and `components/`.
 
-- `npm run dev`
-- `npm run build`
-- `npm run start`
-- `npm run lint`
-- `npm run test`
-- `npm run test:watch`
-- `npm run test:e2e`
+## Keeping The Dual-Axis Split Accurate
+
+When the backend evolves, update the content model and the map together so the presentation stays faithful:
+
+- Keep `event-pipeline` focused on event capture, extraction, normalization, and enrichment.
+- Keep `product-rag` focused on disclosures, PDF/catalog collection, and RAG-backed product intelligence.
+- Keep shared bootstrap, router, briefing, analytics, and UI surfaces in shared clusters.
+- Update [`content/architecture-content.ts`](./content/architecture-content.ts) and [`content/module-map.ts`](./content/module-map.ts) at the same time so the landing story and the real module map do not drift apart.
+
+## Snapshot Metadata
+
+The footer reads from the shared snapshot marker exposed by the content files:
+
+- `label`
+- `capturedOn`
+- `note`
+
+That metadata is currently captured as of `2026-03-20` and should be updated whenever the presentation snapshot is refreshed.
 
 ## Notes
 
 - Keep this workspace self-contained inside `presentation-site/`.
 - Add future presentation changes here rather than in the FastAPI runtime.
-- Use the smoke test as the first check when extending the route shell.
-- `npm run test:e2e` is intentionally a placeholder for now; it stays green by skipping the bootstrap spec until real E2E coverage is added.
+- `npm run test:e2e` runs the showroom and deep-dive Playwright coverage; the bootstrap placeholder spec remains skipped until it is retired.
+- The `presentation-site/next-env.d.ts` line-ending churn is still local noise in this worktree and was intentionally left alone.
