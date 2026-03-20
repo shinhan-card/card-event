@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>경쟁사 카드 이벤트 인텔리전스</title>
+<title>카드 이벤트 인텔리전스</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,176 +14,406 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#eef2f7;
-  --ink:#0f172a;
-  --muted:#64748b;
-  --panel:#ffffff;
-  --line:#d8e1ec;
-  --brand:#0a4fff;
-  --brand-dark:#092d6c;
-  --brand-soft:#e8efff;
-  --ok:#059669;
-  --warn:#d97706;
-  --danger:#dc2626;
+  --bg:#f0f2f5;--ink:#0f172a;--muted:#64748b;--panel:#ffffff;--line:#dde3ec;
+  --brand:#0046FF;--brand-dark:#092d6c;--brand-soft:#e8efff;
+  --ok:#059669;--warn:#d97706;--danger:#dc2626;
+  --radius:14px;--side-w:520px;
+}
+[data-theme="dark"]{
+  --bg:#0c1222;--ink:#e2e8f0;--muted:#94a3b8;--panel:#1a2332;--line:#2d3a4f;
+  --brand:#3b82f6;--brand-dark:#1e40af;--brand-soft:#1e293b;
+  --ok:#34d399;--warn:#fbbf24;--danger:#f87171;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  color:var(--ink);
-  font-family:'Noto Sans KR',sans-serif;
-  background:
-    radial-gradient(1200px 520px at -8% -10%, #dbe7ff 0%, transparent 55%),
-    radial-gradient(900px 420px at 108% -8%, #ffecc6 0%, transparent 52%),
-    linear-gradient(180deg, #f6f9fe 0%, var(--bg) 100%);
-}
+body{margin:0;color:var(--ink);font-family:'Noto Sans KR',sans-serif;background:var(--bg);transition:background .3s,color .3s}
 .display-font{font-family:'Space Grotesk','Noto Sans KR',sans-serif}
 .section-card{
-  background:rgba(255,255,255,.9);
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:1rem;
-  box-shadow:0 12px 34px rgba(15,23,42,.07);
-  backdrop-filter:blur(4px);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.25rem;box-shadow:0 2px 12px rgba(15,23,42,.06);transition:all .2s;
 }
-.kpi{position:relative;overflow:hidden;padding:1rem 1rem .9rem}
-.kpi:before{
-  content:'';
-  position:absolute;
-  inset:0 auto auto 0;
-  width:46%;
-  height:2px;
-  background:linear-gradient(90deg,var(--brand),transparent);
-}
-.kpi .val{font-size:1.55rem;font-weight:700;line-height:1.1}
-.kpi .lbl{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.kpi .ico{font-size:.95rem;color:#1d4ed8;background:var(--brand-soft);width:1.9rem;height:1.9rem;border-radius:999px;display:inline-flex;align-items:center;justify-content:center}
+.section-card:hover{box-shadow:0 6px 24px rgba(15,23,42,.1)}
+[data-theme="dark"] .section-card{box-shadow:0 2px 12px rgba(0,0,0,.3)}
+
+/* ??????ш끽維뽳쭩?뱀땡? */
 .app-header{
   background:linear-gradient(135deg,#0b1c3d 0%,#0f2b5f 60%,#173a79 100%);
-  color:#fff;
-  border-bottom:1px solid rgba(255,255,255,.15);
-  box-shadow:0 10px 40px rgba(3,10,27,.35);
+  color:#fff;border-bottom:1px solid rgba(255,255,255,.15);
+  box-shadow:0 4px 20px rgba(3,10,27,.35);position:relative;z-index:40;
 }
 .header-gradient-text{
-  background:linear-gradient(to right, #ffffff, #60a5fa, #a78bfa, #60a5fa, #ffffff);
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  color:transparent;
+  background:linear-gradient(to right,#fff,#60a5fa,#a78bfa,#60a5fa,#fff);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
+
+/* ??????耀붾굝????????*/
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:68px;
+  background:linear-gradient(180deg,#0b1c3d,#0f2b5f);
+  z-index:50;display:flex;flex-direction:column;align-items:center;
+  padding:12px 0;gap:2px;border-right:1px solid rgba(255,255,255,.1);
+  transition:width .2s;
+}
+.sidebar .logo{width:36px;height:36px;margin-bottom:10px;border-radius:10px;
+  background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:14px;color:#fff}
+.nav-btn{
+  width:56px;height:50px;border-radius:10px;border:none;background:transparent;
+  color:rgba(255,255,255,.5);cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;font-size:15px;transition:all .15s;position:relative;
+}
+.nav-btn .nav-label{font-size:9px;font-weight:600;letter-spacing:-.01em;line-height:1;opacity:.85}
+.nav-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
+.nav-btn.active{background:rgba(59,130,246,.3);color:#60a5fa}
+.nav-btn.active::before{content:'';position:absolute;left:-4px;width:3px;height:24px;
+  background:#60a5fa;border-radius:0 4px 4px 0}
+/* ????????ㅻ깹????????轅붽틓???????????袁⑸즴筌?씛彛??癲??됀?????????袁⑸즴筌?씛彛?????????(???????롮쾸?椰??????????獄쏅챶留??泳?뿀???筌?????????????븐뼔???? */
+.nav-btn.icon-only{width:40px;height:40px;flex-direction:row;gap:0}
+.nav-tooltip{
+  display:none;position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#1e293b;color:#e2e8f0;font-size:11px;padding:4px 10px;border-radius:6px;
+  white-space:nowrap;z-index:99;pointer-events:none;
+}
+.nav-btn:hover .nav-tooltip{display:block}
+
+/* ????븐뼐?????????????????泥??*/
+.main-area{margin-left:68px;min-height:100vh}
+
+/* KPI ?????筌뤾퍓愿????*/
+.kpi-mini{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;
+  transition:all .15s;cursor:default;
+}
+.kpi-mini:hover{border-color:var(--brand);box-shadow:0 4px 16px rgba(0,70,255,.08)}
+.kpi-mini .kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.kpi-mini .kpi-val{font-size:1.4rem;font-weight:800;line-height:1.1}
+.kpi-mini .kpi-lbl{font-size:.68rem;color:var(--muted);font-weight:500}
+
+/* ?????????*/
 .tab-btn{
-  padding:.65rem 1rem;
-  font-size:.84rem;
-  font-weight:600;
-  border:1px solid transparent;
-  border-radius:999px;
-  color:#4b5563;
-  background:transparent;
-  cursor:pointer;
-  transition:.2s ease;
+  padding:.5rem .9rem;font-size:.82rem;font-weight:600;border:1px solid transparent;
+  border-radius:10px;color:var(--muted);background:transparent;cursor:pointer;
+  transition:all .18s;white-space:nowrap;
 }
-.tab-btn:hover{background:#eef3fb;border-color:#d7e1ee}
-.tab-btn.active{background:#fff;color:#0a4fff;border-color:#bcd0ff;box-shadow:0 8px 18px rgba(10,79,255,.16)}
+.tab-btn:hover{background:var(--brand-soft);border-color:var(--line)}
+.tab-btn.active{background:var(--panel);color:var(--brand);border-color:#bcd0ff;
+  box-shadow:0 4px 12px rgba(0,70,255,.12)}
+
+/* ?????獄쏅챶留덌┼?????? */
 .badge-sm{font-size:.65rem;padding:2px 7px;border-radius:999px;font-weight:700;line-height:1.2}
 .badge-hi{background:var(--danger);color:#fff}
 .badge-mid{background:var(--warn);color:#fff}
 .badge-lo{background:var(--ok);color:#fff}
-.c-samsung{--cc:#6ec6ff}
-.c-shinhan{--cc:#0057ff}
-.c-hyundai{--cc:#111111}
-.c-kb{--cc:#ffb300}
-.c-default{--cc:#475569}
+
+/* 주간 변화 */
+.weekly-board{display:flex;flex-direction:column;gap:16px}
+.weekly-board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.weekly-board-week{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.weekly-board-range{font-size:.76rem;font-weight:700;color:var(--muted)}
+.weekly-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.weekly-stat-card{
+  border-radius:16px;padding:14px 12px;text-align:center;border:1px solid transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.weekly-stat-value{font-size:2rem;font-weight:800;line-height:1.05;letter-spacing:-.03em}
+.weekly-stat-label{margin-top:6px;font-size:.76rem;font-weight:700}
+.weekly-stat-card.start{background:#edf4ff;border-color:#dbeafe;color:#2563eb}
+.weekly-stat-card.end{background:#fff6df;border-color:#fde68a;color:#d97706}
+.weekly-stat-card.launch{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
+.weekly-stat-card.stop{background:#fff1f2;border-color:#fecdd3;color:#e11d48}
+.weekly-column-grid{display:grid;grid-template-columns:1fr;gap:18px}
+.weekly-column{min-width:0}
+.weekly-column + .weekly-column{padding-top:2px}
+.weekly-section-title{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:800;letter-spacing:-.01em}
+.weekly-section-title.start{color:#2563eb}
+.weekly-section-title.end{color:#d97706}
+.weekly-section-title.product{color:#4f46e5}
+.weekly-section-title.stop{color:#e11d48}
+.weekly-company-group{margin-top:10px}
+.weekly-company-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.weekly-company-count{font-size:.72rem;font-weight:700;color:var(--muted)}
+.weekly-item-list{display:flex;flex-direction:column;gap:6px;padding-left:2px}
+.weekly-item{font-size:.79rem;line-height:1.55;color:#64748b}
+.weekly-item button{
+  all:unset;cursor:pointer;color:inherit;display:inline;font:inherit;line-height:inherit;
+}
+.weekly-item.is-clickable button:hover{color:var(--brand)}
+.weekly-item-date{color:#94a3b8;font-size:.74rem;font-weight:600}
+.weekly-more{font-size:.73rem;font-weight:700;color:#94a3b8}
+.weekly-divider{padding-top:16px;border-top:1px solid var(--line)}
+.weekly-empty{
+  padding:12px 14px;border-radius:14px;border:1px dashed var(--line);
+  background:rgba(148,163,184,.08);font-size:.8rem;color:var(--muted)
+}
+@media (min-width: 768px){
+  .weekly-stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (min-width: 1024px){
+  .weekly-column-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+  .weekly-column + .weekly-column{
+    border-left:1px solid var(--line);padding-left:24px;padding-top:0;
+  }
+}
+[data-theme="dark"] .weekly-stat-card.start{background:rgba(37,99,235,.14);border-color:rgba(96,165,250,.24)}
+[data-theme="dark"] .weekly-stat-card.end{background:rgba(217,119,6,.14);border-color:rgba(251,191,36,.24)}
+[data-theme="dark"] .weekly-stat-card.launch{background:rgba(79,70,229,.16);border-color:rgba(129,140,248,.28)}
+[data-theme="dark"] .weekly-stat-card.stop{background:rgba(225,29,72,.14);border-color:rgba(251,113,133,.24)}
+[data-theme="dark"] .weekly-item{color:#cbd5e1}
+[data-theme="dark"] .weekly-item-date,[data-theme="dark"] .weekly-more{color:#94a3b8}
+[data-theme="dark"] .weekly-empty{background:rgba(30,41,59,.6)}
+
+/* ?????筌뤾퍓愿???????????濡?씀?????⑤슢??筌믩끃異?*/
+.c-samsung{--cc:#6ec6ff}.c-shinhan{--cc:#0057ff}.c-hyundai{--cc:#111}.c-kb{--cc:#ffb300}.c-default{--cc:#475569}
 .pill-samsung{background:#6ec6ff;color:#0b1f33}
 .pill-shinhan{background:#0057ff;color:#fff}
-.pill-hyundai{background:#111111;color:#fff}
+.pill-hyundai{background:#111;color:#fff}
 .pill-kb{background:#ffb300;color:#2b1d00}
 .pill-default{background:#475569;color:#fff}
-.card-co{border-left:5px solid var(--cc);border-top:2px solid color-mix(in srgb,var(--cc) 58%,#fff 42%)}
-.row-co{border-left:4px solid var(--cc);background:color-mix(in srgb,var(--cc) 4%,#fff 96%)}
-.events-table thead th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#475569;background:#f5f8fc}
-.events-table tbody td{border-top:1px solid #e7edf5}
-.events-table tbody tr:hover{background:#f7faff}
-.dark-panel{background:linear-gradient(145deg,#0a1024,#0d1b3b);color:#e2e8f0;border-color:#1f2c4f}
+.card-co{border-left:5px solid var(--cc)}
+.row-co{border-left:4px solid var(--cc)}
+
+/* ??????*/
+.events-table thead th{font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--brand-soft)}
+.events-table tbody td{border-top:1px solid var(--line);padding:.6rem .5rem}
+.events-table tbody tr{transition:all .12s}
+.events-table tbody tr:hover{background:var(--brand-soft)}
+[data-theme="dark"] .events-table thead th{background:#1e293b}
+[data-theme="dark"] input,[data-theme="dark"] select{background:var(--panel);color:var(--ink);border-color:var(--line)}
+[data-theme="dark"] .bg-slate-50,[data-theme="dark"] .bg-white{background:var(--panel)!important}
+[data-theme="dark"] .text-slate-800,[data-theme="dark"] .text-slate-700,[data-theme="dark"] .text-slate-600{color:var(--ink)!important}
+[data-theme="dark"] .text-slate-500{color:var(--muted)!important}
+[data-theme="dark"] .border-slate-200,[data-theme="dark"] .border-slate-300,[data-theme="dark"] .border-slate-100{border-color:var(--line)!important}
+[data-theme="dark"] .bg-slate-100{background:#1e293b!important}
+[data-theme="dark"] .hover\:bg-slate-100:hover{background:#243044!important}
+[data-theme="dark"] .hover\:bg-slate-50:hover{background:#1e293b!important}
+[data-theme="dark"] .bg-indigo-50{background:#1e1b4b!important}
+[data-theme="dark"] .border-indigo-100{border-color:#312e81!important}
+[data-theme="dark"] .bg-emerald-100,.bg-blue-100,.bg-amber-100,.bg-rose-100,.bg-indigo-100,.bg-sky-100,.bg-violet-100{filter:brightness(.7)}
+[data-theme="dark"] #paginationBar{background:var(--panel)!important;border-color:var(--line)!important}
+[data-theme="dark"] .product-card{background:var(--panel);border-color:var(--line)}
+[data-theme="dark"] .gantt-group-header{background:#1e293b;color:var(--ink)}
+
+/* ??????*/
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line)}
+.cal-cell{background:var(--panel);min-height:96px;padding:6px;cursor:pointer;transition:background .12s}
+.cal-cell:hover{background:var(--brand-soft)}
+.cal-cell.today{background:#eff6ff}
+.cal-cell.other-month .cal-day{color:#c4cdd8}
+.cal-day{font-size:.75rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.cal-event-bar{font-size:.62rem;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;font-weight:600;cursor:pointer}
+.cal-event-bar:hover{opacity:.85}
+.cal-more{font-size:.6rem;color:var(--muted);margin-top:1px}
+.cal-samsung{background:#dbeafe;color:#1d4ed8}.cal-kb{background:#dcfce7;color:#15803d}
+.cal-hyundai{background:#f1f5f9;color:#374151}.cal-shinhan{background:#fef2f2;color:#dc2626}
+.cal-other{background:#f5f3ff;color:#6d28d9}
+.cal-week-row{display:grid;grid-template-columns:60px repeat(7,1fr);gap:1px;background:var(--line);margin-bottom:1px}
+.cal-week-header{display:grid;grid-template-columns:60px repeat(7,1fr);gap:1px;background:var(--line);margin-bottom:1px}
+.cal-week-cell{background:var(--panel);padding:6px 4px;min-height:52px}
+.cal-week-label{background:var(--brand-soft);padding:6px 4px;text-align:center;font-size:.7rem;font-weight:700;color:var(--muted)}
+
+/* Gantt ????????袁⑸즴筌?씛彛??壤굿??留???*/
+.gantt-container{overflow-x:auto;position:relative}
+.gantt-header{display:flex;position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:2px solid var(--line)}
+.gantt-header-cell{min-width:40px;text-align:center;font-size:.65rem;font-weight:600;color:var(--muted);padding:6px 2px;border-right:1px solid var(--line)}
+.gantt-header-cell.today{background:#eff6ff;color:var(--brand);font-weight:700}
+.gantt-row{display:flex;align-items:center;border-bottom:1px solid var(--line);min-height:32px;position:relative}
+.gantt-label{width:200px;min-width:200px;padding:4px 8px;font-size:.72rem;font-weight:600;
+  border-right:2px solid var(--line);background:var(--panel);position:sticky;left:0;z-index:3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gantt-cells{display:flex;flex:1;position:relative;min-height:28px}
+.gantt-cell{min-width:40px;border-right:1px solid var(--line);height:100%}
+.gantt-cell.today{background:rgba(59,130,246,.06)}
+.gantt-cell.weekend{background:rgba(0,0,0,.02)}
+[data-theme="dark"] .gantt-cell.weekend{background:rgba(255,255,255,.02)}
+.gantt-bar{position:absolute;height:20px;top:4px;border-radius:4px;font-size:.6rem;
+  color:#fff;font-weight:600;padding:0 6px;display:flex;align-items:center;
+  cursor:pointer;transition:opacity .15s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.gantt-bar:hover{opacity:.85;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.gantt-bar.samsung{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+.gantt-bar.kb{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.gantt-bar.hyundai{background:linear-gradient(135deg,#374151,#6b7280)}
+.gantt-bar.shinhan{background:linear-gradient(135deg,#ef4444,#f87171)}
+.gantt-bar.default{background:linear-gradient(135deg,#6b7280,#9ca3af)}
+.gantt-group-header{background:var(--brand-soft);font-weight:700;font-size:.75rem;
+  padding:6px 10px;border-bottom:2px solid var(--line);color:var(--ink);cursor:pointer}
+.gantt-group-header:hover{background:#d4e2ff}
+[data-theme="dark"] .gantt-group-header{background:#1e293b}
+.gantt-today-line{position:absolute;top:0;bottom:0;width:2px;background:var(--danger);z-index:4;pointer-events:none}
+
+/* ??????袁⑸즴筌?씛彛??潁??????????援????????????*/
 .progress-wrap{background:rgba(8,16,36,.72);border:1px solid rgba(198,214,248,.2)}
-.mission-kpi{
-  border:1px solid #dbe7ff;
-  background:#fff;
-  border-radius:14px;
-  padding:.8rem .9rem;
+
+/* ??????????癲??*/
+.side-panel{
+  position:fixed;right:0;top:0;bottom:0;width:var(--side-w);max-width:100vw;
+  background:var(--panel);border-left:1px solid var(--line);
+  box-shadow:-8px 0 40px rgba(0,0,0,.15);z-index:60;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);
+  display:flex;flex-direction:column;
 }
-.mission-kpi .ttl{font-size:.72rem;color:#64748b;font-weight:700;letter-spacing:.02em}
+.side-panel.open{transform:translateX(0)}
+.side-panel-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:55;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.side-panel-overlay.open{opacity:1;pointer-events:auto}
+
+/* ???????????????????癲????*/
+.cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;
+  display:none;align-items:flex-start;justify-content:center;padding-top:18vh;
+  backdrop-filter:blur(4px)}
+.cmd-overlay.open{display:flex}
+.cmd-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  width:580px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden}
+.cmd-input{width:100%;border:none;outline:none;padding:16px 20px;font-size:15px;
+  background:transparent;color:var(--ink);font-family:inherit}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:360px;overflow-y:auto;border-top:1px solid var(--line)}
+.cmd-item{padding:10px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;
+  font-size:13px;transition:background .1s}
+.cmd-item:hover,.cmd-item.selected{background:var(--brand-soft)}
+.cmd-item .cmd-type{font-size:10px;padding:2px 8px;border-radius:6px;
+  background:var(--line);color:var(--muted);font-weight:600}
+
+/* ?????*/
+.notif-dropdown{
+  position:absolute;right:0;top:calc(100% + 8px);width:340px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 16px 48px rgba(0,0,0,.2);z-index:70;display:none;
+  max-height:440px;overflow-y:auto;
+}
+.notif-dropdown.open{display:block}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;
+  cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--brand-soft)}
+.notif-item:last-child{border-bottom:none}
+
+/* ?????轅붽틓??????六???????繹먮굝堉뚦궘?*/
+.skeleton{background:linear-gradient(90deg,var(--line) 25%,var(--panel) 50%,var(--line) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-line{height:14px;margin-bottom:10px;border-radius:6px}
+.skeleton-line:last-child{width:60%}
+
+/* ???????*/
+.btn{display:inline-flex;align-items:center;gap:.35rem;font-weight:600;border-radius:10px;
+  transition:all .15s;cursor:pointer;border:none;font-size:.82rem;padding:.45rem .9rem}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn-primary{background:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(0,70,255,.25)}
+.btn-secondary{background:var(--brand-soft);color:var(--ink);border:1px solid var(--line)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid transparent}
+.btn-ghost:hover{background:var(--brand-soft);border-color:var(--line)}
+
+.mission-kpi{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:.8rem .9rem}
+.mission-kpi .ttl{font-size:.72rem;color:var(--muted);font-weight:700}
 .mission-kpi .num{font-size:1.45rem;font-weight:800;line-height:1.1}
-.mission-kpi .sub{font-size:.72rem;color:#64748b}
-.anim-rise{animation:riseIn .55s ease both}
-.anim-delay-1{animation-delay:.06s}.anim-delay-2{animation-delay:.12s}.anim-delay-3{animation-delay:.18s}.anim-delay-4{animation-delay:.24s}
-@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.kpi-tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;font-size:.65rem;line-height:1.4;padding:6px 10px;border-radius:8px;white-space:nowrap;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.3);pointer-events:none}
-.kpi-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b}
-.kpi-card:hover .kpi-tip,.kpi-card:focus .kpi-tip{display:block}
+.mission-kpi .sub{font-size:.72rem;color:var(--muted)}
+
+.anim-rise{animation:riseIn .4s ease both}
+@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.anim-fade-in{animation:fadeIn .25s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
 table th.sticky,table td.sticky{position:sticky!important;left:0;z-index:10}
 table th.sticky{z-index:11}
-@media (max-width: 768px){
-  .kpi .val{font-size:1.3rem}
-  .section-card{padding:.9rem}
+
+@media (max-width:768px){
+  .sidebar{width:0;overflow:hidden;border:none}
+  .main-area{margin-left:0}
+  .side-panel{width:100vw}
+  .mobile-nav{display:flex!important}
 }
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:var(--panel);border-top:1px solid var(--line);padding:6px 0;
+  justify-content:space-around;box-shadow:0 -4px 16px rgba(0,0,0,.1)}
+.mobile-nav button{background:none;border:none;color:var(--muted);font-size:18px;
+  padding:6px 12px;border-radius:8px;cursor:pointer}
+.mobile-nav button.active{color:var(--brand);background:var(--brand-soft)}
+
+/* ???????⑥ル츧癲? ?????筌뤾퍓愿????*/
+.product-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:1rem;transition:all .2s;cursor:pointer;
+}
+.product-card:hover{border-color:var(--brand);box-shadow:0 4px 16px rgba(0,70,255,.1);transform:translateY(-2px)}
+.benefit-bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;position:relative}
+.benefit-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
 </style>
 </head>
 <body class="min-h-screen">
 
+<!-- ===== ?????????????耀붾굝????????===== -->
+<nav class="sidebar" id="sidebarNav">
+  <div class="logo">CI</div>
+  <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+    <i class="fas fa-gauge-high"></i><span class="nav-label">대시보드</span>
+  </button>
+  <button class="nav-btn" data-tab="events" onclick="switchTab('events')">
+    <i class="fas fa-bolt"></i><span class="nav-label">이벤트</span>
+  </button>
+  <button class="nav-btn" data-tab="products" onclick="switchTab('products')">
+    <i class="fas fa-credit-card"></i><span class="nav-label">상품</span>
+  </button>
+  <button class="nav-btn" data-tab="timeline" onclick="switchTab('timeline')">
+    <i class="fas fa-timeline"></i><span class="nav-label">타임라인</span>
+  </button>
+  <div style="flex:1"></div>
+  <button class="nav-btn icon-only" data-tab="ops" onclick="switchTab('ops')" style="opacity:.6">
+    <i class="fas fa-cog"></i><span class="nav-tooltip">운영</span>
+  </button>
+  <button class="nav-btn icon-only" onclick="toggleTheme()" title="다크 모드 전환">
+    <i class="fas fa-moon" id="themeIcon"></i><span class="nav-tooltip">다크 모드</span>
+  </button>
+</nav>
+
+<!-- ===== ????븐뼐???????????븐뼔?????????뀀맩鍮???????????===== -->
+<div class="mobile-nav" id="mobileNav">
+  <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fas fa-gauge-high"></i></button>
+  <button data-tab="events" onclick="switchTab('events')"><i class="fas fa-bolt"></i></button>
+  <button data-tab="products" onclick="switchTab('products')"><i class="fas fa-credit-card"></i></button>
+  <button data-tab="timeline" onclick="switchTab('timeline')"><i class="fas fa-timeline"></i></button>
+</div>
+
+<!-- ===== ????븐뼐?????????????????泥??===== -->
+<div class="main-area">
+
+<!-- ?????嚥싲갭큔??????????ш끽維뽳쭩?뱀땡? -->
 <header class="app-header">
-  <!-- Made by -->
-  <div class="max-w-[1500px] mx-auto px-4 pt-3 text-center">
-    <p class="text-[10px] text-blue-300/40 tracking-widest uppercase">Made by TaeWoongYoon</p>
-  </div>
-  <!-- 제목 (가운데 + 그라데이션) -->
-  <div class="max-w-[1500px] mx-auto px-4 pt-2 pb-4 text-center">
-    <h1 class="display-font text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight header-gradient-text">주요 카드사 이벤트 분석 인텔리전스</h1>
-    <p class="text-[13px] text-blue-100/60 mt-2">신한카드 마케팅용 모니터링 시스템</p>
-    <p id="headerLastIngest" class="text-[11px] text-blue-200/40 mt-1 hidden"></p>
-  </div>
-  <!-- 버튼 영역 -->
-  <div class="max-w-[1500px] mx-auto px-4 pb-3 flex items-center justify-center gap-2 text-sm flex-wrap">
-    <button onclick="startIngestOnly()" id="btnIngestOnly" class="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3 py-1.5 rounded-xl font-medium"><i class="fas fa-download mr-1"></i>이벤트 수집</button>
-    <button onclick="startFullExtraction()" id="btnExtractAll" class="bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-1.5 rounded-xl font-semibold"><i class="fas fa-play mr-1"></i>전체 추출</button>
-    <button type="button" onclick="showExtractHelp()" class="w-7 h-7 rounded-full border border-white/35 bg-white/10 text-white text-sm font-bold inline-flex items-center justify-center" title="추출이란?">?</button>
-    <span id="lastRunSummary" class="text-xs text-blue-100/60 italic hidden"></span>
-    <span id="lastIngestSummary" class="text-xs text-blue-100/60 italic hidden"></span>
-    <button onclick="exportExcel()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-xl font-semibold"><i class="fas fa-file-excel mr-1"></i>엑셀</button>
-    <button onclick="location.reload()" class="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3 py-1.5 rounded-xl font-medium"><i class="fas fa-sync-alt mr-1"></i></button>
-  </div>
-  <!-- KPI 카드 영역 -->
-  <div class="max-w-[1500px] mx-auto px-4 pb-5">
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
-        <div class="text-[11px] text-blue-200/70 font-medium mb-1">전체 이벤트 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
-        <div class="text-2xl font-extrabold text-white" id="hsTotal">-</div>
-        <div class="kpi-tip">has_meaningful_info() 필터 통과 건수<br>API: /api/stats &rarr; total_events</div>
+  <div class="max-w-[1400px] mx-auto px-5 py-4 flex items-center justify-between gap-4">
+    <div>
+      <h1 class="display-font text-xl sm:text-2xl font-extrabold tracking-tight header-gradient-text">카드 이벤트 인텔리전스 대시보드</h1>
+      <p class="text-[11px] text-blue-100/50 mt-0.5">이벤트, 상품, 브리핑을 한 화면에서 보는 모니터링 센터</p>
+      <p id="headerLastIngest" class="text-[10px] text-blue-200/35 mt-0.5 hidden"></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openCmdPalette()" class="bg-white/10 hover:bg-white/20 border border-white/15 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-2">
+        <i class="fas fa-search"></i><span class="hidden sm:inline">통합 검색</span>
+        <kbd class="bg-white/15 px-1.5 py-0.5 rounded text-[10px] font-mono">Ctrl+K</kbd>
+      </button>
+      <div class="relative" id="notifWrap">
+        <button onclick="toggleNotifications()" class="bg-white/10 hover:bg-white/20 border border-white/15 text-white w-8 h-8 rounded-lg flex items-center justify-center relative">
+          <i class="fas fa-bell text-sm"></i>
+          <span id="notifBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[9px] font-bold text-white rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+            <span class="text-sm font-bold">알림</span>
+            <button onclick="clearNotifications()" class="text-xs text-slate-400 hover:text-slate-600">모두 지우기</button>
+          </div>
+          <div id="notifList"><div class="px-4 py-6 text-center text-xs text-slate-400">표시할 알림이 없습니다.</div></div>
+        </div>
       </div>
-      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
-        <div class="text-[11px] text-blue-200/70 font-medium mb-1">진행중 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
-        <div class="text-2xl font-extrabold text-emerald-300" id="hsActive">-</div>
-        <div class="kpi-tip">period_end >= today 인 이벤트 수<br>API: /api/events 클라이언트 계산</div>
-      </div>
-      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
-        <div class="text-[11px] text-blue-200/70 font-medium mb-1">추출률 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
-        <div class="text-2xl font-extrabold text-amber-300" id="hsExtRate">-</div>
-        <div class="kpi-tip">extracted_count / collected_count * 100<br>API: /api/analytics/company-overview &rarr; totals.extraction_rate</div>
-      </div>
-      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
-        <div class="text-[11px] text-blue-200/70 font-medium mb-1">AI 인사이트 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
-        <div class="text-2xl font-extrabold text-cyan-300" id="hsInsight">-</div>
-        <div class="kpi-tip">marketing_insights JSON이 존재하는 이벤트 수<br>API: /api/events 클라이언트 계산</div>
-      </div>
-      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 kpi-card relative group" tabindex="0">
-        <div class="text-[11px] text-blue-200/70 font-medium mb-1">수집 카드사 <i class="fas fa-info-circle text-blue-300/40 ml-0.5"></i></div>
-        <div class="text-2xl font-extrabold text-white" id="hsCompanies">-</div>
-        <div class="kpi-tip">company 필드 고유값 수<br>API: /api/analytics/company-overview &rarr; companies.length</div>
-      </div>
+      <button onclick="exportExcel()" class="bg-emerald-500/80 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-lg text-xs font-medium hidden sm:flex items-center gap-1">
+        <i class="fas fa-file-excel"></i>엑셀
+      </button>
     </div>
   </div>
-  <div id="extractProgressWrap" class="hidden progress-wrap max-w-[1500px] mx-auto mx-4 mb-3 px-4 py-2 rounded-xl">
+  <div id="extractProgressWrap" class="hidden progress-wrap max-w-[1400px] mx-auto mx-5 mb-3 px-4 py-2 rounded-xl">
     <div class="flex items-center justify-between gap-3 mb-1.5">
-      <span id="extractProgressText" class="text-sm font-medium text-white">준비 중…</span>
-      <span id="extractProgressPct" class="text-xs text-blue-100/80">—</span>
+      <span id="extractProgressText" class="text-sm font-medium text-white">작업 준비 중...</span>
+      <span id="extractProgressPct" class="text-xs text-blue-100/80">-</span>
     </div>
     <div class="h-2 bg-slate-800/70 rounded-full overflow-hidden">
       <div id="extractProgressBar" class="h-full bg-amber-400 rounded-full transition-all duration-300" style="width:0%"></div>
@@ -190,228 +421,1959 @@ table th.sticky{z-index:11}
   </div>
 </header>
 
-<nav class="max-w-[1500px] mx-auto px-4 pt-4 flex flex-wrap gap-2">
-  <button class="tab-btn active" data-tab="executive">전략 브리핑</button>
-  <button class="tab-btn" data-tab="compare">카드사 비교</button>
-  <button class="tab-btn" data-tab="benchmark">혜택 벤치마크</button>
-  <button class="tab-btn" data-tab="strategy">전략 맵</button>
-  <button class="tab-btn" data-tab="events">이벤트 목록</button>
-</nav>
+<main class="max-w-[1400px] mx-auto px-5 py-5">
 
-<main class="max-w-[1500px] mx-auto px-4 py-5">
-
-<section id="tab-executive" class="space-y-5">
-  <!-- 카드사별 현재 전략 개요 -->
-  <div class="section-card anim-rise">
-    <div class="flex items-center justify-between gap-2 mb-4">
-      <h3 class="display-font text-base font-bold text-slate-800"><i class="fas fa-chess mr-2 text-blue-500"></i>카드사별 현재 전략 개요</h3>
-      <button id="btnBriefRefresh" onclick="refreshCompanyBriefings(true)" class="text-xs bg-slate-800 hover:bg-slate-900 text-white px-2.5 py-1.5 rounded-lg">
-        <i class="fas fa-wand-magic-sparkles mr-1"></i>Gemini 재생성
-      </button>
+<!-- ======== ?????耀붾굝??????????======== -->
+<section id="tab-dashboard" class="space-y-5">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="kpi-mini">
+      <div class="kpi-icon bg-blue-100 text-blue-600"><i class="fas fa-layer-group"></i></div>
+      <div><div class="kpi-val" id="hsTotal">-</div><div class="kpi-lbl">전체 이벤트</div></div>
     </div>
-    <p id="briefMeta" class="text-xs text-slate-500 mb-4"></p>
-    <!-- 당사 (신한) -->
-    <div id="briefingShinhan" class="mb-5"></div>
-    <!-- 경쟁 3사 -->
-    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-building mr-1"></i>경쟁사 분석</h4>
-    <div id="briefingCompetitors" class="grid md:grid-cols-3 gap-3"></div>
+    <div class="kpi-mini">
+      <div class="kpi-icon bg-emerald-100 text-emerald-600"><i class="fas fa-calendar-plus"></i></div>
+      <div><div class="kpi-val" id="hsNewMonth">-</div><div class="kpi-lbl">이달 신규 이벤트</div></div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-icon bg-indigo-100 text-indigo-600"><i class="fas fa-credit-card"></i></div>
+      <div><div class="kpi-val" id="hsProducts">-</div><div class="kpi-lbl">카드상품 수</div></div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-icon bg-rose-100 text-rose-600"><i class="fas fa-clock"></i></div>
+      <div><div class="kpi-val" id="hsEndingSoon">-</div><div class="kpi-lbl">7일 내 종료</div></div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-icon bg-amber-100 text-amber-600"><i class="fas fa-trophy"></i></div>
+      <div><div class="kpi-val" id="hsTopCategory">-</div><div class="kpi-lbl">핵심 카테고리</div></div>
+    </div>
   </div>
 
-  <!-- 카테고리 리스크 맵 + 주간 변화 -->
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="section-card anim-rise anim-delay-1">
-      <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-map mr-1.5 text-rose-500"></i>경쟁사 카테고리 분포</h3>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-bolt mr-2 text-amber-500"></i>신규 이벤트</h3>
+      <div id="dashNewEvents" class="space-y-2 text-sm">
+        <div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-credit-card mr-2 text-indigo-500"></i>신규 카드상품</h3>
+      <div id="dashNewProducts" class="space-y-2 text-sm">
+        <div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-5 gap-4">
+    <div class="section-card lg:col-span-3">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-exclamation-triangle mr-1.5 text-rose-500"></i>종료임박 이벤트</h3>
+      <div id="endingSoonList" class="space-y-2 text-sm">
+        <p class="text-xs text-slate-400">데이터를 불러오는 중입니다...</p>
+      </div>
+    </div>
+    <div class="section-card lg:col-span-2">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-building mr-2 text-blue-500"></i>카드사별 이벤트 현황</h3>
+      <div id="dashCompanySummary" class="overflow-x-auto">
+        <p class="text-sm text-slate-400">데이터를 불러오는 중입니다...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <h3 class="display-font text-sm font-bold"><i class="fas fa-table-cells mr-2 text-blue-500"></i>카드사별 이벤트 스코어보드</h3>
+      <span class="text-[11px] text-slate-400">최근 데이터 기준으로 자동 갱신됩니다.</span>
+    </div>
+    <div id="objectiveScoreboard" class="overflow-x-auto"><p class="text-sm text-slate-400">데이터를 불러오는 중입니다...</p></div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-map mr-1.5 text-rose-500"></i>전략 리스크 맵</h3>
       <div id="actionRiskMap" class="text-sm"></div>
     </div>
-    <div class="section-card anim-rise anim-delay-2">
-      <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-chart-line text-blue-500 mr-1.5"></i>주간 변화 요약</h3>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold mb-3"><i class="fas fa-chart-line text-blue-500 mr-1.5"></i>주간 변화</h3>
       <div id="actionWeekly" class="text-sm"></div>
     </div>
   </div>
-
-  <div class="section-card dark-panel anim-rise anim-delay-3">
-    <div class="flex items-center justify-between gap-2 mb-2">
-      <h3 class="display-font text-lg font-extrabold tracking-tight">카드 4사 정성 비교 (참고)</h3>
-      <button id="btnQualRefresh" onclick="refreshQualitativeComparison(true)" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1.5 rounded-lg border border-white/15">
-        <i class="fas fa-chart-simple mr-1"></i>비교 재추론
-      </button>
-    </div>
-    <p id="qualMeta" class="text-xs text-slate-300/85 mb-3"></p>
-    <div id="qualitativeMatrix" class="overflow-x-auto"></div>
-  </div>
-</section>
-
-<section id="tab-compare" class="hidden space-y-5">
-  <div id="companyCards" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
   <div class="section-card">
-    <h3 class="display-font text-sm font-bold text-slate-700 mb-3">혜택 수준 분포 (카드사별)</h3>
-    <div style="height:260px"><canvas id="chartBenefitDist"></canvas></div>
-  </div>
-</section>
-
-<section id="tab-benchmark" class="hidden space-y-5">
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">카드사별 평균 혜택 금액</h3><div style="height:260px"><canvas id="chartBenefitAmount"></canvas></div></div>
-    <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">카드사별 평균 할인율</h3><div style="height:260px"><canvas id="chartBenefitPct"></canvas></div></div>
-  </div>
-  <div class="section-card" id="benchmarkTable"></div>
-</section>
-
-<section id="tab-strategy" class="hidden space-y-5">
-  <div class="section-card">
-    <h3 class="display-font text-sm font-bold text-slate-700 mb-3"><i class="fas fa-chart-area text-amber-500 mr-1.5"></i>신한 공백 카테고리 주간 추세</h3>
-    <div style="height:220px"><canvas id="chartGapTrend"></canvas></div>
-    <p id="gapTrendSummary" class="text-xs text-slate-500 mt-2"></p>
-  </div>
-  <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">프로모션 목적 히트맵 (카드사 x 목적)</h3><div id="heatmapContainer" class="overflow-x-auto"></div></div>
-  <div class="section-card"><h3 class="display-font text-sm font-bold text-slate-700 mb-3">이벤트 추세 (주별 시작/종료)</h3><div style="height:260px"><canvas id="chartTrends"></canvas></div></div>
-  <div class="grid xl:grid-cols-2 gap-4">
-    <div class="section-card">
-      <div class="flex items-center justify-between gap-3 mb-3">
-        <h3 class="display-font text-sm font-bold text-slate-700">비교 매트릭스</h3>
-        <select id="matrixAxis" onchange="loadCompareMatrix()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
-          <option value="category">카테고리 기준</option>
-          <option value="benefit_type">혜택 유형 기준</option>
-        </select>
-      </div>
-      <div id="compareMatrixContainer" class="overflow-x-auto text-sm"></div>
+    <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+      <h3 class="display-font text-sm font-bold"><i class="fas fa-credit-card mr-2 text-indigo-500"></i>가장 많은 이벤트와 연결된 카드 TOP 10</h3>
+      <span id="dashLinkedCardRankingMeta" class="text-[11px] text-slate-400">이벤트 연결 카드 집계 중...</span>
     </div>
-    <div class="section-card">
-      <h3 class="display-font text-sm font-bold text-slate-700 mb-3">신한카드 갭 분석</h3>
-      <div id="shinhanGapView" class="text-sm"></div>
+    <div id="dashLinkedCardRanking" class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">연결 카드 데이터를 불러오는 중입니다...</div>
     </div>
   </div>
-  <div class="section-card">
-    <div class="flex items-center justify-between gap-2 mb-2">
-      <h3 class="display-font text-sm font-bold text-slate-700">Gemini 텍스트 비교 분석</h3>
-      <button id="btnTextCompare" onclick="loadTextComparison()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg">
-        <i class="fas fa-wand-magic-sparkles mr-1"></i>비교 분석 실행
-      </button>
-    </div>
-    <div id="textCompareResult" class="text-sm"></div>
-  </div>
+
 </section>
 
+<!-- ======== ????????======== -->
 <section id="tab-events" class="hidden space-y-4">
-  <div class="section-card">
-    <div class="grid md:grid-cols-2 xl:grid-cols-7 gap-3 items-end">
-      <div class="md:col-span-2"><label class="text-xs text-slate-500 block mb-1">키워드</label><input id="searchKw" placeholder="할인, 캐시백, 프리미엄, 제휴..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"></div>
-      <div><label class="text-xs text-slate-500 block mb-1">카드사</label><select id="fCompany" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카드사</option></select></div>
-      <div><label class="text-xs text-slate-500 block mb-1">카테고리</label><select id="fCat" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카테고리</option></select></div>
-      <div><label class="text-xs text-slate-500 block mb-1">상태</label><select id="fStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 상태</option><option value="active">진행중</option><option value="ended">종료</option></select></div>
-      <div><label class="text-xs text-slate-500 block mb-1">혜택 유형</label><select id="fBenefitType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 혜택 유형</option></select></div>
-      <div><label class="text-xs text-slate-500 block mb-1">추출 상태</label><select id="fExtracted" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 추출 상태</option><option value="done">추출 완료</option><option value="pending">미완료</option></select></div>
-      <div><label class="text-xs text-slate-500 block mb-1">목적 태그</label><select id="fTag" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 목적 태그</option></select></div>
+  <div class="flex items-center gap-3 flex-wrap">
+    <div class="flex rounded-lg border border-slate-300 overflow-hidden text-xs">
+      <button id="evViewList" onclick="setEventView('list')" class="px-3 py-1.5 bg-blue-600 text-white font-semibold">목록 보기</button>
+      <button id="evViewCal" onclick="setEventView('calendar')" class="px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 font-medium">캘린더</button>
     </div>
-    <div class="mt-3 flex items-center justify-between gap-2 flex-wrap">
-      <p class="text-xs text-slate-500">이벤트를 2건 이상 선택하면 상세 비교표를 열 수 있습니다.</p>
-      <button id="btnCompareSelected" onclick="openCompareModal()" class="hidden bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">
-        <i class="fas fa-table-columns mr-1"></i>선택 이벤트 비교 (<span id="compareCount">0</span>)
-      </button>
-    </div>
+    <span id="lastRunSummary" class="text-xs text-slate-400 italic hidden"></span>
+    <span id="lastIngestSummary" class="text-xs text-slate-400 italic hidden"></span>
   </div>
 
-  <div class="section-card p-0 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="events-table w-full text-sm">
-        <thead>
-          <tr>
+  <div id="eventListView">
+    <div class="section-card">
+      <div class="grid md:grid-cols-2 xl:grid-cols-7 gap-3 items-end">
+        <div class="md:col-span-2">
+          <label class="text-xs text-slate-500 block mb-1">검색어</label>
+          <input id="searchKw" placeholder="이벤트명, 혜택, 대상 카드로 검색하세요" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">카드사</label>
+          <select id="fCompany" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카드사</option></select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">카테고리</label>
+          <select id="fCat" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 카테고리</option></select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">진행 상태</label>
+          <select id="fStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+            <option value="">전체</option>
+            <option value="active">진행중</option>
+            <option value="ended">종료</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">혜택 유형</label>
+          <select id="fBenefitType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"><option value="">전체 혜택 유형</option></select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">추출 상태</label>
+          <select id="fExtracted" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
+            <option value="">전체 추출 상태</option>
+            <option value="done">추출 완료</option>
+            <option value="pending">미추출</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-3 flex items-center justify-between gap-2 flex-wrap">
+        <p class="text-xs text-slate-500">최대 2개 이벤트를 선택해 비교할 수 있습니다.</p>
+        <button id="btnCompareSelected" onclick="openCompareModal()" class="hidden bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">
+          <i class="fas fa-table-columns mr-1"></i>선택 이벤트 비교 (<span id="compareCount">0</span>)
+        </button>
+      </div>
+    </div>
+    <div class="section-card p-0 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="events-table w-full text-sm">
+          <thead><tr>
             <th class="px-3 py-2 w-10 text-center"><input type="checkbox" class="accent-blue-600" onchange="toggleAllCompare(this)" title="전체 선택"></th>
             <th class="px-3 py-2 text-left">카드사</th>
-            <th class="px-3 py-2 text-left">제목</th>
+            <th class="px-3 py-2 text-left">이벤트</th>
             <th class="px-3 py-2 text-left">혜택</th>
             <th class="px-3 py-2 text-left">기간</th>
-            <th class="px-3 py-2 text-left">추출 <button type="button" onclick="showExtractHelp()" class="ml-1 w-5 h-5 rounded-full border border-slate-400 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold inline-flex items-center justify-center align-middle" title="추출이란?">?</button></th>
+            <th class="px-3 py-2 text-left">추출</th>
             <th class="px-3 py-2 text-left">상태</th>
             <th class="px-3 py-2 w-16"></th>
-          </tr>
-        </thead>
-        <tbody id="eventsTbody"></tbody>
-      </table>
+          </tr></thead>
+          <tbody id="eventsTbody"></tbody>
+        </table>
+      </div>
+      <div id="paginationBar" class="border-t px-4 py-3 bg-slate-50 flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span id="pageInfo">0건</span>
+          <select id="pageSize" onchange="changePageSize()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs">
+            <option value="30">30개씩 보기</option>
+            <option value="100">100개씩 보기</option>
+          </select>
+        </div>
+        <div id="pageButtons" class="flex items-center gap-1"></div>
+      </div>
+      <div id="eventsEmpty" class="hidden text-center py-12 text-slate-400">표시할 이벤트가 없습니다.</div>
     </div>
-    <div id="paginationBar" class="border-t border-slate-200 px-4 py-3 bg-slate-50 flex items-center justify-between gap-3 flex-wrap">
-      <div class="flex items-center gap-2 text-xs text-slate-500">
-        <span id="pageInfo">0건</span>
-        <select id="pageSize" onchange="changePageSize()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs">
-          <option value="30">30건씩</option>
-          <option value="100">100건씩</option>
+  </div>
+
+  <div id="eventCalView" class="hidden space-y-4">
+    <div class="section-card">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="calPrevMonth()" class="w-8 h-8 rounded-full border border-slate-300 hover:bg-slate-100 flex items-center justify-center text-sm"><i class="fas fa-chevron-left"></i></button>
+          <span id="calMonthLabel" class="text-base font-bold w-28 text-center">2026년 3월</span>
+          <button onclick="calNextMonth()" class="w-8 h-8 rounded-full border border-slate-300 hover:bg-slate-100 flex items-center justify-center text-sm"><i class="fas fa-chevron-right"></i></button>
+          <button onclick="calGoToday()" class="text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg">이번 달</button>
+        </div>
+        <div class="flex rounded-lg border border-slate-300 overflow-hidden text-xs">
+          <button id="calViewMonth" onclick="setCalView('month')" class="px-3 py-1.5 bg-blue-600 text-white font-semibold">월간</button>
+          <button id="calViewWeek" onclick="setCalView('week')" class="px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 font-medium">주간</button>
+        </div>
+        <select id="calFilterCompany" onchange="loadCalendar()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="">전체 카드사</option>
+          <option value="삼성카드">삼성카드</option>
+          <option value="KB국민카드">KB국민카드</option>
+          <option value="현대카드">현대카드</option>
+          <option value="신한카드">신한카드</option>
+        </select>
+        <select id="calFilterColor" onchange="renderCalendarView()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="company">카드사 기준 색상</option>
+          <option value="density">밀도 기준 색상</option>
+        </select>
+        <div id="calSummaryBadges" class="flex gap-2 ml-auto"></div>
+      </div>
+    </div>
+    <div class="section-card p-0 overflow-hidden"><div id="calendarGrid" class="p-4"></div></div>
+    <div id="calEventPanel" class="section-card hidden">
+      <h3 id="calPanelDate" class="text-sm font-bold mb-3"></h3>
+      <div id="calPanelBody"></div>
+    </div>
+  </div>
+  <div class="space-y-4">
+    <div>
+      <h3 class="display-font text-base font-bold text-slate-900"><i class="fas fa-chart-column mr-2 text-emerald-500"></i>이벤트 인사이트</h3>
+      <p class="text-xs text-slate-500 mt-1">가장 많이 언급된 키워드와 타겟 세그먼트를 이벤트 흐름과 함께 확인합니다.</p>
+    </div>
+    <div id="eventInsightsPanels" class="space-y-5"></div>
+  </div>
+</section>
+
+<!-- ======== ???????⑥ル츧癲? ??======== -->
+<section id="tab-products" class="hidden space-y-5">
+  <div class="flex items-center gap-2 flex-wrap">
+    <button class="tab-btn active" data-stab="product-list" onclick="switchSubTab(this,'products')"><i class="fas fa-list mr-1"></i>카드상품 목록</button>
+    <button class="tab-btn" data-stab="product-new" onclick="switchSubTab(this,'products')"><i class="fas fa-sparkles mr-1"></i>신규 상품 분석</button>
+    <button class="tab-btn" data-stab="product-search" onclick="switchSubTab(this,'products')"><i class="fas fa-search mr-1"></i>상품 RAG 검색</button>
+    <div class="ml-auto flex gap-2">
+      <button onclick="loadCardProducts()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"><i class="fas fa-sync-alt mr-1"></i>목록 새로고침</button>
+    </div>
+  </div>
+
+  <div id="stab-product-list" class="space-y-4">
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div class="section-card">
+        <div class="text-xs font-semibold tracking-wide text-slate-500">전체 상품</div>
+        <div id="productsTotalCount" class="mt-3 text-3xl font-black text-slate-900">0</div>
+        <div class="mt-2 text-xs text-slate-500">현재 목록에 올라온 카드상품 수</div>
+      </div>
+      <div class="section-card">
+        <div class="text-xs font-semibold tracking-wide text-slate-500">최근 30일 신규</div>
+        <div id="productsNewCount" class="mt-3 text-3xl font-black text-slate-900">0</div>
+        <div class="mt-2 text-xs text-slate-500">최근 출시 또는 신규 수집된 상품</div>
+      </div>
+      <div class="section-card">
+        <div class="text-xs font-semibold tracking-wide text-slate-500">PDF 확보</div>
+        <div id="productsPdfCount" class="mt-3 text-3xl font-black text-slate-900">0</div>
+        <div class="mt-2 text-xs text-slate-500">로컬 PDF로 바로 열 수 있는 상품</div>
+      </div>
+      <div class="section-card">
+        <div class="text-xs font-semibold tracking-wide text-slate-500">카드사 커버리지</div>
+        <div id="productsIssuerCount" class="mt-3 text-3xl font-black text-slate-900">0</div>
+        <div class="mt-2 text-xs text-slate-500">현재 비교 가능한 카드사 수</div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,0.95fr)]">
+      <div class="space-y-4">
+        <div class="section-card">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="display-font text-lg font-bold text-slate-900">카드상품 비교 워크스페이스</h3>
+                <span id="productsStatusPill" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                  <i class="fas fa-circle text-slate-400"></i><strong>대기</strong>
+                </span>
+              </div>
+              <p class="text-sm leading-6 text-slate-600">RAG에 들어간 PDF 기준으로 연회비, 전월실적, 핵심 혜택을 바로 비교할 수 있게 정리한 화면입니다.</p>
+              <div id="productsStatusHint" class="text-xs font-medium text-slate-500">상품 데이터를 불러오는 중입니다.</div>
+            </div>
+            <div class="w-full max-w-xl">
+              <label for="productSearchInput" class="mb-2 block text-xs font-semibold tracking-wide text-slate-500">상품 검색</label>
+              <div class="flex gap-2">
+                <input id="productSearchInput" oninput="searchProducts()" placeholder="카드명, 혜택, 연회비, 전월실적, 카테고리로 검색" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                <button type="button" onclick="clearProductSearch()" class="rounded-2xl border border-slate-300 px-4 py-3 text-xs font-semibold text-slate-600 hover:bg-slate-50">초기화</button>
+              </div>
+              <div class="mt-3 grid gap-2 md:grid-cols-3">
+                <div>
+                  <label for="productCompanyFilter" class="mb-1 block text-[11px] font-semibold tracking-wide text-slate-500">카드사</label>
+                  <select id="productCompanyFilter" onchange="setProductCompanyFilter(this.value)" class="w-full rounded-2xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                    <option value="">전체 카드사</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="productViewFilter" class="mb-1 block text-[11px] font-semibold tracking-wide text-slate-500">보기</label>
+                  <select id="productViewFilter" onchange="setProductViewFilter(this.value)" class="w-full rounded-2xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                    <option value="all">전체 상품</option>
+                    <option value="structured">요약 잘 잡힌 상품</option>
+                    <option value="spend">전월실적 있는 상품</option>
+                    <option value="pdf">PDF 바로 열기 가능</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="productSortFilter" class="mb-1 block text-[11px] font-semibold tracking-wide text-slate-500">정렬</label>
+                  <select id="productSortFilter" onchange="setProductSortFilter(this.value)" class="w-full rounded-2xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                    <option value="recommended">추천순</option>
+                    <option value="latest">최신순</option>
+                    <option value="issuer">카드사순</option>
+                    <option value="name">상품명순</option>
+                  </select>
+                </div>
+              </div>
+              <div id="productsCatalogMeta" class="mt-2 text-xs text-slate-500">총 0개 상품</div>
+            </div>
+          </div>
+          <div id="productsStatusPanel" class="mt-4 grid gap-3"></div>
+          <div class="mt-5">
+            <div class="text-xs font-semibold tracking-wide text-slate-500">운영 관측</div>
+            <div id="productsLinksPanel" class="mt-3 grid gap-2 sm:grid-cols-2"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="display-font text-base font-bold text-slate-900">상품 리스트</h3>
+              <p class="mt-1 text-xs text-slate-500">카드고릴라처럼 한 장에서 비교하기 쉽게 핵심 조건을 함께 보여줍니다.</p>
+            </div>
+            <div class="text-xs text-slate-400">클릭하면 오른쪽 패널에 상세가 열립니다.</div>
+          </div>
+          <div id="productsCatalogList" class="mt-4 grid gap-3 lg:grid-cols-2 max-h-[920px] overflow-y-auto pr-1"></div>
+          <div id="productsCatalogEmpty" class="hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center text-sm text-slate-500">조건에 맞는 상품이 없습니다.</div>
+          <div id="productsCatalogMoreWrap" class="mt-4 hidden items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div id="productsCatalogMoreText" class="text-xs text-slate-500">더 볼 수 있는 상품이 있습니다.</div>
+            <button type="button" id="productsCatalogMoreBtn" onclick="showMoreProducts()" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800">더 보기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="section-card xl:sticky xl:top-24">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="display-font text-base font-bold text-slate-900">선택 상품 요약</h3>
+              <p class="mt-1 text-xs text-slate-500">연회비, 전월실적, 핵심 혜택, PDF 링크를 한 번에 확인합니다.</p>
+            </div>
+          </div>
+          <div id="productsDetailPanel" class="mt-4 text-sm text-slate-500">상품을 선택하면 요약이 여기 표시됩니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-2">
+      <div class="section-card">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="display-font text-base font-bold text-slate-900">카드사별 브리지</h3>
+            <p class="mt-1 text-xs text-slate-500">이벤트 운영 현황과 상품 데이터가 카드사 단위로 얼마나 연결되는지 봅니다.</p>
+          </div>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th class="px-4 py-3 text-left">카드사</th>
+                <th class="px-4 py-3 text-left">진행중 이벤트</th>
+                <th class="px-4 py-3 text-left">상품 수</th>
+                <th class="px-4 py-3 text-left">PDF 확보</th>
+                <th class="px-4 py-3 text-left">신규 상품</th>
+                <th class="px-4 py-3 text-left">공통 카테고리</th>
+              </tr>
+            </thead>
+            <tbody id="productsCompanyBridgeBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="display-font text-base font-bold text-slate-900">카테고리 브리지</h3>
+            <p class="mt-1 text-xs text-slate-500">혜택 카테고리 기준으로 이벤트와 상품이 만나는 지점을 추적합니다.</p>
+          </div>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th class="px-4 py-3 text-left">카테고리</th>
+                <th class="px-4 py-3 text-left">이벤트 수</th>
+                <th class="px-4 py-3 text-left">진행중 이벤트</th>
+                <th class="px-4 py-3 text-left">상품 수</th>
+                <th class="px-4 py-3 text-left">공유 카드사</th>
+                <th class="px-4 py-3 text-left">최근 반영일</th>
+              </tr>
+            </thead>
+            <tbody id="productsCategoryBridgeBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stab-product-new" class="hidden space-y-4">
+    <div class="section-card">
+      <h3 class="display-font text-base font-bold mb-4"><i class="fas fa-sparkles mr-2 text-amber-500"></i>신규 카드상품 분석</h3>
+      <p class="text-xs text-slate-500 mb-4">최근 수집된 상품을 기준으로 카드사별 신규 출시 흐름을 요약합니다.</p>
+      <div id="newProductAnalysis" class="space-y-4">
+        <div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stab-product-search" class="hidden space-y-4">
+    <div class="section-card">
+      <h3 class="display-font text-base font-bold mb-3"><i class="fas fa-search mr-2 text-violet-500"></i>카드상품 RAG 검색</h3>
+      <div class="flex gap-2">
+        <input id="ragSearchInput" placeholder="혜택이나 상품명으로 검색하세요" class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm">
+        <button onclick="executeRAGSearch()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1">
+          <i class="fas fa-search"></i>검색
+        </button>
+      </div>
+    </div>
+    <div id="ragSearchResults" class="space-y-3"></div>
+  </div>
+</section>
+
+<!-- ======== ????????袁⑸즴筌?씛彛??壤굿??留?????======== -->
+<section id="tab-timeline" class="hidden space-y-4">
+  <div class="section-card">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h3 class="display-font text-base font-bold"><i class="fas fa-timeline mr-2 text-blue-500"></i>이벤트 타임라인</h3>
+      <div class="flex items-center gap-2">
+        <button onclick="ganttPrev()" class="w-8 h-8 rounded-full border border-slate-300 hover:bg-slate-100 flex items-center justify-center text-sm"><i class="fas fa-chevron-left"></i></button>
+        <span id="ganttPeriodLabel" class="text-sm font-bold w-40 text-center">2026-03</span>
+        <button onclick="ganttNext()" class="w-8 h-8 rounded-full border border-slate-300 hover:bg-slate-100 flex items-center justify-center text-sm"><i class="fas fa-chevron-right"></i></button>
+        <button onclick="ganttGoToday()" class="text-xs border border-blue-400 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg">이번 달</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="ganttFilterCompany" onchange="renderGantt()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="">전체 카드사</option>
+          <option value="삼성카드">삼성카드</option>
+          <option value="KB국민카드">KB국민카드</option>
+          <option value="현대카드">현대카드</option>
+          <option value="신한카드">신한카드</option>
+        </select>
+        <select id="ganttGroupBy" onchange="renderGantt()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="company">카드사별</option>
+          <option value="category">카테고리별</option>
         </select>
       </div>
-      <div id="pageButtons" class="flex items-center gap-1"></div>
     </div>
-    <div id="eventsEmpty" class="hidden text-center py-12 text-slate-400">조건에 맞는 이벤트가 없습니다.</div>
+    <div class="flex gap-3 mt-3 text-xs">
+      <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></span>삼성카드</span>
+      <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"></span>KB국민카드</span>
+      <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background:linear-gradient(135deg,#374151,#6b7280)"></span>현대카드</span>
+      <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background:linear-gradient(135deg,#ef4444,#f87171)"></span>신한카드</span>
+    </div>
+  </div>
+  <div class="section-card p-0 overflow-hidden">
+    <div id="ganttChart" class="gantt-container" style="max-height:70vh;overflow:auto"></div>
+  </div>
+</section>
+
+<!-- ======== ???????======== -->
+<section id="tab-compare" class="hidden space-y-5">
+  <div class="flex gap-2 flex-wrap">
+    <button class="tab-btn active" data-stab="comp-overview" onclick="switchSubTab(this,'compare')"><i class="fas fa-chart-bar mr-1"></i>개요 비교</button>
+    <button class="tab-btn" data-stab="comp-benefit" onclick="switchSubTab(this,'compare')"><i class="fas fa-trophy mr-1"></i>혜택 비교</button>
+    <button class="tab-btn" data-stab="comp-keyword" onclick="switchSubTab(this,'compare')"><i class="fas fa-tags mr-1"></i>키워드 분석</button>
+  </div>
+
+  <div id="stab-comp-overview" class="space-y-5">
+    <div id="companyCards" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold text-slate-700 mb-3">혜택 분포 비교</h3>
+      <div style="height:260px"><canvas id="chartBenefitDist"></canvas></div>
+    </div>
+    <div class="section-card">
+      <h3 class="display-font text-sm font-bold mb-3">카드사별 활동 히트맵</h3>
+      <div id="heatmapContainer" class="overflow-x-auto"></div>
+    </div>
+    <div class="grid xl:grid-cols-2 gap-4">
+      <div class="section-card">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <h3 class="display-font text-sm font-bold">비교 매트릭스</h3>
+          <select id="matrixAxis" onchange="loadCompareMatrix()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+            <option value="category">카테고리</option>
+            <option value="benefit_type">혜택 유형</option>
+          </select>
+        </div>
+        <div id="compareMatrixContainer" class="overflow-x-auto text-sm"></div>
+      </div>
+      <div class="section-card">
+        <h3 class="display-font text-sm font-bold mb-3">주간 추세</h3>
+        <div style="height:260px"><canvas id="chartTrends"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stab-comp-benefit" class="hidden space-y-5">
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="section-card"><h3 class="display-font text-sm font-bold mb-3">혜택 금액 비교</h3><div style="height:260px"><canvas id="chartBenefitAmount"></canvas></div></div>
+      <div class="section-card"><h3 class="display-font text-sm font-bold mb-3">혜택 비율 비교</h3><div style="height:260px"><canvas id="chartBenefitPct"></canvas></div></div>
+    </div>
+    <div class="section-card" id="benchmarkTable"></div>
+  </div>
+
+  <div id="stab-comp-keyword" class="hidden space-y-5">
+    <div class="section-card">
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <h3 class="display-font text-sm font-bold"><i class="fas fa-tags mr-1.5 text-emerald-500"></i>키워드 TOP 10</h3>
+        <div class="flex items-center gap-2">
+          <select id="kwMonthSelect" onchange="loadKeywordAnalysis()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white"></select>
+          <select id="kwCompanySelect" onchange="loadKeywordAnalysis()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white"><option value="">전체 카드사</option></select>
+        </div>
+      </div>
+      <div id="keywordCharts" class="space-y-4"><div class="flex items-center gap-2 text-slate-400 text-xs"><i class="fas fa-spinner fa-spin"></i>분석을 준비하는 중입니다...</div></div>
+    </div>
+    <div class="section-card">
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <h3 class="display-font text-sm font-bold"><i class="fas fa-users mr-1.5 text-sky-500"></i>타깃 세그먼트 분석</h3>
+        <div class="flex items-center gap-2">
+          <select id="segMonthSelect" onchange="loadTargetSegments()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white"></select>
+          <select id="segCompanySelect" onchange="loadTargetSegments()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white"><option value="">전체 카드사</option></select>
+        </div>
+      </div>
+      <div id="segmentCharts" class="space-y-3"><div class="flex items-center gap-2 text-slate-400 text-xs"><i class="fas fa-spinner fa-spin"></i>분석을 준비하는 중입니다...</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======== ??????嶺뚮ㅎ?볠꽴?????곸궔? ??======== -->
+<section id="tab-ops" class="hidden space-y-5">
+  <div class="section-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="display-font text-base font-bold"><i class="fas fa-server mr-2 text-slate-500"></i>수집 및 추출 실행</h3>
+      <div class="flex gap-2">
+        <button onclick="startIngestOnly()" id="btnIngestOnly" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1">
+          <i class="fas fa-download mr-1"></i>이벤트 수집
+        </button>
+        <button onclick="startFullExtraction()" id="btnExtractAll" class="bg-amber-500 hover:bg-amber-400 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+          <i class="fas fa-play mr-1"></i>전체 추출
+        </button>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-4" id="opsStatus">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-xs font-bold text-slate-500 mb-2">수집 상태</div>
+        <div id="opsIngestStatus" class="text-sm text-slate-600">데이터를 불러오는 중입니다...</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-xs font-bold text-slate-500 mb-2">추출 상태</div>
+        <div id="opsExtractStatus" class="text-sm text-slate-600">데이터를 불러오는 중입니다...</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-xs font-bold text-slate-500 mb-2">상품 RAG 상태</div>
+        <div id="opsRagStatus" class="text-sm text-slate-600">데이터를 불러오는 중입니다...</div>
+      </div>
+    </div>
+  </div>
+  <div class="section-card">
+    <h3 class="display-font text-base font-bold mb-4"><i class="fas fa-check-circle mr-2 text-amber-500"></i>검수 큐</h3>
+    <div id="reviewQueueContent">
+      <p class="text-xs text-slate-400">데이터를 불러오는 중입니다...</p>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="display-font text-base font-bold"><i class="fas fa-envelope-open-text mr-2 text-blue-500"></i>브리핑 품질 콘솔</h3>
+      <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-400">status · warnings · actions · logs</div>
+    </div>
+    <div id="opsBriefingStatusGrid" class="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-400">브리핑 상태를 불러오는 중입니다...</div>
+    </div>
+    <div id="opsBriefingWarnings" class="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500">
+      <p class="text-xs text-slate-400">브리핑 경고를 불러오는 중입니다...</p>
+    </div>
+    <div id="opsBriefingActions" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+      <p class="text-xs text-slate-400">브리핑 작업을 불러오는 중입니다...</p>
+    </div>
+    <div id="opsBriefingLogTable" class="mt-4">
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500">
+        <p class="text-xs text-slate-400">브리핑 로그를 불러오는 중입니다...</p>
+      </div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="display-font text-base font-bold"><i class="fas fa-search-dollar mr-2 text-emerald-500"></i>상품 공시 모니터링</h3>
+      <div class="flex gap-2 flex-wrap">
+        <select id="disclosureCompanyFilter" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5">
+          <option value="">전체 카드사</option>
+          <option value="신한카드">신한카드</option>
+          <option value="삼성카드">삼성카드</option>
+          <option value="현대카드">현대카드</option>
+          <option value="KB국민카드">KB국민카드</option>
+        </select>
+        <button onclick="startDisclosureScrape()" id="btnDisclosureScrape" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+          <i class="fas fa-satellite-dish mr-1"></i>공시 동기화 시작
+        </button>
+      </div>
+    </div>
+    <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="min-w-0">
+          <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">공시 동기화 파이프라인</div>
+          <div id="disclosureSyncHeadline" class="mt-1 text-sm font-bold text-slate-800">상태를 불러오는 중입니다...</div>
+          <p id="disclosureSyncMeta" class="mt-1 text-xs text-slate-500">신규 공시 수집부터 임베딩/RAG, 대시보드 반영까지 한 번에 실행합니다.</p>
+        </div>
+        <span id="disclosureSyncStatePill" class="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600">확인 중</span>
+      </div>
+      <div id="disclosureSyncStages" class="mt-4 grid gap-2 lg:grid-cols-2">
+        <div class="rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-xs text-slate-400">단계 정보를 불러오는 중입니다...</div>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-4 gap-3 mb-4" id="disclosureStats">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+        <div class="text-xs font-bold text-slate-500 mb-1">전체 상품 수</div>
+        <div id="discStatTotal" class="text-lg font-bold text-slate-800">-</div>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+        <div class="text-xs font-bold text-emerald-600 mb-1">신규 상품</div>
+        <div id="discStatNew" class="text-lg font-bold text-emerald-700">-</div>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+        <div class="text-xs font-bold text-blue-600 mb-1">Active</div>
+        <div id="discStatActive" class="text-lg font-bold text-blue-700">-</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+        <div class="text-xs font-bold text-slate-500 mb-1">최근 수집 시각</div>
+        <div id="discStatUpdated" class="text-xs font-medium text-slate-600 mt-1">-</div>
+      </div>
+    </div>
+    <div id="disclosureCompanyTable" class="mb-4">
+      <table class="w-full text-xs">
+        <thead><tr class="border-b border-slate-200 text-slate-500">
+          <th class="py-1.5 text-left font-semibold">카드사</th>
+          <th class="py-1.5 text-center font-semibold">전체</th>
+          <th class="py-1.5 text-center font-semibold">Active</th>
+          <th class="py-1.5 text-center font-semibold">종료/중단</th>
+          <th class="py-1.5 text-center font-semibold">신규</th>
+          <th class="py-1.5 text-left font-semibold">최근 출시일</th>
+        </tr></thead>
+        <tbody id="discCompanyTableBody"></tbody>
+      </table>
+    </div>
+    <div>
+      <h4 class="text-xs font-bold text-slate-500 mb-2">최근 신규 카드상품</h4>
+      <div id="discNewProductsList" class="text-xs text-slate-500 space-y-1">
+        <p>데이터를 불러오는 중입니다...</p>
+      </div>
+    </div>
   </div>
 </section>
 
 </main>
+</div><!-- /main-area -->
 
-<div id="detailModal" class="fixed inset-0 bg-slate-900/55 z-50 flex items-center justify-center p-4" style="display:none">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden">
-    <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-900 text-white">
-      <div class="min-w-0 flex-1">
-        <h2 class="display-font font-bold text-white truncate" id="mdTitle"></h2>
-        <p class="text-xs text-blue-100/80 mt-0.5" id="mdSummary"></p>
-      </div>
-      <div class="flex items-center gap-2 ml-3">
-        <a id="mdNewTab" href="#" target="_blank" class="text-xs text-cyan-300 hover:text-cyan-200"><i class="fas fa-external-link-alt mr-1"></i>원본</a>
-        <button id="mdLockBtn" onclick="toggleLock()" class="bg-slate-500 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"><i class="fas fa-lock-open mr-1"></i>잠금</button>
-        <button onclick="extractOne()" id="mdExtractBtn" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fas fa-sync-alt mr-1"></i>추출</button>
-        <button onclick="closeModal()" class="text-slate-300 hover:text-white p-1"><i class="fas fa-times text-lg"></i></button>
+<!-- detailModal ???遺얘턁?????꿔꺂?????諛ㅻ???(dashboard.js???????ル??? ????븐뼐?????????? -->
+<div id="detailModal" class="fixed inset-0 z-50" style="display:none">
+  <div id="mdTitle2"></div><div id="mdSummary2"></div>
+</div>
+
+<!-- ===== ??????????癲??(???????????癲ル슢??蹂좉슈?? ===== -->
+<div class="side-panel-overlay" id="sidePanelOverlay" onclick="closeModal()"></div>
+<div class="side-panel" id="sidePanel">
+  <div class="flex items-center justify-between px-4 py-3 border-b bg-slate-900 text-white flex-shrink-0">
+    <div class="min-w-0 flex-1">
+      <h2 class="display-font font-bold text-white truncate text-sm" id="mdTitle"></h2>
+      <p class="text-xs text-blue-100/70 mt-0.5 truncate" id="mdSummary"></p>
+    </div>
+    <div class="flex items-center gap-1.5 ml-3 flex-shrink-0">
+      <a id="mdNewTab" href="#" target="_blank" class="text-xs text-cyan-300 hover:text-cyan-200"><i class="fas fa-external-link-alt"></i></a>
+      <button id="mdLockBtn" onclick="toggleLock()" class="bg-slate-600 hover:bg-slate-500 text-white px-2 py-1 rounded text-xs"><i class="fas fa-lock-open"></i></button>
+      <button onclick="extractOne()" id="mdExtractBtn" class="bg-emerald-500 hover:bg-emerald-400 text-white px-2 py-1 rounded text-xs"><i class="fas fa-sync-alt mr-1"></i>재추출</button>
+      <button onclick="closeModal()" class="text-slate-300 hover:text-white p-1"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="flex border-b bg-slate-50 text-sm px-2 py-1.5 gap-1 items-center flex-shrink-0">
+    <button class="tab-btn active" data-mtab="iframe">원문</button>
+    <button class="tab-btn" data-mtab="intelligence">AI 분석</button>
+    <button class="tab-btn" data-mtab="edit">수동 편집</button>
+    <span class="ml-auto flex items-center gap-1 text-[10px] text-slate-400" id="zoomControls">
+      <button onclick="setIframeZoom(1)" id="zoomBtn100" class="px-1 py-0.5 rounded border border-slate-300 hover:bg-slate-200">100%</button>
+      <button onclick="setIframeZoom(0.7)" id="zoomBtn85" class="px-1 py-0.5 rounded border border-blue-400 bg-blue-50 text-blue-700 font-bold">70%</button>
+    </span>
+  </div>
+  <div class="flex-1 min-h-0 overflow-hidden">
+    <div id="mp-iframe" class="h-full bg-slate-100 overflow-auto">
+      <div id="iframeZoomWrap" style="transform:scale(0.7);transform-origin:top center;width:142.8%;height:142.8%">
+        <iframe id="mdFrame" class="w-full h-full border-0 bg-white"></iframe>
       </div>
     </div>
-    <div class="flex border-b bg-slate-50 text-sm px-2 py-2 gap-1 items-center">
-      <button class="tab-btn active" data-mtab="iframe">원본 페이지</button>
-      <button class="tab-btn" data-mtab="intelligence">AI 분석</button>
-      <button class="tab-btn" data-mtab="edit">수동 수정</button>
-      <span class="ml-auto flex items-center gap-1 text-[11px] text-slate-400" id="zoomControls">
-        <i class="fas fa-magnifying-glass-minus"></i>
-        <button onclick="setIframeZoom(1)" id="zoomBtn100" class="px-1.5 py-0.5 rounded border border-slate-300 hover:bg-slate-200">100%</button>
-        <button onclick="setIframeZoom(0.85)" id="zoomBtn85" class="px-1.5 py-0.5 rounded border border-blue-400 bg-blue-50 text-blue-700 font-bold">85%</button>
-      </span>
-    </div>
-    <div class="flex-1 min-h-0 overflow-hidden">
-      <div id="mp-iframe" class="h-full bg-slate-100 overflow-auto">
-        <div id="iframeZoomWrap" style="transform:scale(0.85);transform-origin:top center;width:117.6%;height:117.6%">
-          <iframe id="mdFrame" class="w-full h-full rounded-xl border-0 bg-white"></iframe>
-        </div>
-      </div>
-      <div id="mp-intelligence" class="h-full overflow-y-auto p-5 hidden"></div>
-      <div id="mp-edit" class="h-full overflow-y-auto p-5 hidden"></div>
-    </div>
+    <div id="mp-intelligence" class="h-full overflow-y-auto p-4 hidden"></div>
+    <div id="mp-edit" class="h-full overflow-y-auto p-4 hidden"></div>
   </div>
 </div>
 
+<!-- ===== ?????????븐뼐???????????븐뼔????===== -->
 <div id="compareModal" class="fixed inset-0 bg-slate-900/55 z-50 hidden items-center justify-center p-4" style="display:none" onclick="if(event.target===this) closeCompareModal()">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
     <div class="flex items-center justify-between px-5 py-3 border-b bg-slate-900 text-white">
-      <h2 class="display-font text-lg font-bold">선택 이벤트 비교</h2>
+      <h2 class="display-font text-lg font-bold">이벤트 비교 분석</h2>
       <button onclick="closeCompareModal()" class="text-slate-300 hover:text-white p-1"><i class="fas fa-times text-lg"></i></button>
     </div>
     <div id="compareBody" class="p-5 overflow-auto"></div>
   </div>
 </div>
 
-<div id="extractHelpModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none" onclick="if(event.target===this) closeExtractHelp()">
-  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="display-font text-lg font-bold text-slate-800"><i class="fas fa-info-circle text-blue-500 mr-2"></i>「추출」이란?</h3>
-      <button type="button" onclick="closeExtractHelp()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
-    </div>
-    <div class="text-sm text-slate-600 space-y-3">
-      <p><strong>수집</strong>은 카드사 이벤트 <strong>목록 페이지</strong>에서 이벤트 제목·링크만 가져오는 단계입니다.</p>
-      <p><strong>추출</strong>은 각 이벤트의 <strong>상세 페이지</strong>에 실제로 들어가서, 혜택·기간·조건·참여방법·타겟 등을 읽어와 구조화된 데이터로 저장하는 단계입니다.</p>
-      <ul class="list-disc list-inside space-y-1 text-slate-500">
-        <li><strong>추출 완료</strong>: 이미 상세 페이지를 방문해 내용을 저장한 이벤트</li>
-        <li><strong>미완료</strong>: 아직 상세 페이지를 읽지 않아 혜택·조건 등이 비어 있는 이벤트</li>
-      </ul>
-      <p><strong>전체 추출 시작</strong> 버튼은 <strong>수집(목록 크롤링)은 하지 않고</strong>, 이미 DB에 있는 이벤트 중 <strong>미추출 이벤트만</strong> 골라서 일괄로 상세 추출합니다. 이미 추출된 이벤트는 다시 추출하지 않습니다.</p>
-    </div>
-    <div class="mt-5 text-right">
-      <button type="button" onclick="closeExtractHelp()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium text-slate-700">닫기</button>
-    </div>
+<!-- ===== ???????????????????癲????===== -->
+<div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this) closeCmdPalette()">
+  <div class="cmd-box">
+    <input class="cmd-input" id="cmdInput" placeholder="이벤트, 상품, 카테고리를 검색하세요..." autocomplete="off">
+    <div class="cmd-results" id="cmdResults"></div>
   </div>
 </div>
 
-<script src="/static/js/dashboard.js"></script>
+<footer class="max-w-[1400px] mx-auto px-5 py-6 mt-8 border-t" style="margin-left:68px;border-color:var(--line)">
+  <div class="flex items-center justify-between text-xs" style="color:var(--muted)">
+    <span>Made by TaeWoongYoon</span>
+    <span>v6.0 dashboard refresh</span>
+  </div>
+</footer>
+
+<script src="/static/js/dashboard.js?v=7.3"></script>
+<script>
+// dashboard.js ???????????ｋ젒??????븐뼐???????? DOMContentLoaded ??????袁⑸즴筌?씛彛??????????源낆┸???????濡?씀?濾????// initTabs: ??????耀붾굝????????????????癲됱빖???嶺?????????⑤슢堉??곕??????????븐뼐????????????????????????嚥???癲???
+window.initTabs = function() { /* no-op */ };
+// loadAll: ????????遺얘턁??????????????耀붾굝?????????????????????熬곣몿???
+window.OBJECTIVE_SCOREBOARD = null;
+// openDetail ????????????癲????????????뀀??
+const _origOpenDetail = window.openDetail;
+if (_origOpenDetail) {
+  window.openDetail = function(id) {
+    _origOpenDetail(id);
+    setTimeout(() => {
+      const modal = document.getElementById('detailModal');
+      if (modal) modal.style.display = 'none';
+      document.getElementById('sidePanel').classList.add('open');
+      document.getElementById('sidePanelOverlay').classList.add('open');
+    }, 50);
+  };
+}
+const _origCloseModal = window.closeModal;
+window.closeModal = function() {
+  document.getElementById('sidePanel').classList.remove('open');
+  document.getElementById('sidePanelOverlay').classList.remove('open');
+  if (_origCloseModal) _origCloseModal();
+};
+</script>
+<script>
+/* ===== ????????????뀀?? ???????獄쏅챶留??泳?뿀???筌?????????????븐뼔???? ???????????????????癲???? ??????????? ????? Gantt ===== */
+
+// ????????????뀀??
+function switchTab(tabId) {
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  const target = document.getElementById('tab-' + tabId);
+  if (target) { target.classList.remove('hidden'); target.classList.add('anim-fade-in'); }
+
+  document.querySelectorAll('.nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(`.nav-btn[data-tab="${tabId}"]`).forEach(b => b.classList.add('active'));
+  document.querySelectorAll('.mobile-nav button[data-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+
+  // ????븐뼐???????????????????ｋ젒??
+  if (tabId === 'compare' && !window._COMPARE_LOADED) {
+    window._COMPARE_LOADED = true;
+    try { loadKeywordAnalysis(); } catch(_){}
+    try { loadTargetSegments(); } catch(_){}
+  }
+  if (tabId === 'products' && !window._PRODUCTS_LOADED) {
+    window._PRODUCTS_LOADED = true;
+    loadProductsTab();
+  }
+  if (tabId === 'timeline' && !window._TIMELINE_LOADED) {
+    window._TIMELINE_LOADED = true;
+    initGantt();
+  }
+  if (tabId === 'ops') loadOpsData();
+}
+
+// ???耀붾굝????????癲ル슢?뤸뤃?뀀㎟????????????뀀??
+function switchSubTab(btn, parentTab) {
+  const stabId = btn.dataset.stab;
+  const parent = document.getElementById('tab-' + parentTab);
+  parent.querySelectorAll('[id^="stab-"]').forEach(s => s.classList.add('hidden'));
+  const target = document.getElementById('stab-' + stabId);
+  if (target) target.classList.remove('hidden');
+  btn.closest('.flex').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // ?????鶯ㅺ동?????????????⑥ル츧癲? ??????????已??????耀붾굝????????癲ル슢?뤸뤃?뀀㎟??????븐뼐??????????????????????????ｋ젒??
+  if (stabId === 'product-new') loadNewProductAnalysis();
+}
+
+async function loadNewProductAnalysis() {
+  const el = document.getElementById('newProductAnalysis');
+  if (!el) return;
+  el.innerHTML = '<div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div>';
+  try {
+    const r = await fetch('/api/disclosures?new_only=false');
+    const d = await r.json();
+    const products = d.products || [];
+    if (!products.length) {
+      el.innerHTML = '<p class="text-sm text-slate-400">???????⑥ル츧癲?????????욱룑????????????? ??????濚밸Ŧ援???????????⑤챷竊? ??????嶺뚮ㅎ?볠꽴?????곸궔? ????????????⑥ル츧癲?????????욱룑?????????⑤슢堉??곕????????????????耀붾굝????鶯ㅺ동???怨몄쓥???</p>';
+      return;
+    }
+
+    const now = new Date();
+    const thisYM = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}`;
+
+    // ???????????????????????⑥ル츧癲?
+    const thisMonthItems = products.filter(p => (p.launch_date||'').startsWith(thisYM));
+    // ????븐뼐??????????3???????ル?????
+    const threeMonths = [];
+    for (let m = 0; m < 3; m++) {
+      const d2 = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      const ym = `${d2.getFullYear()}.${String(d2.getMonth()+1).padStart(2,'0')}`;
+      threeMonths.push(ym);
+    }
+    const recentItems = products.filter(p => {
+      const ld = (p.launch_date||'').substring(0,7);
+      return threeMonths.includes(ld);
+    });
+    recentItems.sort((a,b) => (b.launch_date||'').localeCompare(a.launch_date||''));
+
+    // ?????筌뤾퍓愿???????????븐뼐???????嚥▲굧?????
+    const byCo = {};
+    recentItems.forEach(p => {
+      const co = p.company || '???????';
+      if (!byCo[co]) byCo[co] = [];
+      byCo[co].push(p);
+    });
+
+    let html = '';
+
+    // ????癲????????筌뤾퍓愿????
+    html += `<div class="grid sm:grid-cols-3 gap-3 mb-4">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-700">${thisMonthItems.length}</div>
+        <div class="text-xs text-emerald-600 mt-1">???????????鶯ㅺ동????????????????</div>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-700">${recentItems.length}</div>
+        <div class="text-xs text-blue-600 mt-1">????븐뼐??????????3???????ル???????????????</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-slate-700">${products.length}</div>
+        <div class="text-xs text-slate-500 mt-1">??????袁⑸즴筌?씛彛??????????욱룑??????????⑥ル츧癲?</div>
+      </div>
+    </div>`;
+
+    // ?????筌뤾퍓愿??????????????????????????????⑥ル츧癲?
+    const companies = Object.keys(byCo).sort();
+    for (const co of companies) {
+      const items = byCo[co];
+      const coShort = coTag(co);
+      const thisMonthCo = items.filter(p => (p.launch_date||'').startsWith(thisYM));
+
+      html += `<div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+          <div class="flex items-center gap-2">
+            <span class="${pillCls(co)} badge-sm">${coShort}</span>
+            <span class="text-sm font-bold">${esc(co)}</span>
+          </div>
+          <span class="text-xs text-slate-500">????븐뼐??????????3???????ル?????${items.length}??(??????${thisMonthCo.length}??</span>
+        </div>
+        <div class="divide-y divide-slate-100">`;
+
+      items.slice(0, 15).forEach(p => {
+        const isNew = (p.launch_date||'').startsWith(thisYM);
+        const revBadge = isNew
+          ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">NEW</span>'
+          : p.discontinue_date
+          ? '<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-bold">???????욱떌??</span>'
+          : '';
+        const typeBadge = p.card_type
+          ? `<span class="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-500">${esc(p.card_type)}</span>`
+          : '';
+        const discDate = p.discontinue_date
+          ? `<span class="text-[10px] text-red-400 ml-1">??????ш끽踰椰?????袁ㅻ쇀??? ${p.discontinue_date}</span>`
+          : '';
+
+        html += `<div class="flex items-center gap-2 px-4 py-2 text-xs ${isNew ? 'bg-emerald-50/50' : ''}">
+          <span class="font-medium flex-1 truncate">${esc(p.card_name)}</span>
+          ${typeBadge} ${revBadge}
+          <span class="text-slate-400 flex-shrink-0">${p.launch_date || '-'}</span>
+          ${discDate}
+        </div>`;
+      });
+
+      if (items.length > 15) {
+        html += `<div class="px-4 py-1.5 text-[10px] text-slate-400 text-right">??${items.length - 15}??</div>`;
+      }
+
+      html += '</div></div>';
+    }
+
+    if (!recentItems.length) {
+      html += '<p class="text-sm text-slate-400 text-center py-8">????븐뼐??????????3???????ル?????????????????????????⑥ル츧癲?????????濚밸Ŧ援???????????⑤챷竊?</p>';
+    }
+
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<p class="text-sm text-red-400">????????沃섃뫚?????????????곕츧?? ${e.message}</p>`;
+  }
+}
+
+// ??????????????????뀀??
+function setEventView(view) {
+  const listEl = document.getElementById('eventListView');
+  const calEl = document.getElementById('eventCalView');
+  const btnList = document.getElementById('evViewList');
+  const btnCal = document.getElementById('evViewCal');
+  if (view === 'list') {
+    listEl.classList.remove('hidden'); calEl.classList.add('hidden');
+    btnList.className = 'px-3 py-1.5 bg-blue-600 text-white font-semibold';
+    btnCal.className = 'px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 font-medium';
+  } else {
+    listEl.classList.add('hidden'); calEl.classList.remove('hidden');
+    btnList.className = 'px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 font-medium';
+    btnCal.className = 'px-3 py-1.5 bg-blue-600 text-white font-semibold';
+    if (typeof loadCalendar === 'function' && typeof CAL_EVENTS !== 'undefined' && CAL_EVENTS.length === 0) loadCalendar();
+  }
+}
+
+// ???????獄쏅챶留??泳?뿀???筌?????????????븐뼔????
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  document.getElementById('themeIcon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
+})();
+
+function openCmdPalette() {
+  document.getElementById('cmdOverlay').classList.add('open');
+  const input = document.getElementById('cmdInput');
+  input.value = '';
+  input.focus();
+  document.getElementById('cmdResults').innerHTML = '';
+}
+function closeCmdPalette() {
+  document.getElementById('cmdOverlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); }
+  if (e.key === 'Escape') {
+    if (document.getElementById('cmdOverlay').classList.contains('open')) closeCmdPalette();
+  }
+});
+document.getElementById('cmdInput')?.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  const results = document.getElementById('cmdResults');
+  if (!q) { results.innerHTML = ''; return; }
+  let items = [];
+  if (typeof ALL !== 'undefined') {
+    ALL.filter(e => (e.title||'').toLowerCase().includes(q) || (e.company||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q))
+      .slice(0, 8).forEach(e => {
+        items.push(`<div class="cmd-item" onclick="closeCmdPalette();openDetail(${e.id})">
+          <span class="cmd-type">이벤트</span>
+          <span class="flex-1 truncate">${esc(e.company)} · ${esc(e.title)}</span>
+        </div>`);
+      });
+  }
+  if (window._ALL_PRODUCTS) {
+    window._ALL_PRODUCTS.filter(p => (p.card_name||'').toLowerCase().includes(q) || (p.company||'').toLowerCase().includes(q))
+      .slice(0, 5).forEach(p => {
+        items.push(`<div class="cmd-item" onclick="closeCmdPalette();switchTab('products')">
+          <span class="cmd-type">상품</span>
+          <span class="flex-1 truncate">${esc(p.company)} · ${esc(p.card_name)}</span>
+        </div>`);
+      });
+  }
+  [['Dashboard','dashboard'],['Events','events'],['Products','products'],['Timeline','timeline'],['Ops','ops']].forEach(([name, id]) => {
+    if (name.includes(q)) {
+      items.push(`<div class="cmd-item" onclick="closeCmdPalette();switchTab('${id}')">
+        <span class="cmd-type">Tab</span><span>${name}</span></div>`);
+    }
+  });
+  results.innerHTML = items.length ? items.join('') : '<div class="px-5 py-4 text-xs text-slate-400 text-center">검색 결과가 없습니다.</div>';
+});
+
+// ?????
+function toggleNotifications() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+}
+function clearNotifications() {
+  document.getElementById('notifList').innerHTML = '<div class="px-4 py-6 text-center text-xs text-slate-400">??????????????대첉??</div>';
+  document.getElementById('notifBadge').classList.add('hidden');
+  document.getElementById('notifDropdown').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notifWrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+});
+
+// ===== ?????耀붾굝??????????????⑤벡瑜?????=====
+async function renderDashboard() {
+  if (typeof ALL === 'undefined' || !ALL.length) return;
+
+  // KPI
+  const total = ALL.length;
+  const now = new Date();
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const newThisMonth = ALL.filter(e => {
+    if (!e.period_start) return false;
+    const s = new Date(e.period_start);
+    return s.getMonth() === thisMonth && s.getFullYear() === thisYear;
+  }).length;
+
+  // ????븐뼐????????????癲됱빖???嶺?????????筌뤾퍓愿???????釉랁닑??????????
+  const catCount = {};
+  ALL.forEach(e => { const c = e.category || 'Other'; catCount[c] = (catCount[c] || 0) + 1; });
+  const topCat = Object.entries(catCount).sort((a,b) => b[1]-a[1])[0];
+
+  // ???????ル????????耀붾굝?????????됰Ŧ?뤹춯???????筌뤾퍓愿?????(30???????鶯ㅺ동?????????????)
+  const coNew = {};
+  ALL.forEach(e => {
+    if (!e.period_start) return;
+    const s = new Date(e.period_start);
+    if ((now - s) < thirtyDays && (now - s) >= 0) {
+      const co = e.company || '???????';
+      coNew[co] = (coNew[co]||0)+1;
+    }
+  });
+  const mostActive = Object.entries(coNew).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById('hsTotal').textContent = total;
+  document.getElementById('hsNewMonth').textContent = newThisMonth;
+  const topCatEl = document.getElementById('hsTopCategory');
+  if (topCat) { topCatEl.textContent = topCat[0]; topCatEl.style.fontSize = topCat[0].length > 4 ? '.85rem' : '1.4rem'; }
+  const mostActiveEl = document.getElementById('hsMostActive');
+  if (mostActive) { mostActiveEl.textContent = coTag(mostActive[0]); mostActiveEl.style.fontSize = '.95rem'; }
+
+  // ???????⑥ル츧癲? KPI ?????????????鶯ㅺ동???????????????????????⑥ル츧癲? ??(???????⑥ル츧癲?????????욱룑??????????); ?????????대첉??轅붽틓?????獒뺣폍??????븐뼐??????????3???????ル??????????鶯ㅺ동???????????????????????
+  fetch('/api/disclosures?new_only=false').then(r=>r.json()).then(d => {
+    const _now = new Date();
+    const _yr = _now.getFullYear(), _mo = _now.getMonth();
+    const _thisYM = `${_yr}.${String(_mo+1).padStart(2,'0')}`;
+    const monthNew = (d.products || []).filter(p => (p.launch_date || '').startsWith(_thisYM)).length;
+    const kpiEl = document.getElementById('hsProducts');
+    if (monthNew > 0) {
+      kpiEl.textContent = monthNew;
+    } else {
+      // ????븐뼐??????????3???????ル??????????鶯ㅺ동?????????????????fallback
+      const _t3 = new Date(_yr, _mo - 2, 1);
+      const ymMin = `${_t3.getFullYear()}.${String(_t3.getMonth()+1).padStart(2,'0')}`;
+      const recentNew = (d.products || []).filter(p => p.launch_date && (p.launch_date||'') >= ymMin && (p.status || 'active') === 'active').length;
+      kpiEl.textContent = recentNew;
+      const _lblEl = kpiEl.parentElement.querySelector('.kpi-lbl');
+      if (_lblEl) _lblEl.textContent = 'Recent 3 months';
+    }
+  }).catch(() => { document.getElementById('hsProducts').textContent = '-'; });
+
+  const endEl = document.getElementById('endingSoonList');
+  const week = 7 * 24 * 60 * 60 * 1000;
+  let ending = ALL.filter(e => {
+    const end = parseEventEndDate(e);
+    return end && (end - now) > 0 && (end - now) <= week;
+  }).sort((a,b) => parseEventEndDate(a) - parseEventEndDate(b)).slice(0, 6);
+
+  document.getElementById('hsEndingSoon').textContent = ending.length;
+
+  if (!ending.length) {
+    endEl.innerHTML = '<p class="text-xs text-emerald-600"><i class="fas fa-check mr-1"></i>7????????????源낅펰?????????롮쾸?椰??????????????????대첉??</p>';
+  } else {
+    endEl.innerHTML = ending.map(e => {
+      const d = daysUntilDate(parseEventEndDate(e));
+      const urgency = d <= 2 ? 'text-red-600 font-bold' : d <= 4 ? 'text-amber-600' : 'text-slate-600';
+      return `<div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100" onclick="openDetail(${e.id})">
+        <span class="${urgency} text-xs w-12 flex-shrink-0">D-${d}</span>
+        <span class="${pillCls(e.company)} badge-sm">${coTag(e.company)}</span>
+        <span class="text-xs truncate">${esc((e.title||'').substring(0,35))}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ????븐뼐???????????????鶯ㅺ동????????????(30???????
+  const newEvEl = document.getElementById('dashNewEvents');
+  let newEvents = ALL.filter(e => {
+    if (!e.period_start) return false;
+    const s = new Date(e.period_start);
+    return (now - s) < thirtyDays && (now - s) >= 0;
+  }).sort((a,b) => new Date(b.period_start) - new Date(a.period_start)).slice(0, 6);
+
+  if (!newEvents.length) {
+    newEvEl.innerHTML = '<p class="text-xs text-slate-400">????븐뼐??????????30???????鶯ㅺ동?????????????????????대첉??</p>';
+  } else {
+    newEvEl.innerHTML = newEvents.map(e => `
+      <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100" onclick="openDetail(${e.id})">
+        <span class="${pillCls(e.company)} badge-sm">${coTag(e.company)}</span>
+        <span class="text-xs truncate flex-1">${esc((e.title||'').substring(0,40))}</span>
+        <span class="text-[10px] text-slate-400">${(e.period_start||'').substring(5,10)}</span>
+      </div>
+    `).join('');
+  }
+
+  // ???????????鶯ㅺ동???????????????????????⑥ル츧癲? (???????⑥ル츧癲?????????욱룑???????????????????????????
+  const newProdEl = document.getElementById('dashNewProducts');
+  fetch('/api/disclosures?new_only=false').then(r=>r.json()).then(d => {
+    if (!d.products || !d.products.length) {
+      newProdEl.innerHTML = '<p class="text-xs text-slate-400">???????⑥ル츧癲?????????욱룑?????????????????????대첉??????????嶺뚮ㅎ?볠꽴?????곸궔? ????????????⑥ル츧癲?????????욱룑?????????⑤슢堉??곕????????????????耀붾굝????鶯ㅺ동???怨몄쓥???</p>';
+      return;
+    }
+    // ???????????????????????⑥ル츧癲?????????????뀀??(launch_date???????ル??? YYYY.MM.DD ???遺얘턁???????????ㅿ폍??
+    const _n2 = new Date();
+    const thisYM = `${_n2.getFullYear()}.${String(_n2.getMonth()+1).padStart(2,'0')}`;
+    const thisMonthProducts = d.products.filter(p => {
+      const ld = p.launch_date || '';
+      return ld.startsWith(thisYM);
+    });
+
+    // ??????????????????????읐?? ?????????대첉??轅붽틓?????獒뺣폍??????븐뼐???????????????鶯ㅺ동??????????????????????⑥ル츧癲?????????fallback
+    let displayProducts = thisMonthProducts;
+    let fallbackLabel = '';
+    if (!displayProducts.length) {
+      // ????븐뼐???????????????鶯ㅺ동??????????????????????⑥ル츧癲? (revision_type === '?????鶯ㅺ동???????????????)????????????????????????
+      const recentNew = d.products.filter(p => p.launch_date && (p.launch_date||'') >= ymMin && (p.status || 'active') === 'active');
+      recentNew.sort((a,b) => (b.launch_date||'').localeCompare(a.launch_date||''));
+      displayProducts = recentNew.slice(0, 8);
+      if (!displayProducts.length) {
+        newProdEl.innerHTML = '<p class="text-xs text-slate-400">?????鶯ㅺ동???????????????????????⑥ル츧癲? ?????????대첉??</p>';
+        return;
+      }
+      fallbackLabel = '<p class="text-[10px] text-amber-500 mb-2"><i class="fas fa-info-circle mr-1"></i>???????????鶯ㅺ동???????????????대첉????????븐뼐???????????????鶯ㅺ동??????????????????????⑥ル츧癲? ??????</p>';
+    }
+
+    displayProducts.sort((a,b) => (b.launch_date||'').localeCompare(a.launch_date||''));
+    const display = displayProducts.slice(0, 8);
+
+    newProdEl.innerHTML = fallbackLabel + display.map(p => {
+      const co = p.company || '';
+      const coShort = coTag(co);
+      const isNew = !!(p.launch_date && p.launch_date.length >= 7);
+      return `<div class="flex items-center gap-2 p-2 rounded-lg ${isNew ? 'bg-emerald-50 border border-emerald-100' : 'bg-indigo-50 border border-indigo-100'}">
+        <span class="${pillCls(co)} badge-sm">${coShort}</span>
+        <span class="text-xs truncate flex-1 font-medium">${esc((p.card_name||'').substring(0,35))}</span>
+        ${isNew ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold flex-shrink-0">NEW</span>' : ''}
+        <span class="text-[10px] text-slate-400 flex-shrink-0">${(p.launch_date||'').substring(5)}</span>
+      </div>`;
+    }).join('') + (displayProducts.length > 8
+      ? `<p class="text-[10px] text-slate-400 mt-1 text-right">??${displayProducts.length - 8}????</p>` : '');
+  }).catch(() => { newProdEl.innerHTML = '<p class="text-xs text-slate-400">???????⑥ル츧癲?????????욱룑???????????沃섃뫚?????????????곕츧??</p>'; });
+
+  const summaryEl = document.getElementById('dashCompanySummary');
+  const companyStats = {};
+  ALL.forEach(e => {
+    const co = e.company || '???????';
+    if (!companyStats[co]) companyStats[co] = { total: 0, active: 0, newMonth: 0 };
+    companyStats[co].total++;
+    if ((parseEventEndDate(e) ? parseEventEndDate(e) >= now : !!e.period_start)) companyStats[co].active++;
+    if (e.period_start) {
+      const s = new Date(e.period_start);
+      if ((now - s) < thirtyDays) companyStats[co].newMonth++;
+    }
+  });
+  let tableHtml = `<table class="w-full text-sm">
+    <thead><tr class="text-xs text-slate-500 border-b">
+      <th class="text-left py-2">?????筌뤾퍓愿?????/th>
+      <th class="text-right py-2">??????袁⑸즴筌?씛彛????????/th>
+      <th class="text-right py-2">????븐뼐????????轅붽틓???????????????/th>
+      <th class="text-right py-2">30???????鶯ㅺ동????????????/th>
+    </tr></thead><tbody>`;
+  for (const [co, s] of Object.entries(companyStats).sort((a,b) => b[1].total - a[1].total)) {
+    tableHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50">
+      <td class="py-2"><span class="${pillCls(co)} badge-sm">${coTag(co)}</span></td>
+      <td class="text-right py-2 font-bold">${s.total}</td>
+      <td class="text-right py-2 text-emerald-600 font-semibold">${s.active}</td>
+      <td class="text-right py-2 text-blue-600">${s.newMonth}</td>
+    </tr>`;
+  }
+  tableHtml += '</tbody></table>';
+  summaryEl.innerHTML = tableHtml;
+
+  const summaryRows = Array.isArray(OVERVIEW?.companies) ? OVERVIEW.companies : [];
+  if (summaryRows.length) {
+    const newMonthRow = (window.OBJECTIVE_SCOREBOARD?.rows || []).find(row => row.key === 'monthly_new');
+    const newMonthValues = newMonthRow?.values || {};
+    let overviewTableHtml = `<table class="w-full text-sm">
+      <thead><tr class="text-xs text-slate-500 border-b">
+        <th class="text-left py-2">?????筌뤾퍓愿?????/th>
+        <th class="text-right py-2">??????袁⑸즴筌?씛彛????????/th>
+        <th class="text-right py-2">????븐뼐????????轅붽틓???????????????/th>
+        <th class="text-right py-2">30???????鶯ㅺ동????????????/th>
+      </tr></thead><tbody>`;
+    summaryRows.forEach(row => {
+      overviewTableHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="py-2"><span class="${pillCls(row.company)} badge-sm">${coTag(row.company)}</span></td>
+        <td class="text-right py-2 font-bold">${Number(row.collected_count || 0).toLocaleString('ko-KR')}</td>
+        <td class="text-right py-2 text-emerald-600 font-semibold">${Number(row.active_count || 0).toLocaleString('ko-KR')}</td>
+        <td class="text-right py-2 text-blue-600">${Number(newMonthValues[row.company] || 0).toLocaleString('ko-KR')}</td>
+      </tr>`;
+    });
+    overviewTableHtml += '</tbody></table>';
+    summaryEl.innerHTML = overviewTableHtml;
+  }
+
+  const scoreboardEl = document.getElementById('objectiveScoreboard');
+  const scoreboardRows = window.OBJECTIVE_SCOREBOARD?.rows || [];
+  const scoreboardCompanies = window.OBJECTIVE_SCOREBOARD?.companies || [];
+  if (scoreboardRows.length && scoreboardCompanies.length) {
+    const formatScoreValue = (value, unit) => {
+      const num = Number(value || 0);
+      if (unit === '%') return `${num.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}%`;
+      if (unit && unit !== '%') return `${Math.round(num).toLocaleString('ko-KR')}${unit}`;
+      return `${num.toLocaleString('ko-KR')}${unit || ''}`;
+    };
+    let scoreboardHtml = '<table class="w-full min-w-[720px] text-sm">';
+    scoreboardHtml += '<thead><tr class="border-b text-xs text-slate-500">';
+    scoreboardHtml += '<th class="text-left py-2 pr-3">Metric</th>';
+    scoreboardCompanies.forEach(company => {
+      scoreboardHtml += `<th class="text-right py-2 px-2">${coTag(company)}</th>`;
+    });
+    scoreboardHtml += '</tr></thead><tbody>';
+    scoreboardRows.forEach(row => {
+      const numericValues = scoreboardCompanies.map(company => Number(row.values?.[company] || 0));
+      const maxValue = Math.max(...numericValues);
+      scoreboardHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-3 pr-3 align-top"><div class="font-semibold text-slate-800">${esc(row.metric || '-')}</div><div class="text-[11px] text-slate-400">${esc(row.unit || '')}</div></td>`;
+      scoreboardCompanies.forEach(company => {
+        const rawValue = Number(row.values?.[company] || 0);
+        const tone = rawValue === maxValue && maxValue > 0 ? 'text-blue-700 font-bold' : 'text-slate-700';
+        scoreboardHtml += `<td class="py-3 px-2 text-right ${tone}">${formatScoreValue(rawValue, row.unit)}</td>`;
+      });
+      scoreboardHtml += '</tr>';
+    });
+    scoreboardHtml += '</tbody></table>';
+    scoreboardEl.innerHTML = scoreboardHtml;
+  } else if (scoreboardEl) {
+    scoreboardEl.innerHTML = '<p class="text-sm text-slate-400">?????????????????????? ??????????ъ몥????? ????븐뼐???????????????????</p>';
+  }
+
+  // ?????
+  buildNotifications();
+}
+
+function buildNotifications() {
+  const items = [];
+  const now = new Date();
+  if (typeof ALL !== 'undefined') {
+    ALL.filter(e => {
+      const end = parseEventEndDate(e);
+      return end && (end - now) > 0 && (end - now) <= 3 * 24 * 60 * 60 * 1000;
+    }).slice(0, 3).forEach(e => {
+      const d = daysUntilDate(parseEventEndDate(e));
+      items.push({ icon: 'fa-clock', color: 'text-red-500', text: `${e.company} ${(e.title||'').substring(0,25)}... D-${d}` });
+    });
+  }
+  const badge = document.getElementById('notifBadge');
+  const list = document.getElementById('notifList');
+  if (items.length) {
+    badge.textContent = items.length;
+    badge.classList.remove('hidden');
+    list.innerHTML = items.map(n =>
+      `<div class="notif-item"><i class="fas ${n.icon} ${n.color} mr-2"></i>${n.text}</div>`
+    ).join('');
+  }
+}
+
+// ===== ???????⑥ル츧癲? ??=====
+window._ALL_PRODUCTS = [];
+
+async function loadProductsTab() {
+  try {
+    const r = await fetch('/api/rag/catalog?limit=5000');
+    const d = await r.json();
+    window._ALL_PRODUCTS = d.products || [];
+
+    // ?????筌뤾퍓愿???????????癲????????筌뤾퍓愿????
+    const summaryEl = document.getElementById('companySummaryCards');
+    if (d.by_company) {
+      summaryEl.innerHTML = Object.entries(d.by_company).map(([co, info]) => `
+        <div class="section-card text-center p-3">
+          <div class="${pillCls(co)} badge-sm inline-block mb-2">${coTag(co)}</div>
+          <div class="text-2xl font-extrabold">${info.count || 0}</div>
+          <div class="text-xs text-slate-500">카드상품 수</div>
+        </div>
+      `).join('');
+    }
+
+    const companySelect = document.getElementById('prodFilterCompany');
+    companySelect.innerHTML = '<option value="">전체 카드사</option>';
+    const companies = [...new Set(window._ALL_PRODUCTS.map(p => p.company))].filter(Boolean);
+    companies.forEach(co => {
+      const opt = document.createElement('option');
+      opt.value = co; opt.textContent = co;
+      companySelect.appendChild(opt);
+    });
+
+    filterProducts();
+  } catch(e) {
+    console.error('Products load fail:', e);
+    document.getElementById('productEmpty').classList.remove('hidden');
+  }
+}
+
+function filterProducts() {
+  const company = document.getElementById('prodFilterCompany').value;
+  const type = document.getElementById('prodFilterType').value;
+  const kw = (document.getElementById('prodFilterKw').value || '').toLowerCase();
+  const sortBy = document.getElementById('prodSortBy').value;
+
+  let filtered = window._ALL_PRODUCTS.filter(p => {
+    if (company && p.company !== company) return false;
+    if (type && p.card_type !== type) return false;
+    if (kw && !(p.card_name||'').toLowerCase().includes(kw)) return false;
+    return true;
+  });
+
+  if (sortBy === 'chunks') filtered.sort((a,b) => (b.chunk_count||0) - (a.chunk_count||0));
+  else filtered.sort((a,b) => (a.card_name||'').localeCompare(b.card_name||''));
+
+  const grid = document.getElementById('productGrid');
+  const empty = document.getElementById('productEmpty');
+
+  if (!filtered.length) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = filtered.map(p => {
+    const co = p.company || '';
+    const chunks = p.chunk_count || 0;
+    const maxChunks = 20;
+    const pct = Math.min(100, Math.round(chunks / maxChunks * 100));
+    const productPayload = encodeURIComponent(JSON.stringify(p));
+    return `<div class="product-card" onclick="openProductCard('${productPayload}')">
+      <div class="flex items-center justify-between mb-2">
+        <span class="${pillCls(p.company)} badge-sm">${coTag(p.company)}</span>
+        <span class="text-[10px] text-slate-400">${p.card_type || ''}</span>
+      </div>
+      <h4 class="text-sm font-bold mb-1 truncate" title="${esc(p.card_name)}">${esc(p.card_name)}</h4>
+      <div class="text-xs text-slate-500 mb-2">${p.annual_fee || '연회비 정보 없음'}</div>
+      <div class="benefit-bar">
+        <div class="benefit-bar-fill" style="width:${pct}%;background:var(--brand)"></div>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-1">${chunks}개 청크${p.sections ? ` / ${p.sections.length}개 섹션` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// RAG ??黎앸럽??筌????
+function isGenericProductListingUrl(url) {
+  if (!url) return true;
+  return [
+    '/MOBFM12051R01.shc',
+    '/HSHMCXCRSZZC0002',
+    '/CPUUG2001_04.hc'
+  ].some(marker => url.includes(marker));
+}
+
+function openProductCard(encodedProduct) {
+  if (!encodedProduct) return;
+  let product = null;
+  try {
+    product = JSON.parse(decodeURIComponent(encodedProduct));
+  } catch (_) {
+    product = null;
+  }
+  if (!product) return;
+
+  const detailUrl = product.url && !isGenericProductListingUrl(product.url) ? product.url : '';
+  const localPdfUrl = product.local_pdf_url || (
+    product.company && product.card_name
+      ? `/api/rag/catalog/pdf?company=${encodeURIComponent(product.company)}&card_name=${encodeURIComponent(product.card_name)}`
+      : ''
+  );
+  const directUrl = detailUrl || localPdfUrl || product.pdf_url || product.url || '';
+  if (directUrl) {
+    window.open(directUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  const searchInput = document.getElementById('ragSearchInput');
+  if (searchInput && product.card_name) {
+    searchInput.value = product.card_name;
+  }
+  const searchTabBtn = document.querySelector('#tab-products [data-stab="product-search"]');
+  if (searchTabBtn) {
+    switchSubTab(searchTabBtn, 'products');
+  }
+  if (product.card_name) {
+    executeRAGSearch();
+  }
+}
+
+async function executeRAGSearch() {
+  const query = document.getElementById('ragSearchInput').value.trim();
+  if (!query) return;
+  const resultsEl = document.getElementById('ragSearchResults');
+  resultsEl.innerHTML = '<div class="text-center py-8 text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>??癲됱빖???嶺??????..</div>';
+
+  try {
+    const r = await fetch('/api/rag/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ query, top_k: 10 })
+    });
+    const d = await r.json();
+    if (!d.results || !d.results.length) {
+      resultsEl.innerHTML = '<div class="section-card text-center py-8 text-slate-400">??癲됱빖???嶺??????癲됱빖???嶺?????????????대첉??</div>';
+      return;
+    }
+    resultsEl.innerHTML = d.results.map((item, i) => `
+      <div class="section-card">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-bold text-slate-400">#${i+1}</span>
+          <span class="${pillCls(item.metadata?.company)} badge-sm">${coTag(item.metadata?.company)}</span>
+          <span class="text-sm font-bold">${esc(item.metadata?.card_name || '')}</span>
+          <span class="text-[10px] text-slate-400">${item.metadata?.section || ''}</span>
+          <span class="ml-auto text-[10px] text-slate-400">????????믨틵????${(item.score*100).toFixed(1)}%</span>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">${esc(item.text || '')}</p>
+      </div>
+    `).join('');
+  } catch(e) {
+    resultsEl.innerHTML = `<div class="section-card text-center py-8 text-red-500">??癲됱빖???嶺?????????????곕츧?? ${e.message}</div>`;
+  }
+}
+document.getElementById('ragSearchInput')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') executeRAGSearch();
+});
+
+// ===== Gantt ????????袁⑸즴筌?씛彛??壤굿??留???=====
+let GANTT_YEAR = new Date().getFullYear();
+let GANTT_MONTH = new Date().getMonth();
+
+function initGantt() {
+  renderGantt();
+}
+
+function ganttPrev() { GANTT_MONTH--; if (GANTT_MONTH < 0) { GANTT_MONTH = 11; GANTT_YEAR--; } renderGantt(); }
+function ganttNext() { GANTT_MONTH++; if (GANTT_MONTH > 11) { GANTT_MONTH = 0; GANTT_YEAR++; } renderGantt(); }
+function ganttGoToday() { GANTT_YEAR = new Date().getFullYear(); GANTT_MONTH = new Date().getMonth(); renderGantt(); }
+
+function renderGantt() {
+  if (typeof ALL === 'undefined' || !ALL.length) {
+    document.getElementById('ganttChart').innerHTML = '<p class="p-8 text-center text-slate-400">???????????????? ????????沃섃뫚??????..</p>';
+    return;
+  }
+
+  const company = document.getElementById('ganttFilterCompany').value;
+  const groupBy = document.getElementById('ganttGroupBy').value;
+
+  // ????癲??????????濡?씀?濾????ㅿ폑???
+  const daysInMonth = new Date(GANTT_YEAR, GANTT_MONTH + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  document.getElementById('ganttPeriodLabel').textContent = `${GANTT_YEAR}-${String(GANTT_MONTH + 1).padStart(2, '0')}`;
+
+  const monthStart = new Date(GANTT_YEAR, GANTT_MONTH, 1);
+  const monthEnd = new Date(GANTT_YEAR, GANTT_MONTH + 1, 0, 23, 59, 59);
+
+  let events = ALL.filter(e => {
+    if (company && e.company !== company) return false;
+    const start = e.period_start ? new Date(e.period_start) : null;
+    const end = parseEventEndDate(e) || start;
+    if (!start) return false;
+    return start <= monthEnd && (end || start) >= monthStart;
+  });
+
+  const groups = {};
+  events.forEach(e => {
+    const key = groupBy === 'company' ? (e.company || '???????') : (e.category || '???????');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+
+  const cellW = 40;
+  let html = '';
+
+  // ??????ш끽維뽳쭩?뱀땡? (????????믨틵??)
+  html += '<div style="display:flex">';
+  html += `<div class="gantt-label" style="background:var(--brand-soft);font-weight:700;font-size:.7rem">Event</div>`;
+  html += '<div class="gantt-cells" style="display:flex">';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${GANTT_YEAR}-${String(GANTT_MONTH+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayOfWeek = new Date(GANTT_YEAR, GANTT_MONTH, d).getDay();
+    const isToday = dateStr === todayStr;
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    let cls = 'gantt-header-cell';
+    if (isToday) cls += ' today';
+    html += `<div class="${cls}" style="min-width:${cellW}px;${isWeekend ? 'background:rgba(0,0,0,.03)' : ''}">${d}</div>`;
+  }
+  html += '</div></div>';
+
+  const sortedGroups = Object.keys(groups).sort();
+  for (const group of sortedGroups) {
+    html += `<div class="gantt-group-header">${esc(group)} (${groups[group].length})</div>`;
+
+    groups[group].sort((a,b) => new Date(a.period_start) - new Date(b.period_start)).forEach(e => {
+      const start = new Date(e.period_start);
+      const end = parseEventEndDate(e) || start;
+
+      // ??????癲?????耀붾굝?????????????耀붾굝?????傭?끆????椰?????????源낅펰????????袁⑸즴筌?씛彛??????????????
+      const barStart = Math.max(1, start.getDate() + (start.getMonth() === GANTT_MONTH && start.getFullYear() === GANTT_YEAR ? 0 : (start < monthStart ? 1 - start.getDate() : 0)));
+      const effectiveStart = start < monthStart ? 1 : start.getDate();
+      const effectiveEnd = end > monthEnd ? daysInMonth : end.getDate();
+
+      const leftPx = (effectiveStart - 1) * cellW;
+      const widthPx = Math.max(cellW, (effectiveEnd - effectiveStart + 1) * cellW);
+
+      const coClass = getCompanyGanttClass(e.company);
+      const title = (e.title||'').substring(0, 30);
+
+      html += `<div class="gantt-row">`;
+      html += `<div class="gantt-label" title="${esc(e.title)}">${esc(title)}</div>`;
+      html += `<div class="gantt-cells" style="position:relative;min-height:28px">`;
+      // ?????獄쏅챶留덌┼?????????⑤슢????ц땻???
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayOfWeek = new Date(GANTT_YEAR, GANTT_MONTH, d).getDay();
+        const dateStr = `${GANTT_YEAR}-${String(GANTT_MONTH+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let cls = 'gantt-cell';
+        if (dateStr === todayStr) cls += ' today';
+        if (dayOfWeek === 0 || dayOfWeek === 6) cls += ' weekend';
+        html += `<div class="${cls}" style="min-width:${cellW}px"></div>`;
+      }
+      html += `<div class="gantt-bar ${coClass}" style="left:${leftPx}px;width:${widthPx}px" onclick="openDetail(${e.id})" title="${esc(e.company + ' - ' + e.title)}">${esc(title)}</div>`;
+      html += `</div></div>`;
+    });
+  }
+
+  if (!events.length) {
+    html = '<p class="p-8 text-center text-slate-400">?????????????⑤㈇????????????뀀맩鍮??????룸챶猷??????????? ??????濚밸Ŧ援???????????⑤챷竊?</p>';
+  }
+
+  document.getElementById('ganttChart').innerHTML = html;
+}
+
+function getCompanyGanttClass(company) {
+  const value = String(company || '').toLowerCase();
+  if (!value) return 'default';
+  if (value.includes('samsung')) return 'samsung';
+  if (value.includes('kb')) return 'kb';
+  if (value.includes('hyundai')) return 'hyundai';
+  return value.includes('shinhan') ? 'shinhan' : 'default';
+}
+
+// ?????筌뤾퍓愿??????????????(HD/SS/KB/SH)
+function coTag(c) {
+  const value = String(c || '');
+  const lower = value.toLowerCase();
+  if (!value) return '?';
+  if (lower.includes('kb')) return 'KB';
+  if (lower.includes('hyundai')) return 'HD';
+  return lower.includes('samsung') ? 'SS' : lower.includes('shinhan') ? 'SH' : value.substring(0, 2);
+}
+
+// ===== ??????嶺뚮ㅎ?볠꽴?????곸궔? ??=====
+async function loadOpsData() {
+  try {
+    await Promise.all([
+      loadOpsOverviewData(),
+      loadDisclosureStats(),
+      loadDisclosureSyncStatus(),
+      typeof loadBriefingConsole === 'function' ? loadBriefingConsole() : Promise.resolve(),
+    ]);
+    return;
+  } catch (e) { console.error('ops load fail', e); }
+}
+
+async function loadOpsOverviewData() {
+  try {
+    const [progR, ragR] = await Promise.all([
+      fetch('/api/pipeline/progress'),
+      fetch('/api/rag/stats'),
+    ]);
+
+    const prog = progR.ok ? await progR.json() : {};
+    const rag = ragR.ok ? await ragR.json() : {};
+
+    const inEl = document.getElementById('opsIngestStatus');
+    if (inEl) {
+      inEl.innerHTML = `<div class="space-y-1">
+        <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
+        <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
+      </div>`;
+    }
+
+    const exEl = document.getElementById('opsExtractStatus');
+    if (exEl) {
+      exEl.innerHTML = `<div class="space-y-1">
+        <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
+        <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
+      </div>`;
+    }
+
+    const rgEl = document.getElementById('opsRagStatus');
+    if (rgEl) {
+      rgEl.innerHTML = `<div class="space-y-1">
+        <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
+        <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
+      </div>`;
+    }
+  } catch (e) {
+    console.error('ops load fail', e);
+  }
+}
+
+async function loadDisclosureStats() {
+  try {
+    const [statsR, newR] = await Promise.all([
+      fetch('/api/disclosures/stats'),
+      fetch('/api/disclosures?new_only=true'),
+    ]);
+    const stats = statsR.ok ? await statsR.json() : {};
+    const newData = newR.ok ? await newR.json() : {};
+
+    document.getElementById('discStatTotal').textContent = stats.total_products || '-';
+    document.getElementById('discStatNew').textContent = stats.total_new || '0';
+
+    let totalActive = 0;
+    Object.values(stats.by_company || {}).forEach(item => {
+      totalActive += (item.active || 0);
+    });
+    document.getElementById('discStatActive').textContent = totalActive;
+
+    const updatedEl = document.getElementById('discStatUpdated');
+    if (updatedEl) {
+      updatedEl.textContent = stats.last_updated ? new Date(stats.last_updated).toLocaleString('ko-KR') : 'N/A';
+    }
+
+    const tbody = document.getElementById('discCompanyTableBody');
+    if (tbody) {
+      const byCompany = stats.by_company || {};
+      const companies = Object.keys(byCompany).sort();
+      tbody.innerHTML = companies.map(company => {
+        const item = byCompany[company];
+        return `<tr class="border-b border-slate-100">
+          <td class="py-1.5 font-medium"><span class="${pillCls(company)} badge-sm">${coTag(company)}</span></td>
+          <td class="py-1.5 text-center">${item.total}</td>
+          <td class="py-1.5 text-center text-blue-600">${item.active}</td>
+          <td class="py-1.5 text-center text-slate-400">${item.discontinued}</td>
+          <td class="py-1.5 text-center text-emerald-600 font-bold">${item.new}</td>
+          <td class="py-1.5 text-slate-500">${item.latest_launch || '-'}</td>
+        </tr>`;
+      }).join('');
+
+      if (!companies.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-3 text-center text-slate-400">표시할 카드사 데이터가 없습니다.</td></tr>';
+      }
+    }
+
+    const newList = document.getElementById('discNewProductsList');
+    if (newList) {
+      const items = (newData.products || []).slice(0, 20);
+      if (items.length) {
+        newList.innerHTML = items.map(product => {
+          const company = product.company || '';
+          return `<div class="flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-100">
+            <span class="${pillCls(company)} badge-sm">${coTag(company)}</span>
+            <span class="flex-1 font-medium truncate">${esc(product.card_name)}</span>
+            <span class="text-slate-400">${product.launch_date || '-'}</span>
+            ${product.launch_date ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">NEW</span>' : ''}
+          </div>`;
+        }).join('');
+      } else {
+        newList.innerHTML = '<p class="text-slate-400">최근 신규 상품이 없습니다.</p>';
+      }
+    }
+  } catch (e) {
+    console.error('disclosure stats fail', e);
+  }
+}
+
+let DISCLOSURE_SYNC_POLL_TIMER = null;
+let DISCLOSURE_SYNC_LAST_REFRESH_KEY = '';
+
+function formatDisclosureSyncTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('ko-KR');
+}
+
+function getDisclosureSyncTone(state) {
+  if (state === 'running') {
+    return {
+      pill: 'border-blue-200 bg-blue-50 text-blue-700',
+      card: 'border-blue-200 bg-blue-50',
+      icon: 'fa-spinner fa-spin text-blue-600',
+      label: '진행 중',
+    };
+  }
+  if (state === 'success') {
+    return {
+      pill: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+      card: 'border-emerald-200 bg-emerald-50',
+      icon: 'fa-check-circle text-emerald-600',
+      label: '완료',
+    };
+  }
+  if (state === 'error') {
+    return {
+      pill: 'border-rose-200 bg-rose-50 text-rose-700',
+      card: 'border-rose-200 bg-rose-50',
+      icon: 'fa-triangle-exclamation text-rose-600',
+      label: '실패',
+    };
+  }
+  return {
+    pill: 'border-slate-200 bg-white text-slate-600',
+    card: 'border-slate-200 bg-white',
+    icon: 'fa-clock text-slate-400',
+    label: '대기',
+  };
+}
+
+function stopDisclosureSyncPolling() {
+  if (DISCLOSURE_SYNC_POLL_TIMER) {
+    clearInterval(DISCLOSURE_SYNC_POLL_TIMER);
+    DISCLOSURE_SYNC_POLL_TIMER = null;
+  }
+}
+
+function ensureDisclosureSyncPolling() {
+  if (DISCLOSURE_SYNC_POLL_TIMER) return;
+  DISCLOSURE_SYNC_POLL_TIMER = setInterval(() => {
+    loadDisclosureSyncStatus({ silent: true });
+  }, 3000);
+}
+
+function renderDisclosureSyncStatus(status = {}) {
+  const headlineEl = document.getElementById('disclosureSyncHeadline');
+  const metaEl = document.getElementById('disclosureSyncMeta');
+  const pillEl = document.getElementById('disclosureSyncStatePill');
+  const stagesEl = document.getElementById('disclosureSyncStages');
+  const btn = document.getElementById('btnDisclosureScrape');
+  const filter = document.getElementById('disclosureCompanyFilter');
+  if (!headlineEl || !metaEl || !pillEl || !stagesEl) return;
+
+  const tone = getDisclosureSyncTone(status.state);
+  const scopeLabel = status.company ? `${status.company} 기준` : '전체 카드사 기준';
+  const currentStage = (status.stages || []).find((stage) => stage.key === status.current_stage);
+  headlineEl.textContent = currentStage?.label || status.message || '공시 동기화 상태를 확인하세요.';
+  metaEl.textContent = `${scopeLabel} · 시작 ${formatDisclosureSyncTime(status.started_at)}${status.finished_at ? ` · 완료 ${formatDisclosureSyncTime(status.finished_at)}` : ''} · ${status.message || '대기 중입니다.'}`;
+  pillEl.className = `inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold ${tone.pill}`;
+  pillEl.textContent = tone.label;
+
+  const stages = Array.isArray(status.stages) && status.stages.length ? status.stages : [];
+  stagesEl.innerHTML = stages.map((stage, index) => {
+    const stageTone = getDisclosureSyncTone(stage.state);
+    const startedAt = stage.started_at ? `시작 ${formatDisclosureSyncTime(stage.started_at)}` : '아직 시작 전';
+    const finishedAt = stage.finished_at ? ` · 완료 ${formatDisclosureSyncTime(stage.finished_at)}` : '';
+    return `
+      <div class="rounded-xl border px-3 py-3 ${stageTone.card}">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">STEP ${index + 1}</div>
+            <div class="mt-1 text-sm font-semibold text-slate-800">${stage.label}</div>
+            <p class="mt-1 text-xs text-slate-500">${stage.message || '대기 중'}</p>
+            <div class="mt-2 text-[11px] text-slate-400">${startedAt}${finishedAt}</div>
+          </div>
+          <i class="fas ${stageTone.icon} mt-0.5"></i>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (btn) {
+    const isBusy = Boolean(status.active);
+    btn.disabled = isBusy;
+    btn.classList.toggle('opacity-70', isBusy);
+    btn.classList.toggle('cursor-not-allowed', isBusy);
+    btn.innerHTML = isBusy
+      ? '<i class="fas fa-spinner fa-spin mr-1"></i>동기화 진행 중...'
+      : '<i class="fas fa-satellite-dish mr-1"></i>공시 동기화 시작';
+  }
+  if (filter) filter.disabled = Boolean(status.active);
+}
+
+async function refreshAfterDisclosureSync(status) {
+  const refreshKey = `${status.run_id || 'none'}:${status.state || 'idle'}:${status.finished_at || ''}`;
+  if (status.state !== 'success' || DISCLOSURE_SYNC_LAST_REFRESH_KEY === refreshKey) return;
+  DISCLOSURE_SYNC_LAST_REFRESH_KEY = refreshKey;
+
+  const shouldRefreshProducts = Boolean(window._PRODUCTS_LOADED || !document.getElementById('tab-products')?.classList.contains('hidden'));
+  window.WEEKLY_DISCLOSURE_PRODUCTS = null;
+  window._ALL_PRODUCTS = [];
+  window._PRODUCTS_LOADED = false;
+
+  await Promise.allSettled([
+    loadOpsOverviewData(),
+    loadDisclosureStats(),
+    typeof loadAll === 'function' ? loadAll() : Promise.resolve(),
+  ]);
+
+  if (shouldRefreshProducts && typeof loadProductsTab === 'function') {
+    await loadProductsTab();
+    window._PRODUCTS_LOADED = true;
+  }
+}
+
+async function loadDisclosureSyncStatus({ silent = false } = {}) {
+  try {
+    const response = await fetch('/api/disclosures/sync-status');
+    const status = response.ok ? await response.json() : {};
+    renderDisclosureSyncStatus(status);
+
+    if (status.active || status.state === 'running') {
+      ensureDisclosureSyncPolling();
+    } else {
+      stopDisclosureSyncPolling();
+      await refreshAfterDisclosureSync(status);
+    }
+    return status;
+  } catch (e) {
+    if (!silent) console.error('disclosure sync status fail', e);
+    return null;
+  }
+}
+
+async function startDisclosureScrape() {
+  const company = document.getElementById('disclosureCompanyFilter')?.value || '';
+  const btn = document.getElementById('btnDisclosureScrape');
+  if (!btn) return;
+
+  if (!confirm(`공시 동기화를 시작할까요?${company ? ` (${company})` : ''}\n신규 공시 수집 후 임베딩/RAG와 사이트 반영까지 순차 실행합니다.`)) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>시작 중...';
+  try {
+    const url = company ? `/api/disclosures/scrape?company=${encodeURIComponent(company)}` : '/api/disclosures/scrape';
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 409) {
+      renderDisclosureSyncStatus(d);
+      ensureDisclosureSyncPolling();
+      return;
+    }
+    if (!r.ok) throw new Error(d.message || d.error || '공시 동기화를 시작할 수 없습니다.');
+    renderDisclosureSyncStatus(d);
+    ensureDisclosureSyncPolling();
+    await loadDisclosureSyncStatus({ silent: true });
+  } catch (e) {
+    alert('실패: ' + e.message);
+    await loadDisclosureSyncStatus({ silent: true });
+  } finally {
+    const latest = await loadDisclosureSyncStatus({ silent: true });
+    if (!latest?.active) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-satellite-dish mr-1"></i>공시 동기화 시작';
+    }
+  }
+}
+
+function restructureDashboardLayout() {
+  const dashboard = document.getElementById('tab-dashboard');
+  if (!dashboard) return;
+
+  const kpiGrid = document.getElementById('hsTotal')?.closest('.grid');
+  if (kpiGrid) {
+    kpiGrid.classList.remove('lg:grid-cols-6');
+    kpiGrid.classList.add('lg:grid-cols-5');
+  }
+
+  [
+    ['hsTotal', '전체 이벤트'],
+    ['hsNewMonth', '이달 신규 이벤트'],
+    ['hsProducts', '카드상품 수'],
+    ['hsEndingSoon', '7일 내 종료'],
+    ['hsTopCategory', '핵심 카테고리'],
+  ].forEach(([id, label]) => {
+    const item = document.getElementById(id)?.parentElement?.querySelector('.kpi-lbl');
+    if (item) item.textContent = label;
+  });
+
+  const mostActiveCard = document.getElementById('hsMostActive')?.closest('.kpi-mini');
+  if (mostActiveCard) mostActiveCard.remove();
+
+  const productsCard = document.getElementById('dashNewProducts')?.closest('.section-card');
+  if (productsCard) productsCard.remove();
+
+  const scoreboardCard = document.getElementById('objectiveScoreboard')?.closest('.section-card');
+  if (scoreboardCard) scoreboardCard.remove();
+
+  const weeklyCard = document.getElementById('actionWeekly')?.closest('.section-card');
+  const summaryCard = document.getElementById('dashCompanySummary')?.closest('.section-card');
+  const newEventsCard = document.getElementById('dashNewEvents')?.closest('.section-card');
+  const endingCard = document.getElementById('endingSoonList')?.closest('.section-card');
+  const riskCard = document.getElementById('actionRiskMap')?.closest('.section-card');
+
+  [weeklyCard, summaryCard, newEventsCard, endingCard, riskCard].forEach(card => {
+    if (!card) return;
+    card.classList.remove('lg:col-span-2', 'lg:col-span-3', 'lg:col-span-4', 'lg:col-span-5');
+    card.classList.add('h-full');
+  });
+
+  const setCardTitle = (card, html) => {
+    const title = card?.querySelector('h3');
+    if (title) title.innerHTML = html;
+  };
+
+  setCardTitle(weeklyCard, '<i class="fas fa-chart-line text-blue-500 mr-1.5"></i>주간 변화');
+  setCardTitle(summaryCard, '<i class="fas fa-building mr-2 text-blue-500"></i>카드사별 이벤트 현황');
+  setCardTitle(newEventsCard, '<i class="fas fa-bolt mr-2 text-amber-500"></i>신규 이벤트');
+  setCardTitle(endingCard, '<i class="fas fa-exclamation-triangle mr-1.5 text-rose-500"></i>종료 임박 이벤트');
+  setCardTitle(riskCard, '<i class="fas fa-map mr-1.5 text-rose-500"></i>전략 리스크 맵');
+
+  setCardTitle(weeklyCard, '<i class="fas fa-chart-line text-blue-500 mr-1.5"></i>주간 변화');
+  setCardTitle(summaryCard, '<i class="fas fa-building mr-2 text-blue-500"></i>카드사별 이벤트 현황');
+  setCardTitle(newEventsCard, '<i class="fas fa-bolt mr-2 text-amber-500"></i>신규 이벤트');
+  setCardTitle(endingCard, '<i class="fas fa-exclamation-triangle mr-1.5 text-rose-500"></i>종료 임박 이벤트');
+  setCardTitle(riskCard, '<i class="fas fa-map mr-1.5 text-rose-500"></i>카테고리 경쟁 현황');
+
+  const finalNodes = [];
+  if (kpiGrid) finalNodes.push(kpiGrid);
+  if (weeklyCard) finalNodes.push(weeklyCard);
+  if (summaryCard) finalNodes.push(summaryCard);
+
+  if (newEventsCard || endingCard) {
+    const eventGrid = document.createElement('div');
+    eventGrid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch';
+    if (newEventsCard) eventGrid.appendChild(newEventsCard);
+    if (endingCard) eventGrid.appendChild(endingCard);
+    finalNodes.push(eventGrid);
+  }
+
+  if (riskCard) finalNodes.push(riskCard);
+
+  Array.from(dashboard.children).forEach(child => child.remove());
+  finalNodes.forEach(node => dashboard.appendChild(node));
+}
+
+async function refreshAfterTextCleanup() {
+  restructureDashboardLayout();
+  if (typeof ALL !== 'undefined' && ALL.length && typeof renderDashboard === 'function') {
+    await renderDashboard();
+  } else if (typeof window.loadAll === 'function') {
+    await window.loadAll();
+  } else if (typeof renderDashboard === 'function') {
+    await renderDashboard();
+  }
+
+  setTimeout(async () => {
+    if (document.getElementById('dashCompanySummary')?.querySelector('table')) return;
+    if (typeof renderDashboard === 'function') {
+      await renderDashboard();
+      return;
+    }
+    if (typeof window.loadAll === 'function') {
+      await window.loadAll();
+    }
+  }, 2500);
+
+  if (window._PRODUCTS_LOADED || !document.getElementById('tab-products')?.classList.contains('hidden')) {
+    loadProductsTab();
+  }
+  if (window._TIMELINE_LOADED || !document.getElementById('tab-timeline')?.classList.contains('hidden')) {
+    renderGantt();
+  }
+  if (!document.getElementById('tab-ops')?.classList.contains('hidden')) {
+    loadOpsData();
+  }
+}
+
+if (document.readyState === 'complete') {
+  setTimeout(() => { void refreshAfterTextCleanup(); }, 0);
+} else {
+  window.addEventListener('load', () => setTimeout(() => { void refreshAfterTextCleanup(); }, 0), { once: true });
+}
+
+// ??????dashboard.js ???????????ｋ젒??????븐뼐?????????????????獄쏅챶留??泳?뿀??????????????븐뼐???????????癲ル슢??룸퀬苑???</script>
+<script src="/static/js/dashboard_extras.js?v=2"></script>
 </body>
 </html>
