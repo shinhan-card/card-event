@@ -24,9 +24,6 @@ let TRENDS = null;     // trends
 let BRIEFINGS = null;  // company-briefings
 let QUAL_COMPARE = null; // qualitative-comparison
 let CURRENT_ID = null; // 상세 모달 이벤트 ID
-let BRIEFING_STATUS = null;
-let BRIEFING_LOGS = [];
-let BRIEFING_SEND_BUSY = null;
 
 // ============ 초기화 ============
 document.addEventListener('DOMContentLoaded', async () => {
@@ -92,178 +89,124 @@ async function loadAll() {
 }
 
 // ============ 상단 배너 지표 ============
+let BRIEFING_STATUS = null;
+let BRIEFING_LOGS = [];
+let BRIEFING_SEND_BUSY = null;
+
 function briefingTypeLabel(type) {
   return type === 'weekly' ? '주간' : '일간';
 }
 
-function safeBriefingNumber(value) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function normalizeBriefingWarnings(value) {
-  const items = Array.isArray(value) ? value : (value ? [value] : []);
-  return items.map((item) => {
-    if (typeof item === 'string') {
-      return { title: item, message: item, severity: 'warning' };
-    }
-    if (!item || typeof item !== 'object') return null;
-    return {
-      title: item.title || item.label || item.message || item.name || '경고',
-      message: item.message || item.detail || item.body || item.title || item.label || '',
-      severity: String(item.severity || item.level || 'warning').toLowerCase(),
-    };
-  }).filter(Boolean);
-}
-
-function normalizeBriefingSourceCounts(value) {
-  if (!value) return [];
-  if (Array.isArray(value)) {
-    return value.map((item) => ({
+function normalizeBriefingSourceCounts(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) {
+    return payload.map(item => ({
       label: item?.label || item?.name || item?.source || item?.type || 'source',
-      value: safeBriefingNumber(item?.value ?? item?.count ?? item?.total ?? item?.items),
+      value: Number(item?.value ?? item?.count ?? item?.total ?? 0) || 0,
     }));
   }
-  if (typeof value === 'object') {
-    return Object.entries(value).map(([label, count]) => ({
+  if (typeof payload === 'object') {
+    return Object.entries(payload).map(([label, value]) => ({
       label,
-      value: safeBriefingNumber(count),
+      value: Number(value) || 0,
     }));
   }
   return [];
 }
 
-function extractBriefingPrefixedFields(payload, type) {
-  const prefix = `${type}_`;
-  const extracted = {};
-  Object.entries(payload || {}).forEach(([key, value]) => {
-    if (key.startsWith(prefix)) {
-      extracted[key.slice(prefix.length)] = value;
-    }
-  });
-  return extracted;
-}
-
-function getBriefingPeriodSource(payload, type) {
-  const source = payload && typeof payload === 'object' ? payload : {};
-  const lowerType = String(type || '').toLowerCase();
-  const items = Array.isArray(source.items) ? source.items : [];
-  const item = items.find((entry) => String(entry?.type || entry?.briefing_type || entry?.period || '').toLowerCase() === lowerType);
-  const keyed = source[lowerType] && typeof source[lowerType] === 'object' ? source[lowerType] : {};
-  const periodMap = source.periods && typeof source.periods === 'object' ? source.periods[lowerType] : null;
-  const reportMap = source.reports && typeof source.reports === 'object' ? source.reports[lowerType] : null;
-  return {
-    ...extractBriefingPrefixedFields(source, lowerType),
-    ...(keyed || {}),
-    ...(periodMap && typeof periodMap === 'object' ? periodMap : {}),
-    ...(reportMap && typeof reportMap === 'object' ? reportMap : {}),
-    ...(item && typeof item === 'object' ? item : {}),
-  };
-}
-
-function normalizeBriefingPeriod(payload, type) {
-  const source = getBriefingPeriodSource(payload, type);
-  const warnings = normalizeBriefingWarnings(source.warnings || source.alerts || source.issues || source.messages);
-  const warningCount = safeBriefingNumber(
-    source.warning_count ??
-    source.warningCount ??
-    source.warning_total ??
-    source.warnings_count ??
-    source.warning_len ??
-    warnings.length
+function normalizeBriefingPeriod(raw, type) {
+  const value = raw && typeof raw === 'object' ? raw : {};
+  const warnings = Array.isArray(value.quality_warnings) ? value.quality_warnings : (Array.isArray(value.warnings) ? value.warnings : []);
+  const warningCount = Number(value.warning_count ?? value.warningCount ?? warnings.length ?? 0) || 0;
+  const sourceCounts = normalizeBriefingSourceCounts(
+    value.source_counts ||
+    value.sourceCounts ||
+    (value.source_event_count != null || value.source_product_count != null
+      ? {
+          events: value.source_event_count ?? 0,
+          products: value.source_product_count ?? 0,
+        }
+      : null)
   );
   return {
     type,
-    periodLabel: source.period_label || source.label || source.title || source.period || source.report_label || briefingTypeLabel(type),
+    periodLabel: value.period_label || value.label || value.report_label || briefingTypeLabel(type),
     warningCount,
-    aiStatus: source.ai_status || source.gemini_status || source.model_status || source.ai || source.llm_status || 'unknown',
-    ruleStatus: source.rule_status || source.rules_status || source.rule || source.heuristic_status || 'unknown',
-    sourceCounts: normalizeBriefingSourceCounts(source.source_counts || source.sourceCounts || source.sources || source.counts),
-    readiness: source.readiness || source.ready_state || source.status || source.state || (warningCount > 0 ? 'attention' : 'ready'),
+    aiStatus: value.ai_summary_status || value.ai_status || value.model_status || value.summary_status || 'unknown',
+    ruleStatus: value.rule_status || value.rules_status || value.rule_engine_status || 'unknown',
+    sourceCounts,
+    readinessStatus: value.readiness_status || value.readiness || value.status || (warningCount > 0 ? 'blocked' : 'ready'),
     warnings,
-    raw: source,
+    raw: value,
   };
 }
 
-function normalizeBriefingStatus(payload, errorMessage = '') {
+function normalizeBriefingStatus(payload) {
   const raw = payload && typeof payload === 'object' ? payload : {};
-  const warnings = normalizeBriefingWarnings(raw.warnings || raw.alerts || raw.issues || raw.messages || raw.notes);
-  return {
-    raw,
-    error: errorMessage || raw.error || raw.message || '',
-    updatedAt: raw.updated_at || raw.generated_at || raw.last_updated || raw.timestamp || raw.fetched_at || '',
-    daily: normalizeBriefingPeriod(raw, 'daily'),
-    weekly: normalizeBriefingPeriod(raw, 'weekly'),
-    warnings,
-  };
+  const daily = normalizeBriefingPeriod(raw.daily || raw, 'daily');
+  const weekly = normalizeBriefingPeriod(raw.weekly || raw, 'weekly');
+  const warnings = Array.isArray(raw.warnings) ? raw.warnings : [];
+  return { raw, daily, weekly, warnings, updatedAt: raw.updated_at || raw.generated_at || raw.last_updated || '' };
 }
 
-function getBriefingReadinessMeta(period) {
-  const status = String(period?.readiness || '').toLowerCase();
-  const warningCount = safeBriefingNumber(period?.warningCount);
+function briefingReadinessMeta(period) {
+  const status = String(period?.readinessStatus || '').toLowerCase();
+  const warningCount = Number(period?.warningCount || 0);
   if (status.includes('block') || status.includes('fail') || status.includes('error')) {
     return { label: 'blocked', badge: 'border-rose-200 bg-rose-50 text-rose-700', dot: 'bg-rose-500' };
   }
   if (warningCount > 0 || status.includes('warn') || status.includes('attention')) {
     return { label: warningCount > 0 ? `${warningCount} warnings` : 'attention', badge: 'border-amber-200 bg-amber-50 text-amber-700', dot: 'bg-amber-500' };
   }
-  if (status.includes('ready') || status.includes('ok') || !status) {
-    return { label: 'ready', badge: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' };
-  }
-  return { label: period?.readiness || 'unknown', badge: 'border-slate-200 bg-slate-50 text-slate-600', dot: 'bg-slate-400' };
+  return { label: 'ready', badge: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' };
 }
 
-function renderBriefingStatusCard(period) {
-  const readiness = getBriefingReadinessMeta(period);
-  const sourcePills = period.sourceCounts.length
-    ? period.sourceCounts.slice(0, 4).map((item) => `
-        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">${esc(item.label)} <span class="ml-1 text-slate-400">${esc(item.value)}</span></span>
-      `).join('')
-    : '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-500">no source counts</span>';
-  return `
-    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">${esc(briefingTypeLabel(period.type))} readiness</div>
-          <div class="mt-1 text-sm font-bold text-slate-900">${esc(period.periodLabel)}</div>
+function renderBriefingStatusCards() {
+  const grid = document.getElementById('opsBriefingStatusGrid');
+  if (!grid) return;
+  const status = BRIEFING_STATUS || normalizeBriefingStatus({});
+  const renderCard = (period) => {
+    const readiness = briefingReadinessMeta(period);
+    const sources = period.sourceCounts.length
+      ? period.sourceCounts.slice(0, 4).map(item => `<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">${esc(item.label)} <span class="ml-1 text-slate-400">${esc(item.value)}</span></span>`).join('')
+      : '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-500">source counts unavailable</span>';
+    return `
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">${esc(briefingTypeLabel(period.type))} readiness</div>
+            <div class="mt-1 text-sm font-bold text-slate-900">${esc(period.periodLabel)}</div>
+          </div>
+          <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${readiness.badge}">
+            <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${readiness.dot}"></span>${esc(readiness.label)}
+          </span>
         </div>
-        <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${readiness.badge}">
-          <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${readiness.dot}"></span>${esc(readiness.label)}
-        </span>
+        <div class="mt-4 flex items-end justify-between gap-3">
+          <div>
+            <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-400">warning count</div>
+            <div class="mt-1 text-3xl font-black text-slate-900">${period.warningCount}</div>
+          </div>
+          <div class="text-right text-[11px] text-slate-500">
+            <div>AI <strong class="text-slate-700">${esc(period.aiStatus)}</strong></div>
+            <div>Rule <strong class="text-slate-700">${esc(period.ruleStatus)}</strong></div>
+          </div>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">${sources}</div>
       </div>
-      <div class="mt-4 flex items-end justify-between gap-3">
-        <div>
-          <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-400">warning count</div>
-          <div class="mt-1 text-3xl font-black text-slate-900">${period.warningCount}</div>
-        </div>
-        <div class="text-right text-[11px] text-slate-500">
-          <div>AI <strong class="text-slate-700">${esc(period.aiStatus)}</strong></div>
-          <div>Rule <strong class="text-slate-700">${esc(period.ruleStatus)}</strong></div>
-        </div>
-      </div>
-      <div class="mt-4 flex flex-wrap gap-2">${sourcePills}</div>
-    </div>
-  `;
+    `;
+  };
+  grid.innerHTML = [status.daily, status.weekly].map(renderCard).join('');
 }
 
 function renderBriefingWarnings() {
   const container = document.getElementById('opsBriefingWarnings');
   if (!container) return;
-  const statusWarnings = normalizeBriefingWarnings(BRIEFING_STATUS?.warnings);
-  const periodWarnings = [
-    ...(BRIEFING_STATUS?.daily?.warnings || []).map((item) => ({ ...item, source: 'daily' })),
-    ...(BRIEFING_STATUS?.weekly?.warnings || []).map((item) => ({ ...item, source: 'weekly' })),
+  const warnings = [
+    ...(Array.isArray(BRIEFING_STATUS?.warnings) ? BRIEFING_STATUS.warnings : []),
+    ...(Array.isArray(BRIEFING_STATUS?.daily?.warnings) ? BRIEFING_STATUS.daily.warnings : []),
+    ...(Array.isArray(BRIEFING_STATUS?.weekly?.warnings) ? BRIEFING_STATUS.weekly.warnings : []),
   ];
-  const warnings = [...statusWarnings, ...periodWarnings];
-  const unique = [];
-  const seen = new Set();
-  warnings.forEach((item) => {
-    const key = `${item.source || ''}:${item.title || ''}:${item.message || ''}`.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    unique.push(item);
-  });
-  if (!unique.length) {
+  if (!warnings.length) {
     container.innerHTML = `
       <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
         <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-400">warnings</div>
@@ -277,18 +220,18 @@ function renderBriefingWarnings() {
       <div class="flex items-center justify-between gap-3">
         <div>
           <div class="text-[11px] font-semibold tracking-[0.08em] text-amber-600">warnings</div>
-          <p class="mt-1 text-sm font-semibold text-amber-900">${unique.length}개의 경고</p>
+          <p class="mt-1 text-sm font-semibold text-amber-900">${warnings.length}개의 경고</p>
         </div>
         <span class="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-700">주의 필요</span>
       </div>
       <div class="mt-3 space-y-2">
-        ${unique.slice(0, 8).map((item) => `
+        ${warnings.slice(0, 8).map(item => `
           <div class="rounded-xl border border-amber-200 bg-white px-3 py-2">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-700">${esc(item.severity || 'warning')}</span>
-              <span class="text-sm font-semibold text-slate-800">${esc(item.title)}</span>
+              <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-700">${esc(item.severity || item.level || 'warning')}</span>
+              <span class="text-sm font-semibold text-slate-800">${esc(item.title || item.label || item.message || '경고')}</span>
             </div>
-            ${item.message ? `<p class="mt-1 text-xs leading-5 text-slate-600">${esc(item.message)}</p>` : ''}
+            ${(item.message || item.detail) ? `<p class="mt-1 text-xs leading-5 text-slate-600">${esc(item.message || item.detail)}</p>` : ''}
           </div>
         `).join('')}
       </div>
@@ -299,14 +242,11 @@ function renderBriefingWarnings() {
 function renderBriefingActions() {
   const container = document.getElementById('opsBriefingActions');
   if (!container) return;
-  const renderButton = (type, mode, label, tone) => {
-    const key = `${type}:${mode}`;
-    const busy = BRIEFING_SEND_BUSY === key;
-    const cls = tone === 'primary' ? 'btn btn-primary' : 'btn btn-secondary';
+  const renderButton = (type, mode, label, primary = false) => {
+    const busy = BRIEFING_SEND_BUSY === `${type}:${mode}`;
     return `
-      <button type="button" class="${cls} inline-flex items-center gap-1.5" data-briefing-send="${key}" ${busy ? 'disabled' : ''}>
-        ${busy ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>'}
-        <span>${esc(busy ? '발송 중...' : label)}</span>
+      <button type="button" class="${primary ? 'btn btn-primary' : 'btn btn-secondary'}" data-briefing-send="${type}:${mode}" ${busy ? 'disabled' : ''}>
+        <i class="fas ${busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'} mr-1"></i>${esc(busy ? '발송 중...' : label)}
       </button>
     `;
   };
@@ -321,8 +261,8 @@ function renderBriefingActions() {
           <a href="/api/briefing/preview?type=daily" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-          ${renderButton('daily', 'test', 'Test send', 'secondary')}
-          ${renderButton('daily', 'production', 'Production send', 'primary')}
+          ${renderButton('daily', 'test', 'Test send')}
+          ${renderButton('daily', 'production', 'Production send', true)}
         </div>
       </div>
       <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
@@ -334,8 +274,8 @@ function renderBriefingActions() {
           <a href="/api/briefing/preview?type=weekly" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-          ${renderButton('weekly', 'test', 'Test send', 'secondary')}
-          ${renderButton('weekly', 'production', 'Production send', 'primary')}
+          ${renderButton('weekly', 'test', 'Test send')}
+          ${renderButton('weekly', 'production', 'Production send', true)}
         </div>
       </div>
     </div>
@@ -377,7 +317,7 @@ function renderBriefingLogTable() {
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 text-slate-700">
-          ${logs.slice(0, 12).map((log) => {
+          ${logs.slice(0, 12).map(log => {
             const statusTone = String(log.status || '').toLowerCase() === 'sent'
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
               : 'bg-rose-50 text-rose-700 border-rose-200';
@@ -386,10 +326,10 @@ function renderBriefingLogTable() {
                 <td class="px-4 py-3 whitespace-nowrap text-slate-500">${esc(formatShortDateTime(log.sent_at))}</td>
                 <td class="px-4 py-3 whitespace-nowrap font-semibold text-slate-900">${esc(briefingTypeLabel(log.briefing_type))}</td>
                 <td class="px-4 py-3 whitespace-nowrap"><span class="inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold ${statusTone}">${esc(log.status || 'unknown')}</span></td>
-                <td class="px-4 py-3 text-right tabular-nums">${safeBriefingNumber(log.recipient_count)}</td>
-                <td class="px-4 py-3 text-right tabular-nums">${safeBriefingNumber(log.new_events_count)}</td>
-                <td class="px-4 py-3 text-right tabular-nums">${safeBriefingNumber(log.high_threat_count)}</td>
-                <td class="px-4 py-3 text-right tabular-nums">${safeBriefingNumber(log.ending_soon_count)}</td>
+                <td class="px-4 py-3 text-right tabular-nums">${Number(log.recipient_count || 0)}</td>
+                <td class="px-4 py-3 text-right tabular-nums">${Number(log.new_events_count || 0)}</td>
+                <td class="px-4 py-3 text-right tabular-nums">${Number(log.high_threat_count || 0)}</td>
+                <td class="px-4 py-3 text-right tabular-nums">${Number(log.ending_soon_count || 0)}</td>
                 <td class="px-4 py-3 text-slate-500">${esc(log.error_msg || '-')}</td>
               </tr>
             `;
@@ -401,63 +341,48 @@ function renderBriefingLogTable() {
 }
 
 function renderBriefingConsole() {
-  const statusGrid = document.getElementById('opsBriefingStatusGrid');
-  if (statusGrid) {
-    const status = BRIEFING_STATUS || normalizeBriefingStatus({});
-    statusGrid.innerHTML = [status.daily, status.weekly].map(renderBriefingStatusCard).join('');
-  }
+  renderBriefingStatusCards();
   renderBriefingWarnings();
   renderBriefingActions();
   renderBriefingLogTable();
 }
 
-async function loadBriefingConsole() {
+async function loadBriefingStatus() {
   try {
     const [statusR, logsR] = await Promise.all([
       fetch('/api/briefing/status'),
       fetch('/api/briefing/logs'),
     ]);
-
-    let statusPayload = {};
-    if (statusR.ok) {
-      statusPayload = await statusR.json().catch(() => ({}));
-    } else if (statusR.status !== 404) {
-      statusPayload = await statusR.json().catch(() => ({}));
-      statusPayload.error = statusPayload.error || `status ${statusR.status}`;
-    }
-    BRIEFING_STATUS = normalizeBriefingStatus(statusPayload, statusR.ok ? '' : `status ${statusR.status}`);
+    const status = statusR.ok ? await statusR.json().catch(() => ({})) : {};
+    BRIEFING_STATUS = normalizeBriefingStatus(status);
     BRIEFING_LOGS = logsR.ok ? await logsR.json().catch(() => []) : [];
     renderBriefingConsole();
   } catch (error) {
     console.error('briefing console load failed', error);
-    BRIEFING_STATUS = normalizeBriefingStatus({}, error.message || String(error));
+    BRIEFING_STATUS = normalizeBriefingStatus({});
     BRIEFING_LOGS = [];
     renderBriefingConsole();
   }
 }
 
 async function sendBriefingAction(type, mode) {
-  const key = `${type}:${mode}`;
   if (BRIEFING_SEND_BUSY) return;
+  const key = `${type}:${mode}`;
   const label = `${briefingTypeLabel(type)} 브리핑`;
   if (!confirm(`${label}을(를) ${mode === 'test' ? 'test' : 'production'} 모드로 발송할까요?`)) return;
 
   BRIEFING_SEND_BUSY = key;
   renderBriefingConsole();
   try {
-    const response = await fetch(`/api/briefing/send-now?type=${encodeURIComponent(type)}&mode=${encodeURIComponent(mode)}`, {
-      method: 'POST',
-    });
+    const response = await fetch(`/api/briefing/send-now?type=${encodeURIComponent(type)}&mode=${encodeURIComponent(mode)}`, { method: 'POST' });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(payload.error || payload.detail || payload.message || `send-now ${response.status}`);
-    }
+    if (!response.ok) throw new Error(payload.error || payload.detail || payload.message || `send-now ${response.status}`);
     alert(payload.message || payload.subject || `${label} 발송 요청이 완료되었습니다.`);
   } catch (error) {
     alert(`발송 실패: ${error.message}`);
   } finally {
     BRIEFING_SEND_BUSY = null;
-    await loadBriefingConsole();
+    await loadBriefingStatus();
   }
 }
 

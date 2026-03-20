@@ -1967,10 +1967,9 @@ async function loadOpsData() {
       loadOpsOverviewData(),
       loadDisclosureStats(),
       loadDisclosureSyncStatus(),
-      typeof loadBriefingConsole === 'function' ? loadBriefingConsole() : Promise.resolve(),
+      typeof loadBriefingStatus === 'function' ? loadBriefingStatus() : Promise.resolve(),
     ]);
-    return;
-  } catch (e) { console.error('ops load fail', e); }
+  } catch(e) { console.error('ops load fail', e); }
 }
 
 async function loadOpsOverviewData() {
@@ -1979,36 +1978,783 @@ async function loadOpsOverviewData() {
       fetch('/api/pipeline/progress'),
       fetch('/api/rag/stats'),
     ]);
-
     const prog = progR.ok ? await progR.json() : {};
     const rag = ragR.ok ? await ragR.json() : {};
 
     const inEl = document.getElementById('opsIngestStatus');
-    if (inEl) {
-      inEl.innerHTML = `<div class="space-y-1">
-        <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
-        <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
-      </div>`;
-    }
+    if (inEl) inEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
+      <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
+    </div>`;
 
     const exEl = document.getElementById('opsExtractStatus');
-    if (exEl) {
-      exEl.innerHTML = `<div class="space-y-1">
-        <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
-        <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
-      </div>`;
-    }
+    if (exEl) exEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
+      <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
+    </div>`;
 
     const rgEl = document.getElementById('opsRagStatus');
-    if (rgEl) {
-      rgEl.innerHTML = `<div class="space-y-1">
-        <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
-        <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
-      </div>`;
+    if (rgEl) rgEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
+      <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
+    </div>`;
+  } catch(e) { console.error('ops load fail', e); }
+}
+
+async function loadDisclosureStats() {
+  try {
+    const [statsR, newR] = await Promise.all([
+      fetch('/api/disclosures/stats'),
+      fetch('/api/disclosures?new_only=true'),
+    ]);
+    const stats = statsR.ok ? await statsR.json() : {};
+    const newData = newR.ok ? await newR.json() : {};
+
+    document.getElementById('discStatTotal').textContent = stats.total_products || '-';
+    document.getElementById('discStatNew').textContent = stats.total_new || '0';
+
+    let totalActive = 0;
+    Object.values(stats.by_company || {}).forEach(c => totalActive += (c.active || 0));
+    document.getElementById('discStatActive').textContent = totalActive;
+
+    const updEl = document.getElementById('discStatUpdated');
+    if (stats.last_updated) {
+      updEl.textContent = new Date(stats.last_updated).toLocaleString('ko-KR');
+    } else {
+      updEl.textContent = 'N/A';
     }
-  } catch (e) {
-    console.error('ops load fail', e);
+
+    const tbody = document.getElementById('discCompanyTableBody');
+    if (tbody) {
+      const byCo = stats.by_company || {};
+      const companies = Object.keys(byCo).sort();
+      tbody.innerHTML = companies.map(co => {
+        const c = byCo[co];
+        return `<tr class="border-b border-slate-100">
+          <td class="py-1.5 font-medium"><span class="${pillCls(co)} badge-sm">${coTag(co)}</span></td>
+          <td class="py-1.5 text-center">${c.total}</td>
+          <td class="py-1.5 text-center text-blue-600">${c.active}</td>
+          <td class="py-1.5 text-center text-slate-400">${c.discontinued}</td>
+          <td class="py-1.5 text-center text-emerald-600 font-bold">${c.new}</td>
+          <td class="py-1.5 text-slate-500">${c.latest_launch || '-'}</td>
+        </tr>`;
+      }).join('');
+      if (!companies.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-3 text-center text-slate-400">??? ??? ???? ????.</td></tr>';
+      }
+    }
+
+    // ????븐뼐???????????????鶯ㅺ동????????????????????븐뼐???????????븐뼔???ш끽維뽭뇡硫㏓꺌?용뿪??큺???
+    const newList = document.getElementById('discNewProductsList');
+    if (newList) {
+      const items = (newData.products || []).slice(0, 20);
+      if (items.length) {
+        newList.innerHTML = items.map(p => {
+          const co = p.company || '';
+          return `<div class="flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-100">
+            <span class="${pillCls(co)} badge-sm">${coTag(co)}</span>
+            <span class="flex-1 font-medium truncate">${esc(p.card_name)}</span>
+            <span class="text-slate-400">${p.launch_date || '-'}</span>
+            ${p.launch_date ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">NEW</span>' : ''}
+          </div>`;
+        }).join('');
+      } else {
+        newList.innerHTML = '<p class="text-slate-400">?? ?? ??? ????.</p>';
+      }
+    }
+  } catch(e) {
+    console.error('disclosure stats fail', e);
   }
+}
+
+async function startDisclosureScrape() {
+  const company = document.getElementById('disclosureCompanyFilter').value || '';
+  const btn = document.getElementById('btnDisclosureScrape');
+  if (!confirm(`Start disclosure scrape${company ? ` (${company})` : ''}?`)) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Loading...';
+  try {
+    const url = company ? `/api/disclosures/scrape?company=${encodeURIComponent(company)}` : '/api/disclosures/scrape';
+    const r = await fetch(url, {method: 'POST'});
+    const d = await r.json();
+    alert(d.message || 'Disclosure scrape started.');
+    // 30??????????????????????
+    setTimeout(() => { loadDisclosureStats(); }, 30000);
+  } catch(e) {
+    alert('Failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-satellite-dish mr-1"></i>?? ?? ??';
+  }
+}
+
+// ??????嶺뚮ㅎ?볠꽴?????곸궔? ?????????????ｋ젒???????????⑥ル츧癲?????????욱룑??????????????????????ろ떀?????????????ｋ젒??
+const _origLoadOps = loadOpsData;
+loadOpsData = async function() {
+  await Promise.all([_origLoadOps(), loadDisclosureStats()]);
+};
+
+function clearNotifications() {
+  document.getElementById('notifList').innerHTML = '<div class="px-4 py-6 text-center text-xs text-slate-400">새 알림이 없습니다.</div>';
+  document.getElementById('notifBadge').classList.add('hidden');
+  document.getElementById('notifDropdown').classList.remove('open');
+}
+
+function renderCommandPaletteResults(query) {
+  const q = (query || '').trim().toLowerCase();
+  const results = document.getElementById('cmdResults');
+  if (!results) return;
+  if (!q) {
+    results.innerHTML = '';
+    return;
+  }
+
+  const items = [];
+  if (typeof ALL !== 'undefined') {
+    ALL.filter(e => (e.title || '').toLowerCase().includes(q) || (e.company || '').toLowerCase().includes(q) || (e.category || '').toLowerCase().includes(q))
+      .slice(0, 8)
+      .forEach(e => {
+        items.push(`<div class="cmd-item" onclick="closeCmdPalette();openDetail(${e.id})">
+          <span class="cmd-type">이벤트</span>
+          <span class="flex-1 truncate">${esc(e.company)} · ${esc(e.title)}</span>
+        </div>`);
+      });
+  }
+
+  if (window._ALL_PRODUCTS) {
+    window._ALL_PRODUCTS
+      .filter(p => (p.card_name || '').toLowerCase().includes(q) || (p.company || '').toLowerCase().includes(q))
+      .slice(0, 5)
+      .forEach(p => {
+        items.push(`<div class="cmd-item" onclick="closeCmdPalette();switchTab('products')">
+          <span class="cmd-type">상품</span>
+          <span class="flex-1 truncate">${esc(p.company)} · ${esc(p.card_name)}</span>
+        </div>`);
+      });
+  }
+
+  [['대시보드', 'dashboard'], ['이벤트', 'events'], ['상품', 'products'], ['타임라인', 'timeline'], ['운영', 'ops']].forEach(([name, id]) => {
+    if (name.toLowerCase().includes(q) || id.includes(q)) {
+      items.push(`<div class="cmd-item" onclick="closeCmdPalette();switchTab('${id}')">
+        <span class="cmd-type">탭</span><span>${name}</span></div>`);
+    }
+  });
+
+  results.innerHTML = items.length ? items.join('') : '<div class="px-5 py-4 text-xs text-slate-400 text-center">검색 결과가 없습니다.</div>';
+}
+
+document.getElementById('cmdInput')?.addEventListener('input', function() {
+  renderCommandPaletteResults(this.value);
+});
+
+async function loadNewProductAnalysis() {
+  const el = document.getElementById('newProductAnalysis');
+  if (!el) return;
+  el.innerHTML = '<div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div>';
+
+  try {
+    const r = await fetch('/api/disclosures?new_only=false');
+    const d = await r.json();
+    const products = d.products || [];
+
+    if (!products.length) {
+      el.innerHTML = '<p class="text-sm text-slate-400">상품 데이터가 아직 없습니다. 공시 수집을 먼저 실행한 뒤 다시 확인해 주세요.</p>';
+      return;
+    }
+
+    const now = new Date();
+    const thisYM = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const threeMonths = [];
+    for (let m = 0; m < 3; m++) {
+      const d2 = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      threeMonths.push(`${d2.getFullYear()}.${String(d2.getMonth() + 1).padStart(2, '0')}`);
+    }
+
+    const thisMonthItems = products.filter(p => (p.launch_date || '').startsWith(thisYM));
+    const recentItems = products
+      .filter(p => threeMonths.includes((p.launch_date || '').substring(0, 7)))
+      .sort((a, b) => (b.launch_date || '').localeCompare(a.launch_date || ''));
+
+    const byCompany = {};
+    recentItems.forEach(product => {
+      const company = product.company || '미분류';
+      if (!byCompany[company]) byCompany[company] = [];
+      byCompany[company].push(product);
+    });
+
+    let html = `<div class="grid sm:grid-cols-3 gap-3 mb-4">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-700">${thisMonthItems.length}</div>
+        <div class="text-xs text-emerald-600 mt-1">이번 달 신규 출시</div>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-700">${recentItems.length}</div>
+        <div class="text-xs text-blue-600 mt-1">최근 3개월 출시 상품</div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-slate-700">${products.length}</div>
+        <div class="text-xs text-slate-500 mt-1">전체 수집 상품 수</div>
+      </div>
+    </div>`;
+
+    Object.keys(byCompany).sort().forEach(company => {
+      const items = byCompany[company];
+      const thisMonthCount = items.filter(p => (p.launch_date || '').startsWith(thisYM)).length;
+
+      html += `<div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+          <div class="flex items-center gap-2">
+            <span class="${pillCls(company)} badge-sm">${coTag(company)}</span>
+            <span class="text-sm font-bold">${esc(company)}</span>
+          </div>
+          <span class="text-xs text-slate-500">최근 3개월 ${items.length}건, 이번 달 ${thisMonthCount}건</span>
+        </div>
+        <div class="divide-y divide-slate-100">`;
+
+      items.slice(0, 15).forEach(product => {
+        const isNew = (product.launch_date || '').startsWith(thisYM);
+        const typeBadge = product.card_type
+          ? `<span class="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-500">${esc(product.card_type)}</span>`
+          : '';
+        const stateBadge = isNew
+          ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">NEW</span>'
+          : product.discontinue_date
+          ? '<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-bold">단종 예정</span>'
+          : '';
+        const discontinue = product.discontinue_date
+          ? `<span class="text-[10px] text-red-400 ml-1">종료 예정 ${product.discontinue_date}</span>`
+          : '';
+
+        html += `<div class="flex items-center gap-2 px-4 py-2 text-xs ${isNew ? 'bg-emerald-50/50' : ''}">
+          <span class="font-medium flex-1 truncate">${esc(product.card_name)}</span>
+          ${typeBadge} ${stateBadge}
+          <span class="text-slate-400 flex-shrink-0">${product.launch_date || '-'}</span>
+          ${discontinue}
+        </div>`;
+      });
+
+      if (items.length > 15) {
+        html += `<div class="px-4 py-1.5 text-[10px] text-slate-400 text-right">외 ${items.length - 15}건</div>`;
+      }
+
+      html += '</div></div>';
+    });
+
+    if (!recentItems.length) {
+      html += '<p class="text-sm text-slate-400 text-center py-8">최근 3개월 안에 출시된 상품이 없습니다.</p>';
+    }
+
+    el.innerHTML = html;
+  } catch (e) {
+    el.innerHTML = `<p class="text-sm text-red-400">상품 분석 데이터를 불러오지 못했습니다. ${e.message}</p>`;
+  }
+}
+
+async function renderDashboard() {
+  if (typeof ALL === 'undefined' || !ALL.length) return;
+
+  const total = ALL.length;
+  const now = new Date();
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const newThisMonth = ALL.filter(e => {
+    if (!e.period_start) return false;
+    const start = new Date(e.period_start);
+    return start.getMonth() === thisMonth && start.getFullYear() === thisYear;
+  }).length;
+
+  const catCount = {};
+  ALL.forEach(e => {
+    const category = e.category || 'Other';
+    catCount[category] = (catCount[category] || 0) + 1;
+  });
+  const topCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0];
+
+  const coNew = {};
+  ALL.forEach(e => {
+    if (!e.period_start) return;
+    const start = new Date(e.period_start);
+    if ((now - start) < thirtyDays && (now - start) >= 0) {
+      const company = e.company || '미분류';
+      coNew[company] = (coNew[company] || 0) + 1;
+    }
+  });
+  const mostActive = Object.entries(coNew).sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById('hsTotal').textContent = total;
+  document.getElementById('hsNewMonth').textContent = newThisMonth;
+
+  const topCatEl = document.getElementById('hsTopCategory');
+  if (topCat && topCatEl) {
+    topCatEl.textContent = topCat[0];
+    topCatEl.style.fontSize = topCat[0].length > 4 ? '.85rem' : '1.4rem';
+  }
+
+  const mostActiveEl = document.getElementById('hsMostActive');
+  if (mostActive && mostActiveEl) {
+    mostActiveEl.textContent = coTag(mostActive[0]);
+    mostActiveEl.style.fontSize = '.95rem';
+  }
+
+  fetch('/api/disclosures?new_only=false').then(r => r.json()).then(d => {
+    const current = new Date();
+    const currentYM = `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, '0')}`;
+    const monthNew = (d.products || []).filter(p => (p.launch_date || '').startsWith(currentYM)).length;
+    const kpiEl = document.getElementById('hsProducts');
+    if (!kpiEl) return;
+
+    if (monthNew > 0) {
+      kpiEl.textContent = monthNew;
+      const labelEl = kpiEl.parentElement?.querySelector('.kpi-lbl');
+      if (labelEl) labelEl.textContent = '이번 달 신규 상품';
+      return;
+    }
+
+    const recentStart = new Date(current.getFullYear(), current.getMonth() - 2, 1);
+    const recentYmMin = `${recentStart.getFullYear()}.${String(recentStart.getMonth() + 1).padStart(2, '0')}`;
+    const recentNew = (d.products || []).filter(p => p.launch_date && (p.launch_date || '') >= recentYmMin && (p.status || 'active') === 'active').length;
+    kpiEl.textContent = recentNew;
+    const labelEl = kpiEl.parentElement?.querySelector('.kpi-lbl');
+    if (labelEl) labelEl.textContent = '최근 3개월 신규 상품';
+  }).catch(() => {
+    document.getElementById('hsProducts').textContent = '-';
+  });
+
+  const endEl = document.getElementById('endingSoonList');
+  const week = 7 * 24 * 60 * 60 * 1000;
+  const ending = ALL.filter(e => {
+    const end = parseEventEndDate(e);
+    return end && (end - now) > 0 && (end - now) <= week;
+  }).sort((a, b) => parseEventEndDate(a) - parseEventEndDate(b)).slice(0, 6);
+
+  document.getElementById('hsEndingSoon').textContent = ending.length;
+  if (endEl) {
+    if (!ending.length) {
+      endEl.innerHTML = '<p class="text-xs text-emerald-600"><i class="fas fa-check mr-1"></i>7일 내 종료 예정 이벤트가 없습니다.</p>';
+    } else {
+      endEl.innerHTML = ending.map(e => {
+        const d = daysUntilDate(parseEventEndDate(e));
+        const urgency = d <= 2 ? 'text-red-600 font-bold' : d <= 4 ? 'text-amber-600' : 'text-slate-600';
+        return `<div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100" onclick="openDetail(${e.id})">
+          <span class="${urgency} text-xs w-12 flex-shrink-0">D-${d}</span>
+          <span class="${pillCls(e.company)} badge-sm">${coTag(e.company)}</span>
+          <span class="text-xs truncate">${esc((e.title || '').substring(0, 35))}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  const newEvEl = document.getElementById('dashNewEvents');
+  const newEvents = ALL.filter(e => {
+    if (!e.period_start) return false;
+    const start = new Date(e.period_start);
+    return (now - start) < thirtyDays && (now - start) >= 0;
+  }).sort((a, b) => new Date(b.period_start) - new Date(a.period_start)).slice(0, 6);
+
+  if (newEvEl) {
+    if (!newEvents.length) {
+      newEvEl.innerHTML = '<p class="text-xs text-slate-400">최근 30일 내 시작한 이벤트가 없습니다.</p>';
+    } else {
+      newEvEl.innerHTML = newEvents.map(e => `
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100" onclick="openDetail(${e.id})">
+          <span class="${pillCls(e.company)} badge-sm">${coTag(e.company)}</span>
+          <span class="text-xs truncate flex-1">${esc((e.title || '').substring(0, 40))}</span>
+          <span class="text-[10px] text-slate-400">${(e.period_start || '').substring(5, 10)}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  const newProdEl = document.getElementById('dashNewProducts');
+  if (newProdEl) fetch('/api/disclosures?new_only=false').then(r => r.json()).then(d => {
+    if (!newProdEl) return;
+    if (!d.products || !d.products.length) {
+      newProdEl.innerHTML = '<p class="text-xs text-slate-400">상품 데이터가 아직 없습니다. 공시 수집을 먼저 실행해 주세요.</p>';
+      return;
+    }
+
+    const current = new Date();
+    const currentYM = `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, '0')}`;
+    const thisMonthProducts = d.products.filter(p => (p.launch_date || '').startsWith(currentYM));
+
+    let displayProducts = thisMonthProducts;
+    let fallbackLabel = '';
+
+    if (!displayProducts.length) {
+      const recentStart = new Date(current.getFullYear(), current.getMonth() - 2, 1);
+      const recentYmMin = `${recentStart.getFullYear()}.${String(recentStart.getMonth() + 1).padStart(2, '0')}`;
+      const recentNew = d.products.filter(p => p.launch_date && (p.launch_date || '') >= recentYmMin && (p.status || 'active') === 'active');
+      recentNew.sort((a, b) => (b.launch_date || '').localeCompare(a.launch_date || ''));
+      displayProducts = recentNew.slice(0, 8);
+
+      if (!displayProducts.length) {
+        newProdEl.innerHTML = '<p class="text-xs text-slate-400">최근 신규 출시 상품이 없습니다.</p>';
+        return;
+      }
+
+      fallbackLabel = '<p class="text-[10px] text-amber-500 mb-2"><i class="fas fa-info-circle mr-1"></i>이번 달 출시 상품이 없어 최근 3개월 활성 상품으로 대체해 보여줍니다.</p>';
+    }
+
+    displayProducts.sort((a, b) => (b.launch_date || '').localeCompare(a.launch_date || ''));
+    const display = displayProducts.slice(0, 8);
+    newProdEl.innerHTML = fallbackLabel + display.map(p => {
+      const co = p.company || '';
+      const isNew = !!(p.launch_date && p.launch_date.length >= 7);
+      return `<div class="flex items-center gap-2 p-2 rounded-lg ${isNew ? 'bg-emerald-50 border border-emerald-100' : 'bg-indigo-50 border border-indigo-100'}">
+        <span class="${pillCls(co)} badge-sm">${coTag(co)}</span>
+        <span class="text-xs truncate flex-1 font-medium">${esc((p.card_name || '').substring(0, 35))}</span>
+        ${isNew ? '<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold flex-shrink-0">NEW</span>' : ''}
+        <span class="text-[10px] text-slate-400 flex-shrink-0">${(p.launch_date || '').substring(5)}</span>
+      </div>`;
+    }).join('') + (displayProducts.length > 8 ? `<p class="text-[10px] text-slate-400 mt-1 text-right">외 ${displayProducts.length - 8}건</p>` : '');
+  }).catch(() => {
+    if (newProdEl) newProdEl.innerHTML = '<p class="text-xs text-slate-400">상품 데이터를 불러오지 못했습니다.</p>';
+  });
+
+  const summaryEl = document.getElementById('dashCompanySummary');
+  const companyStats = {};
+  ALL.forEach(e => {
+    const company = e.company || '미분류';
+    if (!companyStats[company]) companyStats[company] = { total: 0, active: 0, newMonth: 0 };
+    companyStats[company].total += 1;
+    if (parseEventEndDate(e) ? parseEventEndDate(e) >= now : !!e.period_start) companyStats[company].active += 1;
+    if (e.period_start) {
+      const start = new Date(e.period_start);
+      if ((now - start) < thirtyDays && (now - start) >= 0) companyStats[company].newMonth += 1;
+    }
+  });
+
+  if (summaryEl) {
+    const summaryRows = Array.isArray(OVERVIEW?.companies) ? OVERVIEW.companies : [];
+    const newMonthRow = (window.OBJECTIVE_SCOREBOARD?.rows || []).find(row => row.key === 'monthly_new');
+    const newMonthValues = newMonthRow?.values || {};
+    const rows = summaryRows.length ? summaryRows : Object.entries(companyStats).map(([company, stat]) => ({
+      company,
+      collected_count: stat.total,
+      active_count: stat.active,
+      new_count: stat.newMonth
+    }));
+
+    let tableHtml = `<table class="w-full text-sm">
+      <thead><tr class="text-xs text-slate-500 border-b">
+        <th class="text-left py-2">회사</th>
+        <th class="text-right py-2">전체 이벤트</th>
+        <th class="text-right py-2">진행중 이벤트</th>
+        <th class="text-right py-2">최근 30일 신규</th>
+      </tr></thead><tbody>`;
+
+    rows.forEach(row => {
+      const company = row.company;
+      const fallbackStats = companyStats[company] || Object.entries(companyStats).find(([name]) => coTag(name) === coTag(company))?.[1];
+      const totalCount = Number(row.collected_count ?? row.total ?? 0);
+      const activeCount = Number(row.active_count ?? row.active ?? 0);
+      const newCount = Number(newMonthValues[company] ?? row.new_count ?? row.newMonth ?? fallbackStats?.newMonth ?? 0);
+      tableHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="py-2"><span class="${pillCls(company)} badge-sm">${coTag(company)}</span></td>
+        <td class="text-right py-2 font-bold">${totalCount.toLocaleString('ko-KR')}</td>
+        <td class="text-right py-2 text-emerald-600 font-semibold">${activeCount.toLocaleString('ko-KR')}</td>
+        <td class="text-right py-2 text-blue-600">${newCount.toLocaleString('ko-KR')}</td>
+      </tr>`;
+    });
+
+    tableHtml += '</tbody></table>';
+    summaryEl.innerHTML = tableHtml;
+  }
+
+  const scoreboardEl = document.getElementById('objectiveScoreboard');
+  const scoreboardRows = window.OBJECTIVE_SCOREBOARD?.rows || [];
+  const scoreboardCompanies = window.OBJECTIVE_SCOREBOARD?.companies || [];
+  if (scoreboardEl) {
+    if (scoreboardRows.length && scoreboardCompanies.length) {
+      const formatScoreValue = (value, unit) => {
+        const num = Number(value || 0);
+        if (unit === '%') return `${num.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}%`;
+        if (unit && unit !== '%') return `${Math.round(num).toLocaleString('ko-KR')}${unit}`;
+        return `${num.toLocaleString('ko-KR')}${unit || ''}`;
+      };
+
+      let scoreboardHtml = '<table class="w-full min-w-[720px] text-sm">';
+      scoreboardHtml += '<thead><tr class="border-b text-xs text-slate-500">';
+      scoreboardHtml += '<th class="text-left py-2 pr-3">지표</th>';
+      scoreboardCompanies.forEach(company => {
+        scoreboardHtml += `<th class="text-right py-2 px-2">${coTag(company)}</th>`;
+      });
+      scoreboardHtml += '</tr></thead><tbody>';
+
+      scoreboardRows.forEach(row => {
+        const numericValues = scoreboardCompanies.map(company => Number(row.values?.[company] || 0));
+        const maxValue = Math.max(...numericValues);
+        scoreboardHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-3 pr-3 align-top"><div class="font-semibold text-slate-800">${esc(row.metric || '-')}</div><div class="text-[11px] text-slate-400">${esc(row.unit || '')}</div></td>`;
+        scoreboardCompanies.forEach(company => {
+          const rawValue = Number(row.values?.[company] || 0);
+          const tone = rawValue === maxValue && maxValue > 0 ? 'text-blue-700 font-bold' : 'text-slate-700';
+          scoreboardHtml += `<td class="py-3 px-2 text-right ${tone}">${formatScoreValue(rawValue, row.unit)}</td>`;
+        });
+        scoreboardHtml += '</tr>';
+      });
+
+      scoreboardHtml += '</tbody></table>';
+      scoreboardEl.innerHTML = scoreboardHtml;
+    } else {
+      scoreboardEl.innerHTML = '<p class="text-sm text-slate-400">표시할 스코어보드 데이터가 없습니다.</p>';
+    }
+  }
+
+  buildNotifications();
+}
+
+async function loadProductsTab() {
+  try {
+    const r = await fetch('/api/rag/catalog?limit=5000');
+    const d = await r.json();
+    window._ALL_PRODUCTS = d.products || [];
+
+    const summaryEl = document.getElementById('companySummaryCards');
+    if (summaryEl) {
+      if (d.by_company) {
+        summaryEl.innerHTML = Object.entries(d.by_company).map(([company, info]) => `
+          <div class="section-card text-center p-3">
+            <div class="${pillCls(company)} badge-sm inline-block mb-2">${coTag(company)}</div>
+            <div class="text-2xl font-extrabold">${info.count || 0}</div>
+            <div class="text-xs text-slate-500">카드상품 수</div>
+          </div>
+        `).join('');
+      } else {
+        summaryEl.innerHTML = '';
+      }
+    }
+
+    const companySelect = document.getElementById('prodFilterCompany');
+    if (companySelect) {
+      companySelect.innerHTML = '<option value="">전체 카드사</option>';
+      const companies = [...new Set(window._ALL_PRODUCTS.map(p => p.company).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ko'));
+      companies.forEach(company => {
+        const option = document.createElement('option');
+        option.value = company;
+        option.textContent = company;
+        companySelect.appendChild(option);
+      });
+    }
+
+    filterProducts();
+  } catch (e) {
+    console.error('Products load fail:', e);
+    document.getElementById('productEmpty')?.classList.remove('hidden');
+  }
+}
+
+function filterProducts() {
+  const company = document.getElementById('prodFilterCompany')?.value || '';
+  const type = document.getElementById('prodFilterType')?.value || '';
+  const keyword = (document.getElementById('prodFilterKw')?.value || '').toLowerCase();
+  const sortBy = document.getElementById('prodSortBy')?.value || 'name';
+
+  let filtered = (window._ALL_PRODUCTS || []).filter(product => {
+    if (company && product.company !== company) return false;
+    if (type && product.card_type !== type) return false;
+    if (keyword && !(product.card_name || '').toLowerCase().includes(keyword)) return false;
+    return true;
+  });
+
+  if (sortBy === 'chunks') {
+    filtered.sort((a, b) => (b.chunk_count || 0) - (a.chunk_count || 0));
+  } else {
+    filtered.sort((a, b) => (a.card_name || '').localeCompare(b.card_name || '', 'ko'));
+  }
+
+  const grid = document.getElementById('productGrid');
+  const empty = document.getElementById('productEmpty');
+  if (!grid || !empty) return;
+
+  if (!filtered.length) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  empty.classList.add('hidden');
+  grid.innerHTML = filtered.map(product => {
+    const chunks = product.chunk_count || 0;
+    const maxChunks = 20;
+    const pct = Math.min(100, Math.round(chunks / maxChunks * 100));
+    const payload = encodeURIComponent(JSON.stringify(product));
+    return `<div class="product-card" onclick="openProductCard('${payload}')">
+      <div class="flex items-center justify-between mb-2">
+        <span class="${pillCls(product.company)} badge-sm">${coTag(product.company)}</span>
+        <span class="text-[10px] text-slate-400">${product.card_type || ''}</span>
+      </div>
+      <h4 class="text-sm font-bold mb-1 truncate" title="${esc(product.card_name)}">${esc(product.card_name)}</h4>
+      <div class="text-xs text-slate-500 mb-2">${product.annual_fee || '연회비 정보 없음'}</div>
+      <div class="benefit-bar">
+        <div class="benefit-bar-fill" style="width:${pct}%;background:var(--brand)"></div>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-1">${chunks}개 청크${product.sections ? ` / ${product.sections.length}개 섹션` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function executeRAGSearch() {
+  const query = document.getElementById('ragSearchInput')?.value.trim();
+  if (!query) return;
+
+  const resultsEl = document.getElementById('ragSearchResults');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div class="text-center py-8 text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>검색 중입니다...</div>';
+
+  try {
+    const r = await fetch('/api/rag/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ query, top_k: 10 })
+    });
+    const d = await r.json();
+
+    if (!d.results || !d.results.length) {
+      resultsEl.innerHTML = '<div class="section-card text-center py-8 text-slate-400">검색 결과가 없습니다.</div>';
+      return;
+    }
+
+    resultsEl.innerHTML = d.results.map((item, i) => `
+      <div class="section-card">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-bold text-slate-400">#${i + 1}</span>
+          <span class="${pillCls(item.metadata?.company)} badge-sm">${coTag(item.metadata?.company)}</span>
+          <span class="text-sm font-bold">${esc(item.metadata?.card_name || '')}</span>
+          <span class="text-[10px] text-slate-400">${item.metadata?.section || ''}</span>
+          <span class="ml-auto text-[10px] text-slate-400">유사도 ${(item.score * 100).toFixed(1)}%</span>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">${esc(item.text || '')}</p>
+      </div>
+    `).join('');
+  } catch (e) {
+    resultsEl.innerHTML = `<div class="section-card text-center py-8 text-red-500">검색 중 오류가 발생했습니다. ${e.message}</div>`;
+  }
+}
+
+function renderGantt() {
+  const chart = document.getElementById('ganttChart');
+  if (!chart) return;
+
+  if (typeof ALL === 'undefined' || !ALL.length) {
+    chart.innerHTML = '<p class="p-8 text-center text-slate-400">이벤트 데이터를 불러오는 중입니다...</p>';
+    return;
+  }
+
+  const company = document.getElementById('ganttFilterCompany')?.value || '';
+  const groupBy = document.getElementById('ganttGroupBy')?.value || 'company';
+  const daysInMonth = new Date(GANTT_YEAR, GANTT_MONTH + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  document.getElementById('ganttPeriodLabel').textContent = `${GANTT_YEAR}-${String(GANTT_MONTH + 1).padStart(2, '0')}`;
+
+  const monthStart = new Date(GANTT_YEAR, GANTT_MONTH, 1);
+  const monthEnd = new Date(GANTT_YEAR, GANTT_MONTH + 1, 0, 23, 59, 59);
+  const events = ALL.filter(e => {
+    if (company && e.company !== company) return false;
+    const start = e.period_start ? new Date(e.period_start) : null;
+    const end = parseEventEndDate(e) || start;
+    if (!start) return false;
+    return start <= monthEnd && (end || start) >= monthStart;
+  });
+
+  const groups = {};
+  events.forEach(e => {
+    const key = groupBy === 'company' ? (e.company || '미분류') : (e.category || '미분류');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+
+  const cellW = 40;
+  let html = '<div style="display:flex">';
+  html += `<div class="gantt-label" style="background:var(--brand-soft);font-weight:700;font-size:.7rem">이벤트</div>`;
+  html += '<div class="gantt-cells" style="display:flex">';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${GANTT_YEAR}-${String(GANTT_MONTH + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayOfWeek = new Date(GANTT_YEAR, GANTT_MONTH, d).getDay();
+    const isToday = dateStr === todayStr;
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    let cls = 'gantt-header-cell';
+    if (isToday) cls += ' today';
+    html += `<div class="${cls}" style="min-width:${cellW}px;${isWeekend ? 'background:rgba(0,0,0,.03)' : ''}">${d}</div>`;
+  }
+  html += '</div></div>';
+
+  Object.keys(groups).sort().forEach(group => {
+    html += `<div class="gantt-group-header">${esc(group)} (${groups[group].length})</div>`;
+    groups[group].sort((a, b) => new Date(a.period_start) - new Date(b.period_start)).forEach(e => {
+      const start = new Date(e.period_start);
+      const end = parseEventEndDate(e) || start;
+      const effectiveStart = start < monthStart ? 1 : start.getDate();
+      const effectiveEnd = end > monthEnd ? daysInMonth : end.getDate();
+      const leftPx = (effectiveStart - 1) * cellW;
+      const widthPx = Math.max(cellW, (effectiveEnd - effectiveStart + 1) * cellW);
+      const title = (e.title || '').substring(0, 30);
+      const coClass = getCompanyGanttClass(e.company);
+
+      html += `<div class="gantt-row">`;
+      html += `<div class="gantt-label" title="${esc(e.title)}">${esc(title)}</div>`;
+      html += `<div class="gantt-cells" style="position:relative;min-height:28px">`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayOfWeek = new Date(GANTT_YEAR, GANTT_MONTH, d).getDay();
+        const dateStr = `${GANTT_YEAR}-${String(GANTT_MONTH + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        let cls = 'gantt-cell';
+        if (dateStr === todayStr) cls += ' today';
+        if (dayOfWeek === 0 || dayOfWeek === 6) cls += ' weekend';
+        html += `<div class="${cls}" style="min-width:${cellW}px"></div>`;
+      }
+      html += `<div class="gantt-bar ${coClass}" style="left:${leftPx}px;width:${widthPx}px" onclick="openDetail(${e.id})" title="${esc(e.company + ' - ' + e.title)}">${esc(title)}</div>`;
+      html += `</div></div>`;
+    });
+  });
+
+  if (!events.length) {
+    html = '<p class="p-8 text-center text-slate-400">선택한 조건에 맞는 이벤트가 없습니다.</p>';
+  }
+
+  chart.innerHTML = html;
+}
+
+async function loadOpsData() {
+  try {
+    await Promise.all([
+      loadOpsOverviewData(),
+      loadDisclosureStats(),
+      loadDisclosureSyncStatus(),
+      typeof loadBriefingStatus === 'function' ? loadBriefingStatus() : Promise.resolve(),
+    ]);
+  } catch(e) { console.error('ops load fail', e); }
+}
+
+async function loadOpsOverviewData() {
+  try {
+    const [progR, ragR] = await Promise.all([
+      fetch('/api/pipeline/progress'),
+      fetch('/api/rag/stats'),
+    ]);
+    const prog = progR.ok ? await progR.json() : {};
+    const rag = ragR.ok ? await ragR.json() : {};
+
+    const inEl = document.getElementById('opsIngestStatus');
+    if (inEl) inEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
+      <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
+    </div>`;
+
+    const exEl = document.getElementById('opsExtractStatus');
+    if (exEl) exEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
+      <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
+    </div>`;
+
+    const rgEl = document.getElementById('opsRagStatus');
+    if (rgEl) rgEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
+      <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
+    </div>`;
+  } catch(e) { console.error('ops load fail', e); }
 }
 
 async function loadDisclosureStats() {
