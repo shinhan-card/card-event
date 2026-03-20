@@ -2,6 +2,7 @@ import json
 import importlib
 import inspect
 import os
+import re
 import sys
 import tempfile
 from datetime import date, datetime, timedelta
@@ -187,6 +188,111 @@ def test_weekly_payload_falls_back_to_rule_summary(monkeypatch):
     assert payload["ai_summary_status"] == "rule"
     assert isinstance(payload["executive_summary"], str)
     assert payload["executive_summary"]
+
+
+def test_weekly_payload_includes_products_from_ended_events(monkeypatch):
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    session = _FakeSession(
+        [
+            _make_event(
+                8,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=2),
+                linked_cards=["Alpha Fresh"],
+                one_line_summary="Fresh weekly launch.",
+            ),
+            _make_event(
+                9,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=12),
+                period_end=date.today() - timedelta(days=1),
+                status="ended",
+                linked_cards=["Alpha Legacy"],
+                one_line_summary="Legacy weekly closeout.",
+            ),
+        ]
+    )
+
+    payload = briefing.build_weekly_briefing_data(session)
+
+    summary_names = {item["product_name"] for item in payload["product_summary"]}
+    evidence_names = {item["product_name"] for item in payload["evidence_products"]}
+
+    assert payload["source_product_count"] == 2
+    assert "Alpha Legacy" in summary_names
+    assert "Alpha Legacy" in evidence_names
+
+
+def test_weekly_product_summary_counts_repeated_product_activity(monkeypatch):
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    session = _FakeSession(
+        [
+            _make_event(
+                10,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=2),
+                linked_cards=["Alpha Core"],
+                one_line_summary="Fresh Alpha Core push.",
+            ),
+            _make_event(
+                11,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=10),
+                period_end=date.today() - timedelta(days=2),
+                status="ended",
+                linked_cards=["Alpha Core"],
+                one_line_summary="Alpha Core wrap-up.",
+            ),
+        ]
+    )
+
+    payload = briefing.build_weekly_briefing_data(session)
+
+    alpha_core = next(
+        item for item in payload["product_summary"]
+        if item["product_name"] == "Alpha Core"
+    )
+    assert alpha_core["event_count"] == 2
+
+
+def test_company_sections_prioritize_more_ending_soon_pressure(monkeypatch):
+    monkeypatch.setattr(
+        briefing,
+        "EXPECTED_COMPANIES",
+        ("Alpha Card", "Beta Card"),
+        raising=False,
+    )
+    session = _FakeSession(
+        [
+            _make_event(
+                12,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(hours=4),
+                period_end=date.today() + timedelta(days=14),
+                linked_cards=["Alpha Stable"],
+                one_line_summary="Alpha steady offer.",
+            ),
+            _make_event(
+                13,
+                company="Beta Card",
+                created_at=datetime.now() - timedelta(hours=3),
+                period_end=date.today() + timedelta(days=2),
+                linked_cards=["Beta Urgent"],
+                one_line_summary="Beta urgent offer.",
+            ),
+        ]
+    )
+
+    payload = briefing.build_daily_briefing_data(session)
+
+    assert payload["company_sections"][0]["company"] == "Beta Card"
+
+
+def test_daily_payload_uses_user_facing_date_label():
+    payload = briefing.build_daily_briefing_data(_FakeSession([]))
+
+    assert re.fullmatch(r"\d{4}년 \d{2}월 \d{2}일", payload["date_label"])
+    assert payload["date_label"] != payload["period_label"]
 
 
 def test_briefing_module_exports_single_daily_and_weekly_builder_definition():
