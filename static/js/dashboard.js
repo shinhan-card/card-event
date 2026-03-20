@@ -34,60 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAll();
 });
 
-async function loadAll() {
-  try {
-    const deferredBriefings = fetch('/api/analytics/company-briefings')
-      .then(async response => {
-        if (!response.ok) return null;
-        BRIEFINGS = await response.json();
-        try { renderCompanyBriefings(); } catch(_) {}
-      })
-      .catch(error => console.error('company-briefings load failed', error));
-
-    const deferredQualCompare = fetch('/api/analytics/qualitative-comparison')
-      .then(async response => {
-        if (!response.ok) return null;
-        QUAL_COMPARE = await response.json();
-        try { renderQualitativeComparison(); } catch(_) {}
-      })
-      .catch(error => console.error('qualitative-comparison load failed', error));
-
-    const [evR, stR, ovR, bmR, smR, trR, progR] = await Promise.all([
-      fetch('/api/events'), fetch('/api/stats'),
-      fetch('/api/analytics/company-overview'),
-      fetch('/api/analytics/benefit-benchmark'),
-      fetch('/api/analytics/strategy-map'),
-      fetch('/api/analytics/trends'),
-      fetch('/api/pipeline/progress'),
-    ]);
-    ALL = await evR.json();
-    const prog = progR.ok ? await progR.json().catch(() => ({})) : {};
-    updateLastRunSummary(prog);
-    updateLastIngestSummary(prog);
-    const stats = await stR.json();
-    OVERVIEW = ovR.ok ? await ovR.json() : null;
-    BENCHMARK = bmR.ok ? await bmR.json() : null;
-    STRATEGY = smR.ok ? await smR.json() : null;
-    TRENDS = trR.ok ? await trR.json() : null;
-
-    updateHeaderStats(stats);
-    try { renderActionCards(); } catch(_){}
-    try { renderCompanyBriefings(); } catch(_){}
-    try { renderQualitativeComparison(); } catch(_){}
-    try { renderCompanyCards(); } catch(_){}
-    try { renderBenefitDist(); } catch(_){}
-    try { renderBenchmark(); } catch(_){}
-    try { renderHeatmap(); } catch(_){}
-    try { renderTrends(); } catch(_){}
-    try { loadCompareMatrix(); } catch(_){}
-    try { loadShinhanGap(); } catch(_){}
-    try { loadGapTrend(); } catch(_){}
-    renderEvents();
-    populateFilters();
-    void Promise.allSettled([deferredBriefings, deferredQualCompare]);
-  } catch (e) { console.error(e); }
-}
-
 // ============ 상단 배너 지표 ============
 let BRIEFING_STATUS = null;
 let BRIEFING_LOGS = [];
@@ -456,9 +402,14 @@ async function loadBriefingStatus() {
       fetch('/api/briefing/logs'),
     ]);
     if (statusR.status === 'fulfilled' && statusR.value.ok) {
-      const status = await statusR.value.json().catch(() => ({}));
-      BRIEFING_STATUS = normalizeBriefingStatus(status);
-      BRIEFING_STATUS_OK = true;
+      try {
+        const status = await statusR.value.json();
+        BRIEFING_STATUS = normalizeBriefingStatus(status);
+        BRIEFING_STATUS_OK = true;
+      } catch (parseError) {
+        BRIEFING_STATUS = normalizeBriefingStatus({});
+        BRIEFING_STATUS_ERROR = `briefing status JSON parse failed (${parseError?.message || 'invalid JSON'})`;
+      }
     } else {
       BRIEFING_STATUS = normalizeBriefingStatus({});
       BRIEFING_STATUS_ERROR = statusR.status === 'fulfilled'
@@ -467,8 +418,13 @@ async function loadBriefingStatus() {
     }
 
     if (logsR.status === 'fulfilled' && logsR.value.ok) {
-      BRIEFING_LOGS = await logsR.value.json().catch(() => []);
-      BRIEFING_LOGS_OK = true;
+      try {
+        BRIEFING_LOGS = await logsR.value.json();
+        BRIEFING_LOGS_OK = true;
+      } catch (parseError) {
+        BRIEFING_LOGS = [];
+        BRIEFING_LOGS_ERROR = `briefing logs JSON parse failed (${parseError?.message || 'invalid JSON'})`;
+      }
     } else {
       BRIEFING_LOGS = [];
       BRIEFING_LOGS_ERROR = logsR.status === 'fulfilled'
@@ -504,6 +460,53 @@ async function sendBriefingAction(type, mode) {
   } finally {
     BRIEFING_SEND_BUSY = null;
     await loadBriefingStatus();
+  }
+}
+
+async function loadOpsOverviewData() {
+  try {
+    const [progR, ragR] = await Promise.all([
+      fetch('/api/pipeline/progress'),
+      fetch('/api/rag/stats'),
+    ]);
+    const prog = progR.ok ? await progR.json().catch(() => ({})) : {};
+    const rag = ragR.ok ? await ragR.json().catch(() => ({})) : {};
+
+    const inEl = document.getElementById('opsIngestStatus');
+    if (inEl) inEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
+      <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
+    </div>`;
+
+    const exEl = document.getElementById('opsExtractStatus');
+    if (exEl) exEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
+      <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
+    </div>`;
+
+    const rgEl = document.getElementById('opsRagStatus');
+    if (rgEl) rgEl.innerHTML = `<div class="space-y-1">
+      <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
+      <div class="text-xs">Chunks: <strong>${rag.total_chunks || 0}</strong></div>
+    </div>`;
+
+    return prog;
+  } catch (error) {
+    console.error('ops overview load fail', error);
+    return {};
+  }
+}
+
+async function loadOpsData() {
+  try {
+    await Promise.all([
+      loadOpsOverviewData(),
+      typeof loadDisclosureStats === 'function' ? loadDisclosureStats() : Promise.resolve(),
+      typeof loadDisclosureSyncStatus === 'function' ? loadDisclosureSyncStatus() : Promise.resolve(),
+      loadBriefingStatus(),
+    ]);
+  } catch (error) {
+    console.error('ops load fail', error);
   }
 }
 
@@ -574,17 +577,6 @@ function toggleGeminiErrorsDetail() {
 }
 
 // ============ 탭 ============
-function initTabs() {
-  document.querySelectorAll('nav .tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('nav .tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-      document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
-    });
-  });
-}
-
 function initModalTabs() {
   document.querySelectorAll('[data-mtab]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3472,6 +3464,7 @@ function showPage(page, options = {}) {
     section.classList.toggle('hidden', section.id !== `page-${nextPage}`);
   });
   if (nextPage === 'events') showEventTab(CURRENT_EVENT_TAB);
+  if (nextPage === 'ops') void loadOpsData();
   if (options.scroll !== false) {
     document.getElementById(`page-${nextPage}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -3543,6 +3536,9 @@ async function loadAll() {
     renderReviewWorkspace();
     renderOpsWorkspace(prog);
     updateWorkspaceStatusChips();
+    if (!document.getElementById('tab-ops')?.classList.contains('hidden')) {
+      void loadOpsData();
+    }
     if (typeof window.restructureDashboardLayout === 'function') {
       try { window.restructureDashboardLayout(); } catch (_) {}
     }

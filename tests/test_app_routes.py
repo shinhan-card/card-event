@@ -56,13 +56,15 @@ def test_root_page_contains_briefing_console_shell():
 
 def test_template_keeps_briefing_boot_path_single_sourced():
     template = (ROOT / "templates/simple_dashboard.html").read_text(encoding="utf-8")
+    js = (ROOT / "static/js/dashboard.js").read_text(encoding="utf-8")
 
-    assert template.count("const _origLoadOps") == 0, "legacy loadOps override should not remain"
+    assert "window.initTabs = () => {};" not in template, "template should not override initTabs"
     assert "sendBriefingNow" not in template, "old inline send helper should be removed"
-    assert "renderBriefingConsole" not in template, "template should not own briefing rendering"
-    assert template.count("async function loadOpsData()") == 1, "expected one active loadOpsData boot path"
-    assert template.count("async function loadOpsOverviewData()") == 1, "expected one active loadOpsOverviewData boot path"
-    assert "loadBriefingStatus()" in template, "template boot path should still delegate to dashboard.js"
+    assert "async function loadOpsData()" not in template, "template should not define ops boot control"
+    assert "loadBriefingStatus()" not in template, "template should not own briefing loading"
+    assert template.count("opsBriefingStatusGrid") == 1, "expected one briefing shell anchor"
+    assert js.count("async function loadAll(") == 1, "dashboard.js should have one loadAll boot path"
+    assert js.count("function initTabs(") == 1, "dashboard.js should have one initTabs boot path"
 
 
 def test_briefing_console_js_has_failure_guardrails():
@@ -75,8 +77,16 @@ def test_briefing_console_js_has_failure_guardrails():
         "BRIEFING_STATUS_ERROR",
         "BRIEFING_LOGS_ERROR",
         "if (BRIEFING_SEND_BUSY || !briefingConsoleIsReady()) return;",
+        "briefing status JSON parse failed",
+        "briefing logs JSON parse failed",
     ):
         assert snippet in js, f"missing JS guardrail: {snippet}"
+
+    for snippet in (
+        "statusR.value.json().catch(() => ({}))",
+        "logsR.value.json().catch(() => [])",
+    ):
+        assert snippet not in js, f"malformed JSON should not be treated as success: {snippet}"
 
 
 def test_briefing_status_route_returns_daily_and_weekly(monkeypatch):
