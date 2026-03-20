@@ -646,7 +646,6 @@ def _build_executive_summary(payload: dict, report_type: str) -> tuple[str, str]
 
     lead_company = payload["company_sections"][0]["company"] if payload["company_sections"] else "tracked issuers"
     lead_theme = payload["theme_summary"][0]["theme"] if payload["theme_summary"] else "broad activity"
-    warning_codes = [warning["code"] for warning in payload["quality_warnings"]]
 
     if report_type == "daily":
         summary = (
@@ -660,9 +659,6 @@ def _build_executive_summary(payload: dict, report_type: str) -> tuple[str, str]
             f"{payload['new_events_count']} new events and {payload['ended_events_count']} ended events, "
             f"with {lead_company} most active in {lead_theme}."
         )
-
-    if warning_codes:
-        summary += f" Warnings: {', '.join(warning_codes)}."
 
     return summary, "rule"
 
