@@ -194,6 +194,9 @@ describe("task 1 content contracts", () => {
     architectureContent.orchestrationColumns.forEach((column) => {
       expect(Object.keys(column)).toEqual(["title", "nodes", "technologies"]);
     });
+    expect(architectureContent.orchestrationColumns.flatMap((column) => column.technologies)).toEqual(
+      expect.arrayContaining(["APScheduler", "FastAPI", "SQLite", "SQLAlchemy"]),
+    );
 
     architectureContent.principles.forEach((principle) => {
       expect(Object.keys(principle)).toEqual(["title", "caption"]);
@@ -271,6 +274,12 @@ describe("task 1 content contracts", () => {
       { group: "product-axis", evidenceLevel: "approved" },
       { group: "delivery-surfaces", evidenceLevel: "approved" },
     ]);
+
+    const eventCluster = moduleMap.clusters.find((cluster) => cluster.group === "event-axis");
+    const productCluster = moduleMap.clusters.find((cluster) => cluster.group === "product-axis");
+
+    expect(eventCluster?.files).toContain("modules/pipeline.py");
+    expect(productCluster?.files.some((file) => file.startsWith("modules/rag/"))).toBe(true);
   });
 
   it("keeps module map compatibility helpers hidden from the public contract", () => {

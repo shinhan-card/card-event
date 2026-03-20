@@ -4,6 +4,7 @@ import HomePage from "@/app/page";
 import PresentationShell from "@/components/chrome/presentation-shell";
 import ExecutiveBlueprint from "@/components/deep-dive/executive-blueprint";
 import { architectureContent } from "@/content/architecture-content";
+import { moduleMap } from "@/content/module-map";
 import { siteContent } from "@/content/site-content";
 
 describe("route smoke", () => {
@@ -136,6 +137,8 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
+    expect(document.querySelectorAll("main > section")).toHaveLength(architectureContent.boardOrder.length);
+
     const sectionIds = Array.from(document.querySelectorAll("main > section[id]")).map(
       (section) => section.id,
     );
@@ -221,7 +224,101 @@ describe("route smoke", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders remaining lower deep dive sections after the top-four board swap", () => {
+  it("renders contract-driven lower deep dive boards from public contracts only", () => {
+    const architectureDescriptors = [
+      "orchestrationMap",
+      "principlesSection",
+      "evolutionRoadmap",
+      "designPrinciples",
+      "orchestration",
+    ].map((key) => [key, Object.getOwnPropertyDescriptor(architectureContent, key)] as const);
+    const moduleSectionsDescriptor = Object.getOwnPropertyDescriptor(moduleMap, "sections");
+
+    architectureDescriptors.forEach(([key]) => {
+      Object.defineProperty(architectureContent, key, {
+        configurable: true,
+        get() {
+          throw new Error(`legacy architecture helper accessed: ${key}`);
+        },
+      });
+    });
+
+    Object.defineProperty(moduleMap, "sections", {
+      configurable: true,
+      get() {
+        throw new Error("legacy module sections accessed");
+      },
+    });
+
+    try {
+      expect(() =>
+        render(
+          <PresentationShell>
+            <DeepDivePage />
+          </PresentationShell>,
+        ),
+      ).not.toThrow();
+    } finally {
+      architectureDescriptors.forEach(([key, descriptor]) => {
+        if (descriptor) {
+          Object.defineProperty(architectureContent, key, descriptor);
+        }
+      });
+
+      if (moduleSectionsDescriptor) {
+        Object.defineProperty(moduleMap, "sections", moduleSectionsDescriptor);
+      }
+    }
+
+    const orchestrationBoard = document.getElementById("orchestration-control");
+    const modulesBoard = document.getElementById("evidence-module-map");
+    const principlesBoard = document.getElementById("principles-evolution");
+
+    expect(orchestrationBoard).toBeInTheDocument();
+    expect(modulesBoard).toBeInTheDocument();
+    expect(principlesBoard).toBeInTheDocument();
+
+    expect(
+      within(orchestrationBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveOrchestration,
+      }),
+    ).toBeInTheDocument();
+    expect(within(orchestrationBoard as HTMLElement).getAllByText("APScheduler").length).toBeGreaterThan(0);
+    expect(within(orchestrationBoard as HTMLElement).getAllByText("FastAPI").length).toBeGreaterThan(0);
+    expect(within(orchestrationBoard as HTMLElement).getAllByText("SQLite").length).toBeGreaterThan(0);
+    expect(within(orchestrationBoard as HTMLElement).getAllByText("SQLAlchemy").length).toBeGreaterThan(0);
+
+    expect(
+      within(modulesBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveModules,
+      }),
+    ).toBeInTheDocument();
+    expect(within(modulesBoard as HTMLElement).getByText("modules/pipeline.py")).toBeInTheDocument();
+    expect(
+      within(modulesBoard as HTMLElement).getAllByText(/modules\/rag\//).length,
+    ).toBeGreaterThan(0);
+
+    expect(
+      within(principlesBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDivePrinciples,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(principlesBoard as HTMLElement).getByText(architectureContent.principles[0].title),
+    ).toBeInTheDocument();
+    expect(
+      within(principlesBoard as HTMLElement).getByText(architectureContent.roadmap[0].title),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText((_, element) =>
+        element?.tagName.toLowerCase() === "h2" &&
+        element.textContent === architectureContent.roadmap[0].title,
+      ),
+    ).not.toBeInTheDocument();
+    expect(document.querySelectorAll("main > section")).toHaveLength(architectureContent.boardOrder.length);
+  });
+
+  it("renders lower-board headings and evidence in the deep dive page", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
@@ -229,15 +326,16 @@ describe("route smoke", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: architectureContent.orchestrationMap.title }),
-    ).toBeInTheDocument();
-    expect(document.getElementById("evidence-module-map")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: architectureContent.principlesSection.title }),
+      screen.getByRole("heading", { name: architectureContent.copy.deepDiveOrchestration }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: architectureContent.evolutionRoadmap.title }),
+      screen.getByRole("heading", { name: architectureContent.copy.deepDiveModules }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.copy.deepDivePrinciples }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("modules/pipeline.py")).toBeInTheDocument();
+    expect(screen.getAllByText(/modules\/rag\//).length).toBeGreaterThan(0);
   });
 
   it("surfaces representative labels and technologies inside the first four deep dive boards", () => {

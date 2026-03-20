@@ -1,11 +1,10 @@
-import DesignPrinciples from "@/components/deep-dive/design-principles";
 import DualAxisMacro from "@/components/deep-dive/dual-axis-macro";
+import EvidenceModuleMap from "@/components/deep-dive/evidence-module-map";
 import EventInterpretationBoard from "@/components/deep-dive/event-interpretation-board";
 import ExecutiveBlueprint from "@/components/deep-dive/executive-blueprint";
-import EvolutionRoadmap from "@/components/deep-dive/evolution-roadmap";
-import OrchestrationMap from "@/components/deep-dive/orchestration-map";
+import OrchestrationControlBoard from "@/components/deep-dive/orchestration-control-board";
+import PrinciplesEvolutionBoard from "@/components/deep-dive/principles-evolution-board";
 import ProductKnowledgeBoard from "@/components/deep-dive/product-knowledge-board";
-import RealModuleMap from "@/components/deep-dive/real-module-map";
 
 export default function DeepDivePage() {
   return (
@@ -14,10 +13,9 @@ export default function DeepDivePage() {
       <DualAxisMacro />
       <EventInterpretationBoard />
       <ProductKnowledgeBoard />
-      <OrchestrationMap />
-      <RealModuleMap />
-      <DesignPrinciples />
-      <EvolutionRoadmap />
+      <OrchestrationControlBoard />
+      <EvidenceModuleMap />
+      <PrinciplesEvolutionBoard />
     </>
   );
 }

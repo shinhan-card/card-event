@@ -849,6 +849,50 @@ a:hover {
   margin-bottom: 1rem;
 }
 
+.orchestration-control-summary,
+.evidence-module-map-card,
+.principles-evolution-intro {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.orchestration-control-summary {
+  margin-bottom: 1rem;
+  background:
+    linear-gradient(135deg, rgba(126, 224, 255, 0.1), rgba(255, 179, 106, 0.08)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.orchestration-control-summary p,
+.evidence-module-map-card p,
+.principles-evolution-intro p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.evidence-module-map-card h3,
+.principles-evolution-intro h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.evidence-module-map-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.principles-evolution-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.principles-evolution-column {
+  display: grid;
+  gap: 1rem;
+}
+
 .deep-dive-principles {
   margin-top: 1rem;
 }
@@ -1158,6 +1202,7 @@ a:hover {
   .scene-hero,
   .signal-network-grid,
   .dual-axis-map,
+  .principles-evolution-layout,
   .deep-dive-overview,
   .module-cluster-map,
   .deep-dive-concept-grid,
