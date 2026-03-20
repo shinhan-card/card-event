@@ -50,7 +50,7 @@ const clusters = [
     group: "shared-core",
     title: "공유 코어 승인 경로",
     summary: "승인 스펙에는 포함되지만 이 브랜치에는 아직 없는 공용 헬스와 API 유틸 경로입니다.",
-    badges: ["FastAPI", "Approved Contract"],
+    badges: ["FastAPI", "승인 계약"],
     entries: [
       entry("routers/health.py", "approved", "헬스체크 라우터의 승인 스펙 경로"),
       entry("modules/api_utils.py", "approved", "공용 API 유틸의 승인 스펙 경로")
@@ -75,7 +75,7 @@ const clusters = [
     group: "event-axis",
     title: "이벤트 축 승인 경로",
     summary: "승인 스펙은 라우터와 세부 해석 모듈까지 요구하지만, 이 브랜치에는 아직 반영되지 않았습니다.",
-    badges: ["APScheduler", "Rules Engine", "Approved Contract"],
+    badges: ["APScheduler", "규칙 엔진", "승인 계약"],
     entries: [
       entry("routers/events.py", "approved", "이벤트 라우터의 승인 스펙 경로"),
       entry("routers/pipeline.py", "approved", "파이프라인 라우터의 승인 스펙 경로"),
@@ -108,7 +108,7 @@ const clusters = [
     group: "delivery-surfaces",
     title: "전달면 구현 경로",
     summary: "운영 화면과 발표 표면 가운데 현재 브랜치에서 확인 가능한 실제 템플릿과 정적 스크립트입니다.",
-    badges: ["FastAPI", "Dashboard", "Implemented Surface"],
+    badges: ["FastAPI", "대시보드", "구현 표면"],
     entries: [
       entry("templates/dashboard_luxury.html", "implemented", "럭셔리 대시보드 템플릿"),
       entry("templates/dashboard_pro.html", "implemented", "프로 대시보드 템플릿"),
@@ -120,7 +120,7 @@ const clusters = [
     group: "delivery-surfaces",
     title: "전달면 승인 경로",
     summary: "브리핑, 애널리틱스, 이메일 리포트 표면은 승인 스펙에 정의돼 있으므로 경로를 유지합니다.",
-    badges: ["FastAPI", "Briefing", "Approved Contract"],
+    badges: ["FastAPI", "브리핑", "승인 계약"],
     entries: [
       entry("routers/analytics.py", "approved", "애널리틱스 라우터의 승인 스펙 경로"),
       entry("routers/briefing.py", "approved", "브리핑 라우터의 승인 스펙 경로"),
@@ -137,6 +137,6 @@ const clusters = [
 export const moduleMap = {
   title: "근거 모듈 맵",
   summary:
-    "현재 브랜치에 존재하는 구현 파일과 승인 스펙에만 존재하는 경로를 함께 보여주되, evidenceLevel로 상태를 명확하게 구분합니다.",
+    "현재 브랜치에 존재하는 구현 파일과 승인 스펙에만 존재하는 경로를 함께 보여주되, 증거 등급으로 상태를 명확하게 구분합니다.",
   clusters
 } as const satisfies ModuleMap;

@@ -139,12 +139,12 @@ export interface ArchitectureContent {
 export const snapshotMeta = {
   label: "스냅샷 기준",
   capturedOn: "2026-03-20",
-  note: "Task 1 승인 스펙을 기준으로 프레젠테이션 계약을 재정의했고, 현재 브랜치 구현 여부는 evidenceLevel로 구분했습니다."
+  note: "1번 작업 승인 스펙을 기준으로 프레젠테이션 계약을 재정의했고, 현재 브랜치 구현 여부는 증거 등급으로 구분했습니다."
 } as const satisfies SnapshotMeta;
 
 export const executiveAtlasCopy = {
   productName: "카드 이벤트 인텔리전스",
-  deckTitle: "Executive Atlas",
+  deckTitle: "실행 아틀라스",
   navigation: {
     overview: "개요",
     architecture: "아키텍처",
@@ -210,7 +210,7 @@ const executiveBlueprintBoards = [
     title: executiveAtlasCopy.boards["executive-blueprint"],
     summary: "의사결정자가 전체 판을 한 장에서 읽도록, 입력 축과 전달면을 먼저 정렬합니다.",
     output: "핵심 질문, 입력 소스, 전달 결과를 한눈에 보여주는 첫 보드",
-    badges: ["FastAPI", "Executive Atlas"]
+    badges: ["FastAPI", "실행 아틀라스"]
   },
   {
     key: "dual-axis-macro",
@@ -243,8 +243,8 @@ const executiveBlueprintBoards = [
   {
     key: "evidence-module-map",
     title: executiveAtlasCopy.boards["evidence-module-map"],
-    summary: "실구현 파일과 승인 스펙 파일을 evidenceLevel로 분리해 근거를 정직하게 드러냅니다.",
-    output: "implemented와 approved가 공존하는 모듈 증거판",
+    summary: "실구현 파일과 승인 스펙 파일을 증거 등급으로 분리해 근거를 정직하게 드러냅니다.",
+    output: "구현됨과 승인된 설계가 공존하는 모듈 증거판",
     badges: ["FastAPI", "PDF/HTML extraction"]
   },
   {
@@ -279,25 +279,25 @@ const eventInterpretationSteps = [
     key: "rule-interpretation",
     title: "규칙 해석",
     summary: "규칙 엔진이 이벤트 조건을 해석해 운영 리스크와 비교 포인트를 먼저 고정합니다.",
-    badges: ["Rules Engine", "FastAPI"]
+    badges: ["규칙 엔진", "FastAPI"]
   },
   {
     key: "gemini-augmentation",
     title: "Gemini 보강",
     summary: "Gemini가 규칙 기반 결과에 맥락 문장과 운영 인사이트를 덧붙여 브리핑 품질을 끌어올립니다.",
-    badges: ["Gemini", "Insights"]
+    badges: ["Gemini", "인사이트"]
   },
   {
     key: "briefing-summary",
     title: "브리핑 요약",
     summary: "운영자가 바로 읽을 수 있는 일일 브리핑 요약으로 정리해 공유 전달면에 넘깁니다.",
-    badges: ["FastAPI", "Briefing"]
+    badges: ["FastAPI", "브리핑"]
   },
   {
     key: "deliver",
     title: "운영 전달",
     summary: "대시보드와 발표 화면으로 연결해 이벤트 해석 결과를 빠르게 소비할 수 있게 합니다.",
-    badges: ["FastAPI", "Dashboard"]
+    badges: ["FastAPI", "대시보드"]
   }
 ] as const satisfies readonly FlowStep<EventInterpretationStepKey>[];
 
@@ -306,7 +306,7 @@ const productKnowledgeSteps = [
     key: "collect-sources",
     title: "상품 소스 수집",
     summary: "상품 설명서, 공시, 상세 안내 링크를 수집 대상 큐로 모읍니다.",
-    badges: ["FastAPI", "Product Links"]
+    badges: ["FastAPI", "상품 링크"]
   },
   {
     key: "store-raw",
@@ -324,13 +324,13 @@ const productKnowledgeSteps = [
     key: "chunk",
     title: "청크 분할",
     summary: "질의 가능한 길이로 문서를 나누고, 섹션 맥락을 잃지 않도록 청크 메타데이터를 붙입니다.",
-    badges: ["RAG", "Chunking"]
+    badges: ["RAG", "청크 분할"]
   },
   {
     key: "embed",
     title: "임베딩 생성",
     summary: "검색 가능한 의미 벡터를 만들어 질의 응답의 회수 품질을 올립니다.",
-    badges: ["Gemini", "Embedding"]
+    badges: ["Gemini", "임베딩"]
   },
   {
     key: "store-vector",
@@ -342,7 +342,7 @@ const productKnowledgeSteps = [
     key: "retrieve-rag",
     title: "RAG 검색",
     summary: "질문에 맞는 근거 청크를 골라 응답 구성에 필요한 증거를 되돌려줍니다.",
-    badges: ["RAG", "Retriever"]
+    badges: ["RAG", "검색기"]
   },
   {
     key: "compose-response",
@@ -354,7 +354,7 @@ const productKnowledgeSteps = [
     key: "deliver",
     title: "지식 전달",
     summary: "운영 화면과 발표 자료에서 상품 근거를 그대로 추적할 수 있는 응답으로 전달합니다.",
-    badges: ["FastAPI", "Product Knowledge"]
+    badges: ["FastAPI", "상품 지식"]
   }
 ] as const satisfies readonly FlowStep<ProductKnowledgeStepKey>[];
 
@@ -362,7 +362,7 @@ const orchestrationColumns = [
   {
     key: "control-plane",
     title: "제어면",
-    summary: "스케줄과 API 라우팅을 조율해 두 축이 같은 cadence로 움직이도록 합니다.",
+    summary: "스케줄과 API 라우팅을 조율해 두 축이 같은 리듬으로 움직이도록 합니다.",
     responsibilities: ["수집 타이밍 제어", "실행 상태 추적", "호출 경로 정리"],
     badges: ["APScheduler", "FastAPI"]
   },
@@ -403,7 +403,7 @@ const principleItems = [
   {
     key: "honest-status",
     title: "구현 상태를 숨기지 않는다",
-    summary: "현재 브랜치에 없는 항목도 approved로 유지해, 승인 스펙과 구현 간격을 드러냅니다."
+    summary: "현재 브랜치에 없는 항목도 승인된 설계로 유지해, 승인 스펙과 구현 간격을 드러냅니다."
   }
 ] as const satisfies readonly PrincipleItem[];
 
@@ -411,17 +411,17 @@ const roadmapPhases = [
   {
     key: "phase-1",
     title: "축 계약 고정",
-    summary: "사이트와 딥다이브가 같은 copy 계약과 같은 보드 순서를 소비하도록 먼저 고정합니다."
+    summary: "사이트와 딥다이브가 같은 문구 계약과 같은 보드 순서를 소비하도록 먼저 고정합니다."
   },
   {
     key: "phase-2",
     title: "모듈 근거 연결",
-    summary: "실구현 파일과 승인된 라우터/모듈 경로를 evidenceLevel로 나눠 모듈 맵을 유지합니다."
+    summary: "실구현 파일과 승인된 라우터/모듈 경로를 증거 등급으로 나눠 모듈 맵을 유지합니다."
   },
   {
     key: "phase-3",
     title: "백엔드 실체화",
-    summary: "approved 상태의 router, RAG, briefing 경로가 실제 코드로 채워지면 즉시 implemented로 승격합니다."
+    summary: "승인 상태의 라우터, RAG, 브리핑 경로가 실제 코드로 채워지면 즉시 구현됨으로 승격합니다."
   }
 ] as const satisfies readonly RoadmapPhase[];
 

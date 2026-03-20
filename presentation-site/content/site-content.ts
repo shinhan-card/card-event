@@ -86,7 +86,7 @@ const landingScenes = [
   {
     key: "evidence-module-map",
     title: executiveAtlasCopy.boards["evidence-module-map"],
-    summary: "실구현과 승인 스펙을 같은 지도 안에서 evidenceLevel로 정직하게 구분합니다."
+    summary: "실구현과 승인 스펙을 같은 지도 안에서 증거 등급으로 정직하게 구분합니다."
   }
 ] as const satisfies readonly LandingScene[];
 
@@ -120,7 +120,7 @@ const valueCards = [
   {
     key: "evidence-trace",
     title: "근거 추적이 쉬워집니다",
-    description: "어떤 파일이 이미 구현됐는지, 어떤 경로가 승인만 된 상태인지 evidenceLevel로 바로 확인할 수 있습니다."
+    description: "어떤 파일이 이미 구현됐는지, 어떤 경로가 승인만 된 상태인지 증거 등급으로 바로 확인할 수 있습니다."
   },
   {
     key: "roadmap-honesty",

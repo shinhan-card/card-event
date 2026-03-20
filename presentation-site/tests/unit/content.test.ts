@@ -116,6 +116,30 @@ describe("executive atlas content contracts", () => {
     expect(corpus).toContain("PDF/HTML extraction");
   });
 
+  it("localizes reviewer-flagged UI and status labels that are not technology names", () => {
+    const corpus = [
+      architectureContent.copy.deckTitle,
+      architectureContent.executiveBlueprint.boards.flatMap((board) => board.badges),
+      architectureContent.eventInterpretation.steps.flatMap((step) => step.badges),
+      architectureContent.productKnowledge.steps.flatMap((step) => step.badges),
+      moduleMap.clusters.flatMap((cluster) => cluster.badges)
+    ]
+      .flat()
+      .join(" ");
+
+    expect(corpus).not.toContain("Executive Atlas");
+    expect(corpus).not.toContain("Rules Engine");
+    expect(corpus).not.toContain("Insights");
+    expect(corpus).not.toContain("Briefing");
+    expect(corpus).not.toContain("Dashboard");
+    expect(corpus).not.toContain("Product Links");
+    expect(corpus).not.toContain("Chunking");
+    expect(corpus).not.toContain("Embedding");
+    expect(corpus).not.toContain("Retriever");
+    expect(corpus).not.toContain("Approved Contract");
+    expect(corpus).not.toContain("Implemented Surface");
+  });
+
   it("defines module clusters across the required groups only", () => {
     const groups = [...new Set(moduleMap.clusters.map((cluster) => cluster.group))].sort();
     expect(groups).toEqual([
