@@ -15,17 +15,19 @@ export default function HeroScene() {
     >
       <div className="scene-hero">
         <div className="scene-hero-copy">
-          <p className="scene-intro">
-            Event intelligence and disclosure intelligence share a showroom, but
-            they do not share a lane. The introduction makes that distinction
-            visible from the first scroll.
-          </p>
+          <p className="scene-intro">{siteContent.showroom.hero.intro}</p>
 
           <div className="scene-actions">
-            <Link className="scene-button scene-button-primary" href={siteContent.hero.primaryCta.href}>
+            <Link
+              className="scene-button scene-button-primary"
+              href={siteContent.hero.primaryCta.href}
+            >
               {siteContent.hero.primaryCta.label}
             </Link>
-            <Link className="scene-button scene-button-secondary" href={siteContent.hero.secondaryCta.href}>
+            <Link
+              className="scene-button scene-button-secondary"
+              href={siteContent.hero.secondaryCta.href}
+            >
               {siteContent.hero.secondaryCta.label}
             </Link>
           </div>

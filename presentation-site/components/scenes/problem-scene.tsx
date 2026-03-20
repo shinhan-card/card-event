@@ -1,25 +1,13 @@
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
-
-const problemCards = [
-  {
-    title: "Event chaos",
-    description:
-      "Market moves arrive as loose signals: launches, pricing shifts, promos, app changes, and service updates."
-  },
-  {
-    title: "Disclosure depth",
-    description:
-      "Product research spans PDFs, filings, and support material that need separate extraction and interpretation."
-  }
-] as const;
+import { siteContent } from "@/content/site-content";
 
 export default function ProblemScene() {
   return (
     <SectionShell
-      eyebrow="Problem"
-      title="The market is noisy because the evidence is split"
-      summary="One lane tracks what is happening in the market. The other lane tracks what products actually exist. The landing page keeps both truths visible."
+      eyebrow={siteContent.showroom.problem.eyebrow}
+      title={siteContent.showroom.problem.title}
+      summary={siteContent.showroom.problem.summary}
       id="problem"
     >
       <div className="problem-grid">
@@ -31,7 +19,7 @@ export default function ProblemScene() {
           </article>
         ))}
 
-        {problemCards.map((item) => (
+        {siteContent.showroom.problem.cards.map((item) => (
           <article className="diagram-card problem-card" key={item.title}>
             <p className="section-shell-eyebrow">{item.title}</p>
             <p>{item.description}</p>
