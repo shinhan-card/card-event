@@ -2,89 +2,192 @@ import { architectureContent } from "@/content/architecture-content";
 import { moduleMap } from "@/content/module-map";
 import { siteContent } from "@/content/site-content";
 
-describe("content contracts", () => {
-  it("keeps both intelligence axes distinct", () => {
-    const axisKeys = architectureContent.axes.map((axis) => axis.key);
-    expect(axisKeys).toEqual(["event-intelligence", "product-intelligence"]);
+describe("executive atlas content contracts", () => {
+  it("shares a stable copy contract between site and architecture content", () => {
+    expect(siteContent.copy).toBe(architectureContent.copy);
+    expect(siteContent.copy.navigation.overview).toBe("개요");
+    expect(siteContent.copy.evidence.implemented).toBe("구현됨");
+    expect(siteContent.copy.evidence.approved).toBe("승인된 설계");
   });
 
-  it("keeps the deep dive Korean-first with explicit axis titles", () => {
-    expect(architectureContent.deepDive.title).toBe("아키텍처 딥다이브");
-    expect(architectureContent.conceptArchitecture.title).toBe("개념 아키텍처");
-    expect(architectureContent.dualAxisArchitecture.lanes.map((lane) => lane.title)).toEqual([
-      "이벤트 인텔리전스",
-      "상품 / 공시 인텔리전스"
-    ]);
-  });
-
-  it("surfaces the core runtime technologies in the deep dive content", () => {
-    const stageTechnologies = architectureContent.stages.flatMap((stage) => stage.technology);
-    const orchestrationText = architectureContent.orchestrationMap.groups
-      .flatMap((group) => [group.title, group.summary, ...group.items.flatMap((item) => [item.title, item.summary])])
-      .join(" ");
-    const moduleText = moduleMap.sections
-      .flatMap((section) => [section.title, section.summary, ...section.clusters.flatMap((cluster) => [cluster.title, cluster.summary])])
-      .join(" ");
-    const corpus = [...stageTechnologies, orchestrationText, moduleText].join(" ");
-
-    expect(corpus).toEqual(expect.stringContaining("Playwright"));
-    expect(corpus).toEqual(expect.stringContaining("Gemini"));
-    expect(corpus).toEqual(expect.stringContaining("FastAPI"));
-    expect(corpus).toEqual(expect.stringContaining("APScheduler"));
-    expect(corpus).toEqual(expect.stringContaining("SQLite"));
-    expect(corpus).toEqual(expect.stringContaining("SQLAlchemy"));
-    expect(corpus).toEqual(expect.stringContaining("BeautifulSoup"));
-    expect(corpus).toEqual(expect.stringContaining("ChromaDB"));
-    expect(corpus).toEqual(expect.stringContaining("RAG"));
-    expect(corpus).toEqual(expect.stringContaining("PDF/HTML extraction"));
-  });
-
-  it("includes landing scenes in order", () => {
-    expect(siteContent.landingScenes.map((scene) => scene.key)).toEqual([
+  it("exposes the required site content top-level fields", () => {
+    expect(Object.keys(siteContent)).toEqual([
+      "copy",
+      "snapshotMeta",
+      "navigation",
       "hero",
-      "problem",
-      "signal-flow",
-      "outcomes",
-      "orchestration",
-      "deep-dive-cta"
+      "landingScenes",
+      "decisionSurfaces",
+      "valueCards"
     ]);
   });
 
-  it("maps real modules into named clusters", () => {
-    expect(moduleMap.axisRoots.map((root) => root.key)).toEqual([
-      "event-pipeline",
-      "product-rag"
+  it("exposes the required architecture keys and board order", () => {
+    expect(Object.keys(architectureContent)).toEqual([
+      "copy",
+      "boardOrder",
+      "axes",
+      "executiveBlueprint",
+      "eventInterpretation",
+      "productKnowledge",
+      "orchestrationColumns",
+      "principles",
+      "roadmap"
+    ]);
+
+    expect(architectureContent.boardOrder).toEqual([
+      "executive-blueprint",
+      "dual-axis-macro",
+      "event-interpretation",
+      "product-knowledge",
+      "orchestration-control",
+      "evidence-module-map",
+      "principles-evolution"
+    ]);
+
+    expect(architectureContent.executiveBlueprint.boards.map((board) => board.key)).toEqual(
+      architectureContent.boardOrder
+    );
+  });
+
+  it("keeps the event interpretation step keys in the approved order", () => {
+    expect(architectureContent.eventInterpretation.steps.map((step) => step.key)).toEqual([
+      "collect",
+      "extract",
+      "structure",
+      "rule-interpretation",
+      "gemini-augmentation",
+      "briefing-summary",
+      "deliver"
     ]);
   });
 
-  it("covers event, enrichment, and product intelligence responsibilities", () => {
-    const eventCollection = moduleMap.sections.find((section) => section.key === "event-collection");
-    const eventPipeline = moduleMap.sections.find((section) => section.key === "event-pipeline");
-    const enrichment = moduleMap.sections.find((section) => section.key === "enrichment");
-    const productIntelligence = moduleMap.sections.find(
-      (section) => section.key === "product-intelligence"
+  it("keeps the product knowledge step keys in the approved order", () => {
+    expect(architectureContent.productKnowledge.steps.map((step) => step.key)).toEqual([
+      "collect-sources",
+      "store-raw",
+      "clean-document",
+      "chunk",
+      "embed",
+      "store-vector",
+      "retrieve-rag",
+      "compose-response",
+      "deliver"
+    ]);
+  });
+
+  it("mentions the required technologies across the architecture story", () => {
+    const corpus = [
+      architectureContent.axes.flatMap((axis) => [axis.title, axis.summary, ...axis.badges]),
+      architectureContent.executiveBlueprint.boards.flatMap((board) => [
+        board.title,
+        board.summary,
+        ...board.badges
+      ]),
+      architectureContent.eventInterpretation.steps.flatMap((step) => [
+        step.title,
+        step.summary,
+        ...step.badges
+      ]),
+      architectureContent.productKnowledge.steps.flatMap((step) => [
+        step.title,
+        step.summary,
+        ...step.badges
+      ]),
+      architectureContent.orchestrationColumns.flatMap((column) => [
+        column.title,
+        column.summary,
+        ...column.badges
+      ]),
+      moduleMap.clusters.flatMap((cluster) => [cluster.title, cluster.summary, ...cluster.badges])
+    ]
+      .flat()
+      .join(" ");
+
+    expect(corpus).toContain("Playwright");
+    expect(corpus).toContain("BeautifulSoup");
+    expect(corpus).toContain("Gemini");
+    expect(corpus).toContain("FastAPI");
+    expect(corpus).toContain("APScheduler");
+    expect(corpus).toContain("SQLite");
+    expect(corpus).toContain("SQLAlchemy");
+    expect(corpus).toContain("ChromaDB");
+    expect(corpus).toContain("RAG");
+    expect(corpus).toContain("PDF/HTML extraction");
+  });
+
+  it("defines module clusters across the required groups only", () => {
+    const groups = [...new Set(moduleMap.clusters.map((cluster) => cluster.group))].sort();
+    expect(groups).toEqual([
+      "delivery-surfaces",
+      "event-axis",
+      "product-axis",
+      "shared-core"
+    ]);
+  });
+
+  it("maps the required minimum paths with honest evidence levels", () => {
+    const findEntry = (group: string, path: string) =>
+      moduleMap.clusters
+        .filter((cluster) => cluster.group === group)
+        .flatMap((cluster) => cluster.entries)
+        .find((entry) => entry.path === path);
+
+    expect(findEntry("shared-core", "app.py")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("shared-core", "database.py")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("shared-core", "routers/health.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("shared-core", "modules/api_utils.py")?.evidenceLevel).toBe("approved");
+
+    expect(findEntry("event-axis", "routers/events.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "routers/pipeline.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "routers/jobs.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "modules/connectors/*")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("event-axis", "modules/extraction.py")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("event-axis", "modules/normalization.py")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("event-axis", "modules/pipeline.py")?.evidenceLevel).toBe("implemented");
+    expect(findEntry("event-axis", "modules/event_enrichment.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "modules/classification.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "modules/condition_facts.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "modules/rules_engine.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("event-axis", "modules/insights.py")?.evidenceLevel).toBe("implemented");
+
+    expect(findEntry("product-axis", "routers/disclosures.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "routers/rag.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "modules/product_links.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "modules/rag/collector.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "modules/rag/chunker.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "modules/rag/embedder.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("product-axis", "modules/rag/product_scraper.py")?.evidenceLevel).toBe(
+      "approved"
+    );
+    expect(findEntry("product-axis", "modules/rag/catalog_summary.py")?.evidenceLevel).toBe(
+      "approved"
     );
 
-    expect(eventCollection?.clusters[0].key).toBe("event-pipeline");
-    expect(eventPipeline?.clusters[0].files).toEqual(
-      expect.arrayContaining([
-        "modules/pipeline.py",
-        "modules/extraction.py",
-        "modules/normalization.py"
-      ])
+    expect(findEntry("delivery-surfaces", "routers/analytics.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("delivery-surfaces", "routers/briefing.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("delivery-surfaces", "routers/pages.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("delivery-surfaces", "modules/analytics_service.py")?.evidenceLevel).toBe(
+      "approved"
     );
-    expect(enrichment?.clusters[0].files).toEqual(
-      expect.arrayContaining([
-        "modules/insights.py",
-        "gemini_insight.py"
-      ])
+    expect(findEntry("delivery-surfaces", "modules/briefing.py")?.evidenceLevel).toBe("approved");
+    expect(findEntry("delivery-surfaces", "templates/dashboard_luxury.html")?.evidenceLevel).toBe(
+      "implemented"
     );
-    expect(productIntelligence?.clusters[0].files).toEqual(
-      expect.arrayContaining([
-        "routers/disclosures.py",
-        "routers/rag.py",
-        "modules/rag/*"
-      ])
+    expect(findEntry("delivery-surfaces", "templates/dashboard_pro.html")?.evidenceLevel).toBe(
+      "implemented"
+    );
+    expect(
+      findEntry("delivery-surfaces", "templates/email_daily_briefing.html")?.evidenceLevel
+    ).toBe("approved");
+    expect(findEntry("delivery-surfaces", "templates/weekly_report.html")?.evidenceLevel).toBe(
+      "approved"
+    );
+    expect(findEntry("delivery-surfaces", "static/js/dashboard.js")?.evidenceLevel).toBe(
+      "implemented"
+    );
+    expect(findEntry("delivery-surfaces", "static/js/dashboard_extras.js")?.evidenceLevel).toBe(
+      "approved"
     );
   });
 });

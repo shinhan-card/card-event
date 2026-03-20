@@ -1,187 +1,142 @@
-import { snapshotMetadata } from "@/content/architecture-content";
-import type { SnapshotMetadata } from "@/content/architecture-content";
+import type { EvidenceLevel } from "@/content/architecture-content";
 
-export type ModuleClusterKey = "event-pipeline" | "product-rag" | "shared";
+export type ModuleGroup =
+  | "shared-core"
+  | "event-axis"
+  | "product-axis"
+  | "delivery-surfaces";
 
-export interface ModuleAxisRoot {
-  key: "event-pipeline" | "product-rag";
-  title: string;
-  summary: string;
+export interface ModuleEntry {
+  path: string;
+  evidenceLevel: EvidenceLevel;
+  note: string;
 }
 
 export interface ModuleCluster {
-  key: ModuleClusterKey;
-  title: string;
-  summary: string;
-  technologies: readonly string[];
-  evidence: string;
-  files: readonly string[];
-}
-
-export interface ModuleSection {
   key: string;
+  group: ModuleGroup;
   title: string;
   summary: string;
-  clusters: readonly ModuleCluster[];
+  badges: readonly string[];
+  entries: readonly ModuleEntry[];
 }
 
 export interface ModuleMap {
-  snapshot: SnapshotMetadata;
-  axisRoots: readonly ModuleAxisRoot[];
+  title: string;
+  summary: string;
   clusters: readonly ModuleCluster[];
-  sections: readonly ModuleSection[];
 }
 
-const bootstrapCluster = {
-  key: "shared",
-  title: "공유 부트스트랩",
-  summary: "FastAPI 앱 초기화, DB 엔진, 세션 생성처럼 전체 시스템의 공통 기반을 담당합니다.",
-  technologies: ["FastAPI", "SQLite", "SQLAlchemy"],
-  evidence: "실제 코드",
-  files: ["app.py", "database.py"]
-} as const satisfies ModuleCluster;
+const entry = (path: string, evidenceLevel: EvidenceLevel, note: string): ModuleEntry => ({
+  path,
+  evidenceLevel,
+  note
+});
 
-const apiSurfaceCluster = {
-  key: "shared",
-  title: "공유 API 표면",
-  summary: "이벤트, 분석, 잡 상태를 외부에 노출하는 FastAPI 엔드포인트입니다.",
-  technologies: ["FastAPI"],
-  evidence: "실제 코드",
-  files: ["app.py"]
-} as const satisfies ModuleCluster;
-
-const eventCollectionCluster = {
-  key: "event-pipeline",
-  title: "이벤트 수집",
-  summary: "카드사별 커넥터와 브라우저 자동화가 이벤트 입력을 모읍니다.",
-  technologies: ["Playwright", "APScheduler"],
-  evidence: "실제 코드",
-  files: ["modules/connectors/*", "detail_extractor.py"]
-} as const satisfies ModuleCluster;
-
-const eventPipelineCluster = {
-  key: "event-pipeline",
-  title: "이벤트 파이프라인",
-  summary: "추출, 정규화, 파이프라인 오케스트레이션이 이벤트 축의 골격을 만듭니다.",
-  technologies: ["PDF/HTML extraction", "SQLite", "SQLAlchemy"],
-  evidence: "실제 코드",
-  files: [
-    "modules/pipeline.py",
-    "modules/extraction.py",
-    "modules/normalization.py",
-    "detail_extractor.py"
-  ]
-} as const satisfies ModuleCluster;
-
-const enrichmentCluster = {
-  key: "event-pipeline",
-  title: "이벤트 인사이트 강화",
-  summary: "규칙 기반 분석과 Gemini 보강이 위협도, 분류, 브리핑용 포인트를 만듭니다.",
-  technologies: ["Gemini", "규칙 기반 분석"],
-  evidence: "실제 코드",
-  files: ["modules/insights.py", "gemini_insight.py"]
-} as const satisfies ModuleCluster;
-
-const briefingAnalyticsCluster = {
-  key: "shared",
-  title: "브리핑 · 애널리틱스",
-  summary: "운영 보고와 발표 전달면으로 공통 구조를 소비하는 계층입니다.",
-  technologies: ["FastAPI", "Gemini"],
-  evidence: "실제 코드",
-  files: ["app.py", "templates/*", "static/js/*"]
-} as const satisfies ModuleCluster;
-
-const productRagCluster = {
-  key: "product-rag",
-  title: "상품 / 공시 지식 축",
-  summary:
-    "발표에서 승인된 상품 축 구조입니다. 공시 동기화, PDF/HTML extraction, 임베딩, ChromaDB, RAG 응답을 위한 전용 레인을 가정합니다.",
-  technologies: ["PDF/HTML extraction", "Gemini", "ChromaDB", "RAG"],
-  evidence: "승인된 축 설계",
-  files: ["routers/disclosures.py", "routers/rag.py", "modules/rag/*"]
-} as const satisfies ModuleCluster;
-
-const uiLayerCluster = {
-  key: "shared",
-  title: "전달 UI 레이어",
-  summary: "템플릿, 정적 스크립트, 발표 사이트가 최종 전달 경험을 구성합니다.",
-  technologies: ["FastAPI", "프레젠테이션 UI"],
-  evidence: "실제 코드",
-  files: ["templates/*", "static/js/*", "presentation-site/*"]
-} as const satisfies ModuleCluster;
+const clusters = [
+  {
+    key: "shared-core-implemented",
+    group: "shared-core",
+    title: "공유 코어 구현",
+    summary: "현재 브랜치에서 실제로 확인되는 애플리케이션 시작점과 저장 계층입니다.",
+    badges: ["FastAPI", "SQLite", "SQLAlchemy"],
+    entries: [
+      entry("app.py", "implemented", "현재 브랜치의 애플리케이션 진입점"),
+      entry("database.py", "implemented", "현재 브랜치의 데이터베이스 초기화 레이어")
+    ]
+  },
+  {
+    key: "shared-core-approved",
+    group: "shared-core",
+    title: "공유 코어 승인 경로",
+    summary: "승인 스펙에는 포함되지만 이 브랜치에는 아직 없는 공용 헬스와 API 유틸 경로입니다.",
+    badges: ["FastAPI", "Approved Contract"],
+    entries: [
+      entry("routers/health.py", "approved", "헬스체크 라우터의 승인 스펙 경로"),
+      entry("modules/api_utils.py", "approved", "공용 API 유틸의 승인 스펙 경로")
+    ]
+  },
+  {
+    key: "event-axis-implemented",
+    group: "event-axis",
+    title: "이벤트 축 구현 경로",
+    summary: "이벤트 수집과 정규화, 인사이트 생성의 실제 구현 근거가 이 브랜치에 존재합니다.",
+    badges: ["Playwright", "BeautifulSoup", "Gemini"],
+    entries: [
+      entry("modules/connectors/*", "implemented", "카드사별 커넥터 구현 묶음"),
+      entry("modules/extraction.py", "implemented", "본문 추출 구현"),
+      entry("modules/normalization.py", "implemented", "조건 정규화 구현"),
+      entry("modules/pipeline.py", "implemented", "이벤트 파이프라인 구현"),
+      entry("modules/insights.py", "implemented", "운영 인사이트 생성 구현")
+    ]
+  },
+  {
+    key: "event-axis-approved",
+    group: "event-axis",
+    title: "이벤트 축 승인 경로",
+    summary: "승인 스펙은 라우터와 세부 해석 모듈까지 요구하지만, 이 브랜치에는 아직 반영되지 않았습니다.",
+    badges: ["APScheduler", "Rules Engine", "Approved Contract"],
+    entries: [
+      entry("routers/events.py", "approved", "이벤트 라우터의 승인 스펙 경로"),
+      entry("routers/pipeline.py", "approved", "파이프라인 라우터의 승인 스펙 경로"),
+      entry("routers/jobs.py", "approved", "스케줄 작업 라우터의 승인 스펙 경로"),
+      entry("modules/event_enrichment.py", "approved", "이벤트 보강 모듈의 승인 스펙 경로"),
+      entry("modules/classification.py", "approved", "분류 모듈의 승인 스펙 경로"),
+      entry("modules/condition_facts.py", "approved", "조건 사실화 모듈의 승인 스펙 경로"),
+      entry("modules/rules_engine.py", "approved", "규칙 엔진 모듈의 승인 스펙 경로")
+    ]
+  },
+  {
+    key: "product-axis-approved",
+    group: "product-axis",
+    title: "상품 축 승인 경로",
+    summary: "상품 지식 축은 승인 스펙에 정의돼 있지만, 이 브랜치에서는 아직 구조만 먼저 유지합니다.",
+    badges: ["PDF/HTML extraction", "ChromaDB", "RAG"],
+    entries: [
+      entry("routers/disclosures.py", "approved", "공시 라우터의 승인 스펙 경로"),
+      entry("routers/rag.py", "approved", "RAG 라우터의 승인 스펙 경로"),
+      entry("modules/product_links.py", "approved", "상품 링크 수집 모듈의 승인 스펙 경로"),
+      entry("modules/rag/collector.py", "approved", "RAG 수집기 모듈의 승인 스펙 경로"),
+      entry("modules/rag/chunker.py", "approved", "청크 분할 모듈의 승인 스펙 경로"),
+      entry("modules/rag/embedder.py", "approved", "임베더 모듈의 승인 스펙 경로"),
+      entry("modules/rag/product_scraper.py", "approved", "상품 스크레이퍼 모듈의 승인 스펙 경로"),
+      entry("modules/rag/catalog_summary.py", "approved", "카탈로그 요약 모듈의 승인 스펙 경로")
+    ]
+  },
+  {
+    key: "delivery-surfaces-implemented",
+    group: "delivery-surfaces",
+    title: "전달면 구현 경로",
+    summary: "운영 화면과 발표 표면 가운데 현재 브랜치에서 확인 가능한 실제 템플릿과 정적 스크립트입니다.",
+    badges: ["FastAPI", "Dashboard", "Implemented Surface"],
+    entries: [
+      entry("templates/dashboard_luxury.html", "implemented", "럭셔리 대시보드 템플릿"),
+      entry("templates/dashboard_pro.html", "implemented", "프로 대시보드 템플릿"),
+      entry("static/js/dashboard.js", "implemented", "대시보드 프런트엔드 스크립트")
+    ]
+  },
+  {
+    key: "delivery-surfaces-approved",
+    group: "delivery-surfaces",
+    title: "전달면 승인 경로",
+    summary: "브리핑, 애널리틱스, 이메일 리포트 표면은 승인 스펙에 정의돼 있으므로 경로를 유지합니다.",
+    badges: ["FastAPI", "Briefing", "Approved Contract"],
+    entries: [
+      entry("routers/analytics.py", "approved", "애널리틱스 라우터의 승인 스펙 경로"),
+      entry("routers/briefing.py", "approved", "브리핑 라우터의 승인 스펙 경로"),
+      entry("routers/pages.py", "approved", "페이지 라우터의 승인 스펙 경로"),
+      entry("modules/analytics_service.py", "approved", "애널리틱스 서비스의 승인 스펙 경로"),
+      entry("modules/briefing.py", "approved", "브리핑 서비스의 승인 스펙 경로"),
+      entry("templates/email_daily_briefing.html", "approved", "일일 브리핑 이메일 템플릿 승인 경로"),
+      entry("templates/weekly_report.html", "approved", "주간 리포트 템플릿 승인 경로"),
+      entry("static/js/dashboard_extras.js", "approved", "보조 대시보드 스크립트 승인 경로")
+    ]
+  }
+] as const satisfies readonly ModuleCluster[];
 
 export const moduleMap = {
-  snapshot: snapshotMetadata,
-  axisRoots: [
-    {
-      key: "event-pipeline",
-      title: "이벤트 축 루트",
-      summary: "현재 워크트리에서 실코드 근거가 가장 강한 수집-정규화-강화 경로입니다."
-    },
-    {
-      key: "product-rag",
-      title: "상품 / 공시 축 루트",
-      summary: "승인된 발표 구조를 유지하기 위해 별도 축으로 남겨둔 PDF·임베딩·RAG 경로입니다."
-    }
-  ],
-  clusters: [
-    bootstrapCluster,
-    apiSurfaceCluster,
-    eventCollectionCluster,
-    eventPipelineCluster,
-    enrichmentCluster,
-    briefingAnalyticsCluster,
-    productRagCluster,
-    uiLayerCluster
-  ],
-  sections: [
-    {
-      key: "bootstrap",
-      title: "공유 코어",
-      summary: "앱 부트스트랩과 저장소 레이어가 모든 흐름의 바닥을 이룹니다.",
-      clusters: [bootstrapCluster]
-    },
-    {
-      key: "api-surface",
-      title: "서비스 엔드포인트",
-      summary: "운영 화면과 발표면이 접근하는 API 표면입니다.",
-      clusters: [apiSurfaceCluster]
-    },
-    {
-      key: "event-collection",
-      title: "이벤트 수집",
-      summary: "카드사 커넥터와 브라우저 자동화가 이벤트 원문을 수집합니다.",
-      clusters: [eventCollectionCluster]
-    },
-    {
-      key: "event-pipeline",
-      title: "이벤트 정제",
-      summary: "추출과 정규화가 이벤트 축의 신뢰 가능한 구조 필드를 만듭니다.",
-      clusters: [eventPipelineCluster]
-    },
-    {
-      key: "enrichment",
-      title: "이벤트 강화",
-      summary: "Gemini와 규칙 기반 분석이 운영자가 읽을 수 있는 의미를 덧붙입니다.",
-      clusters: [enrichmentCluster]
-    },
-    {
-      key: "briefing-analytics",
-      title: "공유 전달면",
-      summary: "브리핑과 애널리틱스가 두 축의 출력을 같은 전달 경험으로 묶습니다.",
-      clusters: [briefingAnalyticsCluster]
-    },
-    {
-      key: "product-intelligence",
-      title: "상품 / 공시 지식 축",
-      summary: "PDF/HTML extraction, 임베딩, ChromaDB, RAG를 위한 승인된 발표 축입니다.",
-      clusters: [productRagCluster]
-    },
-    {
-      key: "ui-layer",
-      title: "프레젠테이션 레이어",
-      summary: "템플릿과 발표 사이트가 기술 구조를 사람 친화적인 전달면으로 바꿉니다.",
-      clusters: [uiLayerCluster]
-    }
-  ]
+  title: "근거 모듈 맵",
+  summary:
+    "현재 브랜치에 존재하는 구현 파일과 승인 스펙에만 존재하는 경로를 함께 보여주되, evidenceLevel로 상태를 명확하게 구분합니다.",
+  clusters
 } as const satisfies ModuleMap;
