@@ -2,6 +2,7 @@
 
 import importlib
 import os
+import sqlite3
 import sys
 import tempfile
 from pathlib import Path
@@ -41,9 +42,30 @@ def test_init_db_adds_new_event_columns():
         database.engine.dispose()
 
 
+def _create_legacy_briefing_logs_table(db_path: Path):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE briefing_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                briefing_type VARCHAR NOT NULL,
+                recipient_count INTEGER DEFAULT 0,
+                new_events_count INTEGER DEFAULT 0,
+                high_threat_count INTEGER DEFAULT 0,
+                ending_soon_count INTEGER DEFAULT 0,
+                status VARCHAR DEFAULT 'sent',
+                error_msg TEXT,
+                sent_at DATETIME
+            )
+            """
+        )
+        conn.commit()
+
+
 def test_init_db_adds_briefing_log_columns():
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "schema_test.db"
+        _create_legacy_briefing_logs_table(db_path)
         os.environ["DATABASE_URL"] = f"sqlite:///{db_path.as_posix()}"
         if "database" in sys.modules:
             del sys.modules["database"]
