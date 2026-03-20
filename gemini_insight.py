@@ -9,13 +9,33 @@ import os
 import logging
 import time
 from collections import deque
+from datetime import datetime
 from threading import Lock
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from dotenv import load_dotenv
 
 load_dotenv()
 logger = logging.getLogger(__name__)
+
+# 최근 Gemini 오류 수집 (웹 대시보드 노출용, 최대 50건)
+_RECENT_GEMINI_ERRORS: deque = deque(maxlen=50)
+_ERRORS_LOCK = Lock()
+
+
+def _record_gemini_error(kind: str, message: str) -> None:
+    with _ERRORS_LOCK:
+        _RECENT_GEMINI_ERRORS.append({
+            "at": datetime.now().isoformat(),
+            "kind": kind,
+            "message": (message or "")[:300],
+        })
+
+
+def get_recent_gemini_errors() -> List[Dict[str, Any]]:
+    """웹 대시보드에서 표시할 최근 Gemini 오류 목록 (최신순)."""
+    with _ERRORS_LOCK:
+        return list(_RECENT_GEMINI_ERRORS)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MAX_RPM = max(1, int(os.getenv("GEMINI_MAX_RPM", "5")))
@@ -24,12 +44,12 @@ GEMINI_RATE_MODE = (os.getenv("GEMINI_RATE_MODE", "wait") or "wait").strip().low
 GEMINI_MAX_WAIT_SEC = max(0.0, float(os.getenv("GEMINI_MAX_WAIT_SEC", "180")))
 GEMINI_COOLDOWN_SEC = max(1, int(os.getenv("GEMINI_COOLDOWN_SEC", "65")))
 GEMINI_MODEL_PRIORITY = (
-    os.getenv("GEMINI_MODEL_PRIORITY", "gemini-2.5-flash-lite,gemini-2.5-flash")
-    or "gemini-2.5-flash-lite,gemini-2.5-flash"
+    os.getenv("GEMINI_MODEL_PRIORITY", "gemini-2.5-flash,gemini-2.0-flash")
+    or "gemini-2.5-flash,gemini-2.0-flash"
 )
 _MODEL_CANDIDATES = [m.strip() for m in GEMINI_MODEL_PRIORITY.split(",") if m.strip()]
 if not _MODEL_CANDIDATES:
-    _MODEL_CANDIDATES = ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
+    _MODEL_CANDIDATES = ["gemini-2.5-flash", "gemini-2.0-flash"]
 
 _model = None
 _model_name = None
@@ -137,6 +157,7 @@ def _get_model():
         return _model
     except Exception as e:
         logger.warning("Gemini 모델 초기화 실패: %s", e)
+        _record_gemini_error("init", str(e)[:300])
         return None
 
 
@@ -154,22 +175,42 @@ def _switch_to_next_model() -> bool:
 
 
 def _extract_json_text(raw_text: str) -> str:
+    """Gemini 응답에서 JSON만 추출. 마크다운 ```json ... ``` 또는 ``` ... ``` 제거, { } 구간 추출."""
     text = (raw_text or "").strip()
     if not text:
         return ""
     import re as _re
-    md_match = _re.search(r"```(?:json)?\s*\n?(.*?)```", text, _re.DOTALL)
-    if md_match:
-        text = md_match.group(1).strip()
-    elif text.startswith("```"):
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-        text = text.strip()
+    # 1) ```json ... ``` 또는 ``` ... ``` 블록 추출 (닫는 ``` 없어도 처리)
+    if "```" in text:
+        parts = text.split("```")
+        for i, part in enumerate(parts):
+            part = part.strip()
+            if part.lower().startswith("json"):
+                part = part[4:].strip()
+            if part.startswith("{") or part.startswith("["):
+                # 이 부분부터 끝까지 중 첫 { ~ 마지막 } 구간 사용
+                text = part
+                break
+        else:
+            # 블록 없이 ``` 만 있는 경우: 첫 ``` 다음부터
+            if text.startswith("```"):
+                text = text.split("```", 2)[1]
+                if text.lower().startswith("json"):
+                    text = text[4:]
+                text = text.strip()
+    # 2) 첫 { 또는 [ ~ 대응하는 마지막 } 또는 ] 구간만 취함
     brace_start = text.find("{")
-    brace_end = text.rfind("}")
-    if brace_start != -1 and brace_end != -1 and brace_end > brace_start:
-        text = text[brace_start:brace_end + 1]
+    bracket_start = text.find("[")
+    if brace_start == -1 and bracket_start != -1:
+        start, end = bracket_start, text.rfind("]")
+    elif brace_start != -1 and (bracket_start == -1 or brace_start < bracket_start):
+        start, end = brace_start, text.rfind("}")
+    elif bracket_start != -1:
+        start, end = bracket_start, text.rfind("]")
+    else:
+        start, end = brace_start, text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
     return text.strip()
 
 
@@ -198,6 +239,7 @@ def _generate_text_with_gemini(
                     "Gemini 모델 사용 불가(%s). fallback 모델 전환=%s next=%s",
                     current_model_name, switched, _model_name or "none",
                 )
+                _record_gemini_error("model_unavailable", str(e)[:300])
                 if switched:
                     continue
 
@@ -207,10 +249,12 @@ def _generate_text_with_gemini(
                     "Gemini rate-limit 감지(429/쿼터). cooldown=%ss attempt=%s",
                     GEMINI_COOLDOWN_SEC, attempt + 1,
                 )
+                _record_gemini_error("rate_limit", str(e)[:300])
                 if attempt == 0:
                     continue
 
             logger.warning("Gemini API 호출 실패: %s", str(e)[:200])
+            _record_gemini_error("api", str(e)[:300])
             return None
 
     return None
@@ -324,6 +368,7 @@ def enrich_with_gemini(extracted: dict, company: str = "") -> Optional[dict]:
         return result
     except Exception:
         logger.warning("Gemini 응답 JSON 파싱 실패: %s", text[:200])
+        _record_gemini_error("parse_insight", (text or "")[:300])
         return None
 
 
@@ -372,6 +417,7 @@ def summarize_company_status(company: str, snapshot: dict) -> Optional[dict]:
         obj = json.loads(_extract_json_text(text))
     except Exception:
         logger.warning("Gemini 회사개요 JSON 파싱 실패: %s", text[:200])
+        _record_gemini_error("parse_briefing", (text or "")[:300])
         return None
 
     if not isinstance(obj, dict):
@@ -396,6 +442,60 @@ def summarize_company_status(company: str, snapshot: dict) -> Optional[dict]:
         "focus_points": strongest,
         "watchouts": [obj.get("shinhan_threat", "")] if obj.get("shinhan_threat") else [],
         "action_hint": str(obj.get("recommended_counter") or "").strip(),
+    }
+
+
+WEEKLY_COMPANY_TREND_PROMPT = """
+당신은 카드사 주간 브리핑을 작성하는 마케팅 분석가다.
+입력된 카드사별 주간 스냅샷을 바탕으로, 추상적인 평가 대신 관찰된 이벤트/상품/공시 흐름을 짧게 요약한다.
+반드시 2~4문장, 180자 이내로 작성하고 "주목", "시사점", "대응" 같은 표현은 피한다.
+입력에 없는 내용은 추정하지 말고, 상품명/카테고리/변경 정보를 우선 활용한다.
+
+아래 JSON만 출력하라:
+{
+  "narrative": "주간 동향 요약 2~4문장",
+  "source": "gemini"
+}
+"""
+
+
+def summarize_weekly_company_trend(company: str, snapshot: dict) -> Optional[dict]:
+    """주간 브리핑용 카드사 동향 문장을 Gemini로 생성."""
+    if not snapshot:
+        return None
+
+    payload = json.dumps(snapshot, ensure_ascii=False)
+    text = _generate_text_with_gemini(
+        f"{WEEKLY_COMPANY_TREND_PROMPT}\n\n[회사명]\n{company}\n\n[주간 스냅샷]\n{payload}",
+        generation_config={
+            "temperature": 0.2,
+            "top_p": 0.8,
+            "max_output_tokens": 512,
+        },
+        max_attempts=2,
+        allow_wait=True,
+    )
+    if not text:
+        return None
+
+    try:
+        obj = json.loads(_extract_json_text(text))
+    except Exception:
+        logger.warning("Gemini 주간 카드사 동향 JSON 파싱 실패: %s", text[:200])
+        _record_gemini_error("parse_weekly_company_trend", (text or "")[:300])
+        return None
+
+    if not isinstance(obj, dict):
+        return None
+
+    narrative = str(obj.get("narrative") or obj.get("overview") or "").strip()
+    if not narrative:
+        return None
+
+    return {
+        "company": company,
+        "narrative": narrative,
+        "source": str(obj.get("source") or "gemini").strip() or "gemini",
     }
 
 
@@ -469,6 +569,7 @@ def infer_qualitative_comparison(company_snapshots: list) -> Optional[dict]:
         obj = json.loads(_extract_json_text(text))
     except Exception:
         logger.warning("Gemini 정성 비교 JSON 파싱 실패: %s", text[:200])
+        _record_gemini_error("parse_comparison", (text or "")[:300])
         return None
 
     if not isinstance(obj, dict):
@@ -562,6 +663,7 @@ def compare_event_texts(company_texts: dict) -> Optional[dict]:
         obj = json.loads(json_text)
     except Exception:
         logger.warning("텍스트 비교 JSON 파싱 실패: %s", json_text[:200])
+        _record_gemini_error("parse_text_compare", (json_text or "")[:300])
         return None
 
     common = obj.get("common_patterns", [])

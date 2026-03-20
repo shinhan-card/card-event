@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ week_label }} 주간 카드 마케팅 인텔리전스 리포트</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: #eef3fb;
+    color: #0f172a;
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  .shell {
+    width: 100%;
+    padding: 28px 16px 42px;
+  }
+  .frame {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .hero {
+    background: linear-gradient(135deg, #0b1c3d 0%, #102d61 58%, #18407e 100%);
+    border-radius: 20px;
+    padding: 32px 36px;
+    color: #fff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  }
+  .eyebrow {
+    margin: 0 0 10px;
+    color: #9ec5ff;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    margin: 0 0 10px;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  .hero p {
+    margin: 0;
+    color: #d7e3ff;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .hero-meta {
+    margin-top: 14px;
+    color: #d7e3ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .section {
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #dce6f7;
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  }
+  .section h2 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    line-height: 1.3;
+    color: #173a79;
+  }
+  .summary {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #1e293b;
+  }
+  .company-card,
+  .product-card,
+  .evidence-card {
+    background: #f8fbff;
+    border: 1px solid #e2ebfa;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-top: 12px;
+  }
+  .company-head,
+  .product-head,
+  .evidence-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .company-name,
+  .product-name,
+  .evidence-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .company-meta,
+  .product-meta,
+  .evidence-meta {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .company-note,
+  .product-body,
+  .evidence-body {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #334155;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .chip {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #2453c3;
+    border: 1px solid #cfe0ff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .chip-soft {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #dbe4f0;
+  }
+  .theme-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    padding: 12px 0;
+    border-top: 1px solid #edf2f7;
+  }
+  .theme-row:first-of-type {
+    border-top: 0;
+    padding-top: 2px;
+  }
+  .theme-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .theme-detail {
+    font-size: 12px;
+    color: #64748b;
+    text-align: right;
+    line-height: 1.5;
+  }
+  .event-list {
+    margin: 10px 0 0 18px;
+    padding: 0;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .subsection {
+    margin-top: 12px;
+  }
+  .subsection h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #1d4ed8;
+  }
+  @media screen and (max-width: 640px) {
+    .shell { padding: 16px 10px 28px; }
+    .hero { padding: 24px 20px; }
+    .hero h1 { font-size: 24px; }
+    .section { padding: 18px 18px; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="frame">
+      <div class="hero">
+        <p class="eyebrow">주간 경쟁 인텔리전스 브리핑</p>
+        <h1>{{ week_label }} 주간 카드 마케팅 인텔리전스 리포트</h1>
+        <p>이번 주의 신규 전개, 종료 흐름, 테마 이동, 상품 신호를 경영진 관점으로 재구성했습니다.</p>
+        <div class="hero-meta">기간: {{ period_label }}</div>
+      </div>
+
+      <div class="section">
+        <h2>주간 핵심 요약</h2>
+        <div class="summary">{{ executive_summary }}</div>
+      </div>
+      {% set weekly_narratives = company_weekly_narratives if company_weekly_narratives is defined else [] %}
+      {% if weekly_narratives %}
+      <div class="section">
+        <h2>카드사별 주간 동향 요약</h2>
+        {% for item in weekly_narratives %}
+        {% set lead_category = item.top_categories[0] if item.top_categories else '기타' %}
+        <div class="company-card">
+          <div class="company-head">
+            <div>
+              <div class="company-name">{{ item.company }}</div>
+              <div class="company-meta">
+                신규 {{ item.new_events_count }}건 · 종료 {{ item.ended_events_count }}건 · 종료 임박 {{ item.ending_soon_count }}건
+              </div>
+            </div>
+            <div class="company-meta">
+              {{ lead_category }} · {{ 'Gemini' if item.source == 'gemini' else 'Rule fallback' }}
+            </div>
+          </div>
+          <div class="company-note">{{ item.narrative }}</div>
+          {% if item.top_categories %}
+          <div class="chips">
+            {% for category in item.top_categories %}
+            <span class="chip">{{ category }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if not weekly_narratives %}
+      <div class="section">
+        <h2>회사별 주간 서술</h2>
+        {% for section in company_sections %}
+        {% set lead_category = section.top_categories[0] if section.top_categories else '기타' %}
+        <div class="company-card">
+          <div class="company-head">
+            <div>
+              <div class="company-name">{{ section.company }}</div>
+              <div class="company-meta">
+                신규 {{ section.new_events_count }}건 · 종료 {{ section.ended_events_count }}건 · 마감 임박 {{ section.ending_soon_count }}건
+              </div>
+            </div>
+            <div class="company-meta">주요 축: {{ lead_category }}</div>
+          </div>
+          <div class="company-note">
+            {{ section.company }}는 {{ lead_category }} 축에서 신규 전개가 이어졌고,
+            {% if section.ended_events_count %}
+            종료된 이벤트도 함께 확인되어 포트폴리오 재편 신호가 관찰됩니다.
+            {% else %}
+            기존 운영을 이어가며 노출 확대를 시험하는 흐름이 보입니다.
+            {% endif %}
+          </div>
+          {% if section.top_categories %}
+          <div class="chips">
+            {% for category in section.top_categories %}
+            <span class="chip">{{ category }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if section.evidence_events %}
+          <div class="company-meta" style="margin-top:12px;">대표 근거 이벤트</div>
+          <div class="chips">
+            {% for event in section.evidence_events %}
+            <span class="chip chip-soft">{{ event.title }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% set catalog_products = weekly_product_catalog_summary if weekly_product_catalog_summary is defined and weekly_product_catalog_summary else product_summary %}
+      {% if not catalog_products %}
+      <div class="section">
+        <h2>테마 변화</h2>
+        {% for item in theme_summary %}
+        <div class="theme-row">
+          <div>
+            <div class="theme-name">{{ item.theme }}</div>
+            <div class="theme-detail">참여 카드사: {{ item.companies|join(', ') }}</div>
+          </div>
+          <div class="theme-detail">{{ item.event_count }}건의 관련 이벤트</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="section">
+        <h2>제품/공시 요약</h2>
+        {% for product in catalog_products %}
+        <div class="product-card">
+          <div class="product-head">
+            <div>
+              <div class="product-name">{{ product.company }} · {{ product.product_name }}</div>
+              <div class="product-meta">연결 이벤트 {{ product.event_count }}건</div>
+            </div>
+            <div class="product-meta">
+              {% if product.match_method %}<span class="chip chip-soft">연결 방식 {{ product.match_method }}</span>{% endif %}
+              {% if product.confidence is defined and product.confidence is not none %}<span class="chip chip-soft">신뢰도 {{ (product.confidence * 100)|round(0)|int }}%</span>{% endif %}
+            </div>
+          </div>
+          {% if product.annual_fee_display or product.spend_requirement %}
+          <div class="product-meta" style="margin-top:8px;">
+            {% if product.annual_fee_display %}{{ product.annual_fee_display }}{% endif %}
+            {% if product.spend_requirement %}{% if product.annual_fee_display %} · {% endif %}{{ product.spend_requirement }}{% endif %}
+          </div>
+          {% endif %}
+          {% if product.benefit_highlights %}
+          <div class="chips" style="margin-top:12px;">
+            {% for benefit in product.benefit_highlights %}
+            <span class="chip chip-soft">{{ benefit }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if product.summary_text or product.preview %}
+          <div class="company-note">{{ product.summary_text or product.preview }}</div>
+          {% endif %}
+          {% if product.product_url or product.pdf_url %}
+          <div class="product-meta" style="margin-top:10px;">
+            {% if product.product_url %}<a href="{{ product.product_url }}" style="color:#18407e; text-decoration:none;">상품 링크</a>{% endif %}
+            {% if product.pdf_url %}{% if product.product_url %} · {% endif %}<a href="{{ product.pdf_url }}" style="color:#18407e; text-decoration:none;">PDF</a>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if weekly_product_changes is defined and weekly_product_changes %}
+        <div class="subsection">
+          <h3>주간 변경 상품</h3>
+          {% for product in weekly_product_changes %}
+          <div class="theme-row">
+            <div>
+              <div class="theme-name">{{ product.company }} 쨌 {{ product.product_name }}</div>
+              <div class="theme-detail">
+                {% if product.launch_date %}{{ product.launch_date }}{% endif %}
+                {% if product.revision_type %}{% if product.launch_date %} 쨌 {% endif %}{{ product.revision_type }}{% endif %}
+              </div>
+            </div>
+            <div class="theme-detail">
+              {% if product.product_url %}<a href="{{ product.product_url }}" style="color:#18407e; text-decoration:none;">링크</a>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if not catalog_products %}
+        <div class="company-note">이번 주에는 연결 상품이 충분하지 않아 공시 중심으로만 확인됩니다.</div>
+        {% endif %}
+      </div>
+
+      <div class="section">
+        <h2>근거 블록</h2>
+        <div class="subsection">
+          <h3>이벤트 근거</h3>
+          {% for ev in evidence_events %}
+          <div class="evidence-card">
+            <div class="evidence-head">
+              <div class="evidence-title">{{ ev.company }} · {{ ev.title }}</div>
+              <div class="evidence-meta">{{ ev.category }}</div>
+            </div>
+            <div class="evidence-body">{{ ev.one_line_summary }}</div>
+            {% if ev.evidence %}
+            <ul class="event-list">
+              {% for item in ev.evidence %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="subsection">
+          <h3>상품 근거</h3>
+          {% for product in evidence_products %}
+          <div class="evidence-card">
+            <div class="evidence-head">
+              <div class="evidence-title">{{ product.company }} · {{ product.product_name }}</div>
+              <div class="evidence-meta">
+                {% if product.match_method %}연결 방식 {{ product.match_method }}{% endif %}
+                {% if product.confidence is defined and product.confidence is not none %}{% if product.match_method %} · {% endif %}신뢰도 {{ (product.confidence * 100)|round(0)|int }}%{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
