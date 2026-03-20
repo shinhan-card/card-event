@@ -8,11 +8,11 @@ export default function OrchestrationMap() {
       title={architectureContent.orchestrationMap.title}
       summary={architectureContent.orchestrationMap.summary}
     >
-      <div className="deep-dive-orchestration-flow" aria-label="Orchestration relationship map">
+      <div className="deep-dive-orchestration-flow" aria-label="오케스트레이션 관계도">
         {architectureContent.orchestrationMap.groups.map((group, index) => (
           <div className="deep-dive-orchestration-column" key={group.key}>
             <article className="diagram-card deep-dive-orchestration-group-card">
-              <p className="section-shell-eyebrow">Step {String(index + 1).padStart(2, "0")}</p>
+              <p className="section-shell-eyebrow">{group.label}</p>
               <h3>{group.title}</h3>
               <p>{group.summary}</p>
             </article>
@@ -20,8 +20,15 @@ export default function OrchestrationMap() {
             <div className="deep-dive-orchestration-items">
               {group.items.map((item) => (
                 <article className="diagram-card deep-dive-orchestration-item-card" key={item.key}>
-                  <p className="section-shell-eyebrow">{item.title}</p>
+                  <h4>{item.title}</h4>
                   <p>{item.summary}</p>
+                  <div className="diagram-chip-row">
+                    {item.technologies.map((technology) => (
+                      <span className="diagram-chip" key={technology}>
+                        {technology}
+                      </span>
+                    ))}
+                  </div>
                 </article>
               ))}
             </div>

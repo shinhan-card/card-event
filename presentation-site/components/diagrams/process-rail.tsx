@@ -25,7 +25,7 @@ export default function ProcessRail() {
 
   if (prefersReducedMotion) {
     return (
-      <div className="process-rail" aria-label="Signal processing rail">
+      <div className="process-rail" aria-label="처리 단계 레일">
         <div className="process-rail-track" aria-hidden="true" />
 
         <div className="process-rail-stages">
@@ -33,7 +33,13 @@ export default function ProcessRail() {
             <article className="process-rail-stage" key={stage.key}>
               <span className="process-rail-index">{String(index + 1).padStart(2, "0")}</span>
               <h3>{stage.title}</h3>
-              <p className="process-rail-technology">{stage.technology}</p>
+              <div className="diagram-chip-row process-rail-chip-row">
+                {stage.technology.map((technology) => (
+                  <span className="diagram-chip" key={technology}>
+                    {technology}
+                  </span>
+                ))}
+              </div>
               <p>{stage.description}</p>
             </article>
           ))}
@@ -45,7 +51,7 @@ export default function ProcessRail() {
   return (
     <motion.div
       className="process-rail"
-      aria-label="Signal processing rail"
+      aria-label="처리 단계 레일"
       initial="hidden"
       animate="show"
       variants={railVariants}
@@ -57,7 +63,13 @@ export default function ProcessRail() {
           <motion.article className="process-rail-stage" key={stage.key} variants={stageVariants}>
             <span className="process-rail-index">{String(index + 1).padStart(2, "0")}</span>
             <h3>{stage.title}</h3>
-            <p className="process-rail-technology">{stage.technology}</p>
+            <div className="diagram-chip-row process-rail-chip-row">
+              {stage.technology.map((technology) => (
+                <span className="diagram-chip" key={technology}>
+                  {technology}
+                </span>
+              ))}
+            </div>
             <p>{stage.description}</p>
           </motion.article>
         ))}

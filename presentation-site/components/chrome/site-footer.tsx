@@ -15,8 +15,8 @@ export default function SiteFooter() {
         </p>
       </div>
       <div className="site-footer-links">
-        <Link href="/">Back to overview</Link>
-        <Link href="/deep-dive">Go to deep dive</Link>
+        <Link href="/">개요로 돌아가기</Link>
+        <Link href="/deep-dive">딥다이브로 이동</Link>
       </div>
     </footer>
   );

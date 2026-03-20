@@ -15,7 +15,7 @@ describe("route smoke", () => {
 
     const navigation = screen.getByRole("navigation", { name: /primary/i });
     const deepDiveLink = within(navigation).getByRole("link", {
-      name: /deep dive/i
+      name: "딥다이브"
     });
 
     expect(navigation).toBeInTheDocument();
@@ -43,8 +43,8 @@ describe("route smoke", () => {
       </PresentationShell>
     );
 
-    expect(screen.getByText("Collect")).toBeInTheDocument();
-    expect(screen.getByText("Deliver")).toBeInTheDocument();
+    expect(screen.getByText("수집")).toBeInTheDocument();
+    expect(screen.getByText("전달")).toBeInTheDocument();
   });
 
   it("renders deep dive heading", () => {
@@ -54,7 +54,7 @@ describe("route smoke", () => {
       </PresentationShell>
     );
     expect(
-      screen.getByRole("heading", { name: /architecture deep dive/i, level: 1 })
+      screen.getByRole("heading", { name: "아키텍처 딥다이브", level: 1 })
     ).toBeInTheDocument();
   });
 
@@ -66,13 +66,13 @@ describe("route smoke", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /concept architecture/i })
+      screen.getByRole("heading", { name: "개념 아키텍처" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /stage breakdown/i })
+      screen.getByRole("heading", { name: "처리 단계 구조" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /orchestration map/i })
+      screen.getByRole("heading", { name: "오케스트레이션 맵" })
     ).toBeInTheDocument();
   });
 
@@ -84,13 +84,31 @@ describe("route smoke", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /event intelligence/i })
+      screen.getByRole("heading", { name: "이벤트 인텔리전스" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /product \/ disclosure intelligence/i })
+      screen.getByRole("heading", { name: "상품 / 공시 인텔리전스" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /module reality/i })
+      screen.getByRole("heading", { name: "모듈 현실 지도" })
     ).toBeInTheDocument();
+  });
+
+  it("renders explicit deep dive technology labels", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>
+    );
+
+    expect(screen.getAllByText("Playwright").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Gemini").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("FastAPI").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("APScheduler").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("SQLite").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("SQLAlchemy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("ChromaDB").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("RAG").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("PDF/HTML extraction").length).toBeGreaterThan(0);
   });
 });

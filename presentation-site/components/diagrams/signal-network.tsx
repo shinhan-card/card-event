@@ -26,12 +26,11 @@ export default function SignalNetwork() {
 
   if (prefersReducedMotion) {
     return (
-      <section className="signal-network" aria-label="Signal network diagram">
+      <section className="signal-network" aria-label="신호 구조 다이어그램">
         <div className="signal-network-header">
-          <p className="section-shell-eyebrow">Signal network</p>
+          <p className="section-shell-eyebrow">신호 구조</p>
           <p className="signal-network-copy">
-            Separate lanes keep event and product intelligence legible before
-            delivery.
+            두 축을 초반부터 나눠 보여주면 전달면에서 다시 합쳐질 때도 책임선이 흐려지지 않습니다.
           </p>
         </div>
 
@@ -50,7 +49,7 @@ export default function SignalNetwork() {
         </div>
 
         <div className="signal-network-bridge">
-          <span className="signal-network-bridge-label">Shared delivery</span>
+          <span className="signal-network-bridge-label">공유 전달면</span>
           <div className="signal-network-bridge-track" aria-hidden="true">
             <span />
             <span />
@@ -64,16 +63,15 @@ export default function SignalNetwork() {
   return (
     <motion.section
       className="signal-network"
-      aria-label="Signal network diagram"
+      aria-label="신호 구조 다이어그램"
       initial="hidden"
       animate="show"
       variants={containerVariants}
     >
       <motion.div className="signal-network-header" variants={itemVariants}>
-        <p className="section-shell-eyebrow">Signal network</p>
+        <p className="section-shell-eyebrow">신호 구조</p>
         <p className="signal-network-copy">
-          Separate lanes keep event and product intelligence legible before
-          delivery.
+          두 축을 초반부터 나눠 보여주면 전달면에서 다시 합쳐질 때도 책임선이 흐려지지 않습니다.
         </p>
       </motion.div>
 
@@ -93,7 +91,7 @@ export default function SignalNetwork() {
       </div>
 
       <motion.div className="signal-network-bridge" variants={itemVariants}>
-        <span className="signal-network-bridge-label">Shared delivery</span>
+        <span className="signal-network-bridge-label">공유 전달면</span>
         <div className="signal-network-bridge-track" aria-hidden="true">
           <span />
           <span />

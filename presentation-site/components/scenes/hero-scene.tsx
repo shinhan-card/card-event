@@ -32,7 +32,7 @@ export default function HeroScene() {
             </Link>
           </div>
 
-          <div className="scene-badge-row" aria-label="Intelligence lanes">
+          <div className="scene-badge-row" aria-label="인텔리전스 축">
             {architectureContent.axes.map((axis) => (
               <span className="scene-badge" key={axis.key}>
                 {axis.title}

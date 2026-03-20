@@ -4,10 +4,13 @@ test("landing page links to deep dive", async ({ page }) => {
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: /event and disclosure intelligence/i, level: 1 })
+    page.getByRole("heading", {
+      name: "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게",
+      level: 1
+    })
   ).toBeVisible();
 
-  await page.getByRole("link", { name: /open deep dive/i }).click();
+  await page.getByRole("link", { name: "딥다이브 보기" }).click();
 
   await expect(page).toHaveURL(/\/deep-dive$/);
 });
@@ -16,12 +19,17 @@ test("landing page stays usable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  const deepDiveCta = page.getByRole("link", { name: /open deep dive/i });
+  const deepDiveCta = page.getByRole("link", { name: "딥다이브 보기" });
 
   await expect(deepDiveCta).toBeVisible();
   await expect(deepDiveCta).toBeInViewport();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: /event and disclosure intelligence/i, level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "이벤트와 공시 인텔리전스를 한 화면에, 그러나 같은 축으로는 섞지 않게",
+      level: 1
+    })
+  ).toBeVisible();
 
   const viewportWidth = await page.evaluate(() => window.innerWidth);
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);

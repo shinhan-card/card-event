@@ -13,7 +13,7 @@ export default function ProblemScene() {
       <div className="problem-grid">
         {architectureContent.axes.map((axis, index) => (
           <article className="diagram-card problem-card" key={axis.key}>
-            <p className="section-shell-eyebrow">Lane {String(index + 1).padStart(2, "0")}</p>
+            <p className="section-shell-eyebrow">축 {String(index + 1).padStart(2, "0")}</p>
             <h3>{axis.title}</h3>
             <p>{axis.question}</p>
           </article>

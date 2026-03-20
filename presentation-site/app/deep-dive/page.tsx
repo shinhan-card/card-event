@@ -20,12 +20,12 @@ export default function DeepDivePage() {
       >
         <div className="diagram-grid">
           <article className="diagram-card">
-            <p className="section-shell-eyebrow">Concept map</p>
+            <p className="section-shell-eyebrow">구조 초점</p>
             <p>{architectureContent.conceptArchitecture.summary}</p>
           </article>
           <article className="diagram-card">
-            <p className="section-shell-eyebrow">Stage map</p>
-            <p>{architectureContent.stageBreakdown.summary}</p>
+            <p className="section-shell-eyebrow">핵심 기술</p>
+            <p>Playwright, Gemini, FastAPI, APScheduler, SQLite, SQLAlchemy, RAG가 각 단계 어디에 놓이는지 드러냅니다.</p>
           </article>
         </div>
       </SectionShell>

@@ -8,6 +8,36 @@ describe("content contracts", () => {
     expect(axisKeys).toEqual(["event-intelligence", "product-intelligence"]);
   });
 
+  it("keeps the deep dive Korean-first with explicit axis titles", () => {
+    expect(architectureContent.deepDive.title).toBe("아키텍처 딥다이브");
+    expect(architectureContent.conceptArchitecture.title).toBe("개념 아키텍처");
+    expect(architectureContent.dualAxisArchitecture.lanes.map((lane) => lane.title)).toEqual([
+      "이벤트 인텔리전스",
+      "상품 / 공시 인텔리전스"
+    ]);
+  });
+
+  it("surfaces the core runtime technologies in the deep dive content", () => {
+    const stageTechnologies = architectureContent.stages.flatMap((stage) => stage.technology);
+    const orchestrationText = architectureContent.orchestrationMap.groups
+      .flatMap((group) => [group.title, group.summary, ...group.items.flatMap((item) => [item.title, item.summary])])
+      .join(" ");
+    const moduleText = moduleMap.sections
+      .flatMap((section) => [section.title, section.summary, ...section.clusters.flatMap((cluster) => [cluster.title, cluster.summary])])
+      .join(" ");
+    const corpus = [...stageTechnologies, orchestrationText, moduleText].join(" ");
+
+    expect(corpus).toEqual(expect.stringContaining("Playwright"));
+    expect(corpus).toEqual(expect.stringContaining("Gemini"));
+    expect(corpus).toEqual(expect.stringContaining("FastAPI"));
+    expect(corpus).toEqual(expect.stringContaining("APScheduler"));
+    expect(corpus).toEqual(expect.stringContaining("SQLite"));
+    expect(corpus).toEqual(expect.stringContaining("SQLAlchemy"));
+    expect(corpus).toEqual(expect.stringContaining("ChromaDB"));
+    expect(corpus).toEqual(expect.stringContaining("RAG"));
+    expect(corpus).toEqual(expect.stringContaining("PDF/HTML extraction"));
+  });
+
   it("includes landing scenes in order", () => {
     expect(siteContent.landingScenes.map((scene) => scene.key)).toEqual([
       "hero",
@@ -43,9 +73,8 @@ describe("content contracts", () => {
     );
     expect(enrichment?.clusters[0].files).toEqual(
       expect.arrayContaining([
-        "modules/event_enrichment.py",
-        "modules/classification.py",
-        "modules/insights.py"
+        "modules/insights.py",
+        "gemini_insight.py"
       ])
     );
   });
