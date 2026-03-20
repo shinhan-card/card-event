@@ -338,6 +338,20 @@ describe("route smoke", () => {
     expect(screen.getAllByText(/modules\/rag\//).length).toBeGreaterThan(0);
   });
 
+  it("keeps lower-board UI chrome in Korean instead of raw English tokens", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>,
+    );
+
+    expect(screen.queryByText(/^COLUMN 01$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^shared-core$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^event-axis$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^product-axis$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^delivery-surfaces$/)).not.toBeInTheDocument();
+  });
+
   it("surfaces representative labels and technologies inside the first four deep dive boards", () => {
     render(
       <PresentationShell>

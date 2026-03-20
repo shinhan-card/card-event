@@ -32,7 +32,7 @@ export default function EvidenceModuleMap() {
               <span className="diagram-chip diagram-chip--muted">
                 {evidenceLabels[cluster.evidenceLevel]}
               </span>
-              <span className="diagram-chip">{cluster.group}</span>
+              <span className="diagram-chip">{groupLabels[cluster.group]}</span>
             </div>
             <ul className="module-cluster-map-files">
               {cluster.files.map((file) => (

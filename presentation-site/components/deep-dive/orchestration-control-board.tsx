@@ -34,7 +34,7 @@ export default function OrchestrationControlBoard() {
         {columns.map((column, index) => (
           <div className="deep-dive-orchestration-column" key={column.title}>
             <article className="diagram-card deep-dive-orchestration-group-card">
-              <p className="section-shell-eyebrow">{`COLUMN 0${index + 1}`}</p>
+              <p className="section-shell-eyebrow">{`제어 열 0${index + 1}`}</p>
               <h3>{column.title}</h3>
               <p>{`${column.nodes.length}개 노드가 같은 컬럼 안에서 순차적으로 연결됩니다.`}</p>
               <div className="diagram-chip-row">
