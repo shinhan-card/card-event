@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
 import { moduleMap } from "@/content/module-map";
@@ -14,12 +17,24 @@ const evidenceLabels = {
   approved: "승인 경로",
 } as const;
 
+const repoRootCandidates = [process.cwd(), path.resolve(process.cwd(), "..")];
+
+const resolvePathStatus = (relativePath: string): keyof typeof evidenceLabels => {
+  if (relativePath.includes("*")) {
+    return "approved";
+  }
+
+  return repoRootCandidates.some((repoRoot) => existsSync(path.resolve(repoRoot, relativePath)))
+    ? "implemented"
+    : "approved";
+};
+
 export default function EvidenceModuleMap() {
   return (
     <SectionShell
       eyebrow={`근거 클러스터 ${moduleMap.clusters.length}개`}
       title={architectureContent.copy.deepDiveModules}
-      summary="공개 계약에 포함된 파일 경로를 클러스터별 근거 수준과 함께 배치해, 어떤 경로가 구현 근거인지 승인 경로인지 바로 구분할 수 있게 정리합니다."
+      summary="공개 계약에 포함된 파일 경로를 클러스터별 근거 수준과 함께 배치하고, 각 경로는 실제 워크트리 존재 여부에 따라 별도 provenance를 표시합니다."
       id="evidence-module-map"
     >
       <div className="diagram-grid evidence-module-map-grid" aria-label="근거 모듈 맵">
@@ -40,9 +55,18 @@ export default function EvidenceModuleMap() {
               <span className="diagram-chip">{groupLabels[cluster.group]}</span>
             </div>
             <ul className="module-cluster-map-files">
-              {cluster.files.map((file) => (
-                <li key={file}>{file}</li>
-              ))}
+              {cluster.files.map((file) => {
+                const pathStatus = resolvePathStatus(file);
+
+                return (
+                  <li data-path-status={pathStatus} key={file}>
+                    <span>{file}</span>
+                    <span className="diagram-chip diagram-chip--muted">
+                      {evidenceLabels[pathStatus]}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </article>
         ))}

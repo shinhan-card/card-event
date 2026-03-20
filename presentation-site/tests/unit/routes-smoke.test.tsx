@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+
 import DeepDivePage from "@/app/deep-dive/page";
 import HomePage from "@/app/page";
 import PresentationShell from "@/components/chrome/presentation-shell";
@@ -137,7 +138,9 @@ describe("route smoke", () => {
       </PresentationShell>,
     );
 
-    expect(document.querySelectorAll("main > section")).toHaveLength(architectureContent.boardOrder.length);
+    expect(document.querySelectorAll("main > section")).toHaveLength(
+      architectureContent.boardOrder.length,
+    );
 
     const sectionIds = Array.from(document.querySelectorAll("main > section[id]")).map(
       (section) => section.id,
@@ -294,9 +297,7 @@ describe("route smoke", () => {
       }),
     ).toBeInTheDocument();
     expect(within(modulesBoard as HTMLElement).getByText("modules/pipeline.py")).toBeInTheDocument();
-    expect(
-      within(modulesBoard as HTMLElement).getAllByText(/modules\/rag\//).length,
-    ).toBeGreaterThan(0);
+    expect(within(modulesBoard as HTMLElement).getAllByText(/modules\/rag\//).length).toBeGreaterThan(0);
 
     expect(
       within(principlesBoard as HTMLElement).getByRole("heading", {
@@ -315,7 +316,9 @@ describe("route smoke", () => {
         element.textContent === architectureContent.roadmap[0].title,
       ),
     ).not.toBeInTheDocument();
-    expect(document.querySelectorAll("main > section")).toHaveLength(architectureContent.boardOrder.length);
+    expect(document.querySelectorAll("main > section")).toHaveLength(
+      architectureContent.boardOrder.length,
+    );
   });
 
   it("derives orchestration summary technologies from the public contract data", () => {
@@ -390,7 +393,25 @@ describe("route smoke", () => {
       .closest("[data-evidence-level]");
 
     expect(ragEvidenceCard).toHaveAttribute("data-evidence-level", "approved");
-    expect(within(ragEvidenceCard as HTMLElement).getByText("승인 경로")).toBeInTheDocument();
+    expect(within(ragEvidenceCard as HTMLElement).getAllByText("승인 경로").length).toBeGreaterThan(0);
+  });
+
+  it("marks each evidence path with trustworthy file-level provenance", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>,
+    );
+
+    const livePath = screen.getByText("modules/pipeline.py").closest("[data-path-status]");
+    const approvedPath = screen
+      .getByText("modules/rag/collector.py")
+      .closest("[data-path-status]");
+
+    expect(livePath).toHaveAttribute("data-path-status", "implemented");
+    expect(within(livePath as HTMLElement).getByText("구현됨")).toBeInTheDocument();
+    expect(approvedPath).toHaveAttribute("data-path-status", "approved");
+    expect(within(approvedPath as HTMLElement).getByText("승인 경로")).toBeInTheDocument();
   });
 
   it("keeps lower-board UI chrome in Korean instead of raw English tokens", () => {

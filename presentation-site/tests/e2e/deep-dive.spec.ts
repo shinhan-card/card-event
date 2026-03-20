@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+
 import { architectureContent } from "@/content/architecture-content";
 
 test("deep dive renders all seven contract-driven boards with lower-board evidence", async ({
@@ -84,15 +85,23 @@ test("deep dive renders all seven contract-driven boards with lower-board eviden
 
   await expect(modulesBoard.getByText("modules/pipeline.py", { exact: true })).toBeVisible();
   await expect(modulesBoard.getByText(/modules\/rag\//).first()).toBeVisible();
+
   const approvedRagCard = modulesBoard.locator('[data-evidence-level="approved"]', {
     hasText: "modules/rag/collector.py",
   });
-  await expect(
-    approvedRagCard,
-  ).toHaveCount(1);
-  await expect(
-    approvedRagCard.getByText("승인 경로", { exact: true }),
-  ).toBeVisible();
+  await expect(approvedRagCard).toHaveCount(1);
+  await expect(approvedRagCard.getByText("승인 경로", { exact: true }).first()).toBeVisible();
+
+  const livePipelinePath = modulesBoard.locator('[data-path-status="implemented"]', {
+    hasText: "modules/pipeline.py",
+  });
+  const approvedRagPath = modulesBoard.locator('[data-path-status="approved"]', {
+    hasText: "modules/rag/collector.py",
+  });
+  await expect(livePipelinePath).toHaveCount(1);
+  await expect(livePipelinePath.getByText("구현됨", { exact: true })).toBeVisible();
+  await expect(approvedRagPath).toHaveCount(1);
+  await expect(approvedRagPath.getByText("승인 경로", { exact: true })).toBeVisible();
 
   await expect(
     principlesBoard.getByText(architectureContent.principles[0].title, { exact: true }),
@@ -143,9 +152,7 @@ test("deep dive stays readable on mobile after the seven-board refresh", async (
   ).toBeVisible();
   await expect(orchestrationBoard.getByText("APScheduler", { exact: true }).first()).toBeVisible();
   await expect(modulesBoard.getByText("modules/pipeline.py", { exact: true })).toBeVisible();
-  await expect(
-    modulesBoard.getByText(/modules\/rag\//).first(),
-  ).toBeVisible();
+  await expect(modulesBoard.getByText(/modules\/rag\//).first()).toBeVisible();
   await expect(
     principlesBoard.getByText(architectureContent.roadmap[0].title, { exact: true }),
   ).toBeVisible();
