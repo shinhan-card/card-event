@@ -13,6 +13,10 @@ The first smoke test for the workspace lives in:
 
 - `presentation-site/tests/unit/routes-smoke.test.tsx`
 
+The placeholder Playwright entrypoint lives in:
+
+- `presentation-site/tests/e2e/bootstrap-placeholder.spec.ts`
+
 ## Scripts
 
 - `npm run dev`
@@ -28,3 +32,4 @@ The first smoke test for the workspace lives in:
 - Keep this workspace self-contained inside `presentation-site/`.
 - Add future presentation changes here rather than in the FastAPI runtime.
 - Use the smoke test as the first check when extending the route shell.
+- `npm run test:e2e` is intentionally a placeholder for now; it stays green by skipping the bootstrap spec until real E2E coverage is added.
