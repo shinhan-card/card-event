@@ -16,6 +16,12 @@ from sqlalchemy.orm import Session
 
 import database as db
 from modules.connectors import CONNECTORS
+from modules.product_links import load_product_catalog
+
+try:
+    from gemini_insight import summarize_weekly_company_trend
+except Exception:  # pragma: no cover - keep briefing fallback-only if Gemini stack is unavailable
+    summarize_weekly_company_trend = None
 
 logger = logging.getLogger(__name__)
 
@@ -574,6 +580,249 @@ def _build_product_summary(source: dict, report_type: str) -> list:
     ]
 
 
+def _parse_catalog_date(raw_value) -> date | None:
+    value = str(raw_value or "").strip()
+    if not value:
+        return None
+
+    for fmt in ("%Y-%m-%d", "%Y.%m.%d", "%Y/%m/%d", "%Y%m%d"):
+        try:
+            return datetime.strptime(value, fmt).date()
+        except ValueError:
+            continue
+
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+    except ValueError:
+        return None
+
+
+def _is_weekly_product_change(product: dict, source: dict) -> bool:
+    change_date = _parse_catalog_date(product.get("launch_date"))
+    if change_date and source["period_start"].date() <= change_date <= source["now"].date():
+        return True
+    return False
+
+
+def _build_weekly_product_catalog_summary(source: dict) -> list:
+    product_counter = Counter()
+    product_examples = {}
+    for product in source["source_product_rows"]:
+        key = (product["company"], product["product_name"])
+        product_counter[key] += 1
+        product_examples.setdefault(key, product)
+
+    tracked_companies = (
+        set(source["coverage"]["expected_companies"])
+        | set(source["coverage"]["present_companies"])
+        | {company for company, _product_name in product_counter.keys()}
+    )
+
+    catalog_rows = []
+    seen_keys = set()
+    try:
+        catalog = load_product_catalog() or {}
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        logger.warning("Briefing catalog load failed: %s", exc)
+        catalog = {}
+
+    for entry in catalog.values():
+        if not isinstance(entry, dict):
+            continue
+        company = _normalize_company_name(entry.get("company"))
+        product_name = (entry.get("card_name") or entry.get("product_name") or "").strip()
+        if not company or not product_name:
+            continue
+
+        key = (company, product_name)
+        if tracked_companies and company not in tracked_companies and key not in product_counter:
+            continue
+
+        example = product_examples.get(key, {})
+        benefit_highlights = [
+            str(item).strip()
+            for item in (entry.get("benefit_highlights") or [])
+            if str(item).strip()
+        ][:3]
+        summary_text = str(entry.get("summary_text") or "").strip()
+        preview = str(entry.get("preview") or entry.get("summary_preview") or "").strip()
+
+        catalog_rows.append(
+            {
+                "company": company,
+                "product_name": product_name,
+                "event_count": product_counter.get(key, 0),
+                "match_method": example.get("match_method", ""),
+                "confidence": example.get("confidence", None),
+                "annual_fee_display": (entry.get("annual_fee_display") or entry.get("annual_fee") or "").strip(),
+                "spend_requirement": str(entry.get("spend_requirement") or "").strip(),
+                "benefit_highlights": benefit_highlights,
+                "summary_text": summary_text or preview,
+                "preview": preview or summary_text,
+                "product_url": str(entry.get("url") or entry.get("product_url") or "").strip(),
+                "pdf_url": str(entry.get("pdf_url") or entry.get("local_pdf_url") or "").strip(),
+                "launch_date": str(
+                    entry.get("launch_date")
+                    or entry.get("effective_date")
+                    or entry.get("published_date")
+                    or ""
+                ).strip(),
+                "revision_type": str(entry.get("revision_type") or "").strip(),
+            }
+        )
+        seen_keys.add(key)
+
+    for key, example in product_examples.items():
+        if key in seen_keys:
+            continue
+        company, product_name = key
+        catalog_rows.append(
+            {
+                "company": company,
+                "product_name": product_name,
+                "event_count": product_counter.get(key, 0),
+                "match_method": example.get("match_method", ""),
+                "confidence": example.get("confidence", None),
+                "annual_fee_display": "",
+                "spend_requirement": "",
+                "benefit_highlights": [],
+                "summary_text": "",
+                "preview": "",
+                "product_url": "",
+                "pdf_url": "",
+                "launch_date": "",
+                "revision_type": "",
+            }
+        )
+
+    catalog_rows.sort(
+        key=lambda item: (
+            -item["event_count"],
+            -int(_is_weekly_product_change(item, source)),
+            item["company"],
+            item["product_name"],
+        )
+    )
+    return catalog_rows[:8]
+
+
+def _build_weekly_product_changes(source: dict, catalog_summary: list) -> list:
+    changes = [item for item in catalog_summary if _is_weekly_product_change(item, source)]
+    changes.sort(
+        key=lambda item: (
+            _parse_catalog_date(item.get("launch_date")) or date.min,
+            item.get("event_count", 0),
+            item.get("product_name", ""),
+        ),
+        reverse=True,
+    )
+    return changes[:6]
+
+
+def _build_rule_weekly_company_narrative(section: dict, catalog_rows: list, product_changes: list) -> str:
+    focus_categories = [item for item in section.get("top_categories", []) if item][:2]
+    focus_products = [item["product_name"] for item in catalog_rows[:2] if item.get("product_name")]
+    change_products = [item["product_name"] for item in product_changes[:2] if item.get("product_name")]
+
+    summary = (
+        f"{section['company']} recorded {section['new_events_count']} new events, "
+        f"{section['ended_events_count']} ended events, and {section['ending_soon_count']} ending-soon offers this week."
+    )
+    if focus_categories:
+        summary += f" Category mix stayed anchored in {', '.join(focus_categories)}."
+    if focus_products:
+        summary += f" Products surfacing most often were {', '.join(focus_products)}."
+    if change_products:
+        summary += f" Catalog changes included {', '.join(change_products)}."
+    return summary
+
+
+def _build_weekly_company_narratives(source: dict, company_sections: list, catalog_summary: list, product_changes: list) -> list:
+    catalog_by_company = defaultdict(list)
+    for item in catalog_summary:
+        catalog_by_company[item["company"]].append(item)
+
+    changes_by_company = defaultdict(list)
+    for item in product_changes:
+        changes_by_company[item["company"]].append(item)
+
+    narratives = []
+    for section in company_sections:
+        company = section["company"]
+        company_catalog = catalog_by_company.get(company, [])
+        company_changes = changes_by_company.get(company, [])
+        snapshot = {
+            "period_label": _build_period_label(source, "weekly"),
+            "new_events_count": section["new_events_count"],
+            "ended_events_count": section["ended_events_count"],
+            "ending_soon_count": section["ending_soon_count"],
+            "top_categories": section.get("top_categories", [])[:3],
+            "evidence_events": [
+                {
+                    "title": item.get("title", ""),
+                    "category": item.get("category", ""),
+                    "one_line_summary": item.get("one_line_summary", ""),
+                }
+                for item in section.get("evidence_events", [])[:3]
+            ],
+            "weekly_products": [
+                {
+                    "product_name": item.get("product_name", ""),
+                    "event_count": item.get("event_count", 0),
+                    "annual_fee_display": item.get("annual_fee_display", ""),
+                    "spend_requirement": item.get("spend_requirement", ""),
+                    "benefit_highlights": item.get("benefit_highlights", []),
+                    "revision_type": item.get("revision_type", ""),
+                    "launch_date": item.get("launch_date", ""),
+                }
+                for item in company_catalog[:4]
+            ],
+            "weekly_product_changes": [
+                {
+                    "product_name": item.get("product_name", ""),
+                    "revision_type": item.get("revision_type", ""),
+                    "launch_date": item.get("launch_date", ""),
+                }
+                for item in company_changes[:4]
+            ],
+        }
+
+        narrative_text = ""
+        narrative_source = "rule"
+        helper = summarize_weekly_company_trend
+        if callable(helper):
+            try:
+                ai_result = helper(company, snapshot)
+            except Exception as exc:  # pragma: no cover - defensive fallback
+                logger.warning("Weekly company narrative generation failed for %s: %s", company, exc)
+                ai_result = None
+
+            if isinstance(ai_result, dict):
+                narrative_text = str(ai_result.get("narrative") or ai_result.get("overview") or "").strip()
+                narrative_source = str(ai_result.get("source") or "gemini").strip() or "gemini"
+            elif isinstance(ai_result, str):
+                narrative_text = ai_result.strip()
+                narrative_source = "gemini"
+
+        if not narrative_text:
+            narrative_text = _build_rule_weekly_company_narrative(section, company_catalog, company_changes)
+            narrative_source = "rule"
+
+        narratives.append(
+            {
+                "company": company,
+                "narrative": narrative_text,
+                "source": narrative_source,
+                "new_events_count": section["new_events_count"],
+                "ended_events_count": section["ended_events_count"],
+                "ending_soon_count": section["ending_soon_count"],
+                "top_categories": section.get("top_categories", [])[:3],
+            }
+        )
+
+    return narratives
+
+
 def _pick_evidence_events(source: dict, report_type: str) -> list:
     candidate_events = _dedupe_events(
         source["new_events"]
@@ -653,6 +902,11 @@ def _build_executive_summary(payload: dict, report_type: str) -> tuple[str, str]
 
     lead_company = payload["company_sections"][0]["company"] if payload["company_sections"] else "tracked issuers"
     lead_theme = payload["theme_summary"][0]["theme"] if payload["theme_summary"] else "broad activity"
+    lead_product = (
+        payload["weekly_product_catalog_summary"][0]["product_name"]
+        if report_type == "weekly" and payload.get("weekly_product_catalog_summary")
+        else ""
+    )
 
     if report_type == "daily":
         summary = (
@@ -664,8 +918,12 @@ def _build_executive_summary(payload: dict, report_type: str) -> tuple[str, str]
         summary = (
             f"Weekly briefing for {payload['period_label']}: "
             f"{payload['new_events_count']} new events and {payload['ended_events_count']} ended events, "
-            f"with {lead_company} most active in {lead_theme}."
+            f"with {lead_company} leading the week"
         )
+        if lead_product:
+            summary += f" around {lead_product}."
+        else:
+            summary += f" in {lead_theme}."
 
     return summary, "rule"
 
@@ -737,6 +995,27 @@ def build_briefing_payload(session: Session, report_type: str) -> dict:
     period_label = _build_period_label(source, report_type)
     notable_events = [event for event, _reasons in source["notable_pairs"][:10]]
     notable_reasons = {event.id: reasons for event, reasons in source["notable_pairs"][:10]}
+    company_sections = _build_company_sections(source, report_type)
+    theme_summary = _build_theme_summary(source, report_type)
+    product_summary = _build_product_summary(source, report_type)
+    weekly_product_catalog_summary = (
+        _build_weekly_product_catalog_summary(source) if report_type == "weekly" else []
+    )
+    weekly_product_changes = (
+        _build_weekly_product_changes(source, weekly_product_catalog_summary)
+        if report_type == "weekly"
+        else []
+    )
+    company_weekly_narratives = (
+        _build_weekly_company_narratives(
+            source,
+            company_sections,
+            weekly_product_catalog_summary,
+            weekly_product_changes,
+        )
+        if report_type == "weekly"
+        else []
+    )
 
     payload = {
         "report_type": report_type,
@@ -746,9 +1025,12 @@ def build_briefing_payload(session: Session, report_type: str) -> dict:
         "week_label": period_label if report_type == "weekly" else "",
         "delivery_mode": "digest",
         "template_version": BRIEFING_TEMPLATE_VERSION,
-        "company_sections": _build_company_sections(source, report_type),
-        "theme_summary": _build_theme_summary(source, report_type),
-        "product_summary": _build_product_summary(source, report_type),
+        "company_sections": company_sections,
+        "company_weekly_narratives": company_weekly_narratives,
+        "theme_summary": theme_summary,
+        "product_summary": product_summary,
+        "weekly_product_catalog_summary": weekly_product_catalog_summary,
+        "weekly_product_changes": weekly_product_changes,
         "evidence_events": _pick_evidence_events(source, report_type),
         "evidence_products": _pick_evidence_products(source, report_type),
         "data_coverage": source["coverage"],
