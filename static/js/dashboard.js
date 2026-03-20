@@ -155,6 +155,15 @@ function briefingReadinessMeta(period) {
   return { label: 'ready', badge: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' };
 }
 
+function getBriefingPeriodStatus(type) {
+  return type === 'weekly' ? BRIEFING_STATUS?.weekly : BRIEFING_STATUS?.daily;
+}
+
+function briefingProductionBlocked(type) {
+  const status = String(getBriefingPeriodStatus(type)?.readinessStatus || '').toLowerCase();
+  return status.includes('block') || status.includes('fail') || status.includes('error');
+}
+
 function renderBriefingStatusCards() {
   const grid = document.getElementById('opsBriefingStatusGrid');
   if (!grid) return;
@@ -268,25 +277,30 @@ function renderBriefingActions() {
   const isFailure = briefingConsoleHasFailure();
   const renderButton = (type, mode, label, primary = false) => {
     const busy = BRIEFING_SEND_BUSY === `${type}:${mode}`;
+    const blocked = primary && briefingProductionBlocked(type);
+    const disabled = !isReady || busy || blocked;
     return `
-      <button type="button" class="${primary ? 'btn btn-primary' : 'btn btn-secondary'} ${(!isReady || busy) ? 'opacity-60 cursor-not-allowed' : ''}" data-briefing-send="${type}:${mode}" ${(!isReady || busy) ? 'disabled' : ''}>
-        <i class="fas ${busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'} mr-1"></i>${esc(busy ? '발송 중...' : label)}
+      <button type="button" class="${primary ? 'btn btn-primary' : 'btn btn-secondary'} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}" data-briefing-send="${type}:${mode}" ${disabled ? 'disabled' : ''} ${blocked ? 'title="Production send is disabled while readiness is blocked"' : ''}>
+        <i class="fas ${busy ? 'fa-spinner fa-spin' : 'fa-paper-plane'} mr-1"></i>${esc(busy ? 'Sending...' : label)}
       </button>
     `;
   };
+  const dailyBlocked = briefingProductionBlocked('daily');
+  const weeklyBlocked = briefingProductionBlocked('weekly');
   container.innerHTML = `
     <div class="grid gap-3 lg:grid-cols-2">
       <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <div>
             <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">daily</div>
-            <div class="mt-1 text-sm font-bold text-slate-900">일간 브리핑</div>
+            <div class="mt-1 text-sm font-bold text-slate-900">Daily briefing</div>
           </div>
           <a href="/api/briefing/preview?type=daily" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
         ${isFailure
-          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">브리핑 데이터를 불러오지 못해 발송이 비활성화되었습니다.</div>`
-          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">브리핑 상태와 로그를 불러오는 중입니다.</div>` : '')}
+          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Briefing data failed to load, so send actions are disabled.</div>`
+          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">Loading briefing status and logs.</div>` : '')}
+        ${!isFailure && isReady && dailyBlocked ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Production send is blocked for daily briefing readiness. Test send remains available.</div>` : ''}
         <div class="mt-3 flex flex-wrap gap-2">
           ${renderButton('daily', 'test', 'Test send')}
           ${renderButton('daily', 'production', 'Production send', true)}
@@ -296,13 +310,14 @@ function renderBriefingActions() {
         <div class="flex items-start justify-between gap-3">
           <div>
             <div class="text-[11px] font-semibold tracking-[0.08em] text-slate-500">weekly</div>
-            <div class="mt-1 text-sm font-bold text-slate-900">주간 브리핑</div>
+            <div class="mt-1 text-sm font-bold text-slate-900">Weekly briefing</div>
           </div>
           <a href="/api/briefing/preview?type=weekly" target="_blank" class="btn btn-secondary text-xs"><i class="fas fa-eye mr-1"></i>preview</a>
         </div>
         ${isFailure
-          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">브리핑 데이터를 불러오지 못해 발송이 비활성화되었습니다.</div>`
-          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">브리핑 상태와 로그를 불러오는 중입니다.</div>` : '')}
+          ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Briefing data failed to load, so send actions are disabled.</div>`
+          : (!isReady ? `<div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">Loading briefing status and logs.</div>` : '')}
+        ${!isFailure && isReady && weeklyBlocked ? `<div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Production send is blocked for weekly briefing readiness. Test send remains available.</div>` : ''}
         <div class="mt-3 flex flex-wrap gap-2">
           ${renderButton('weekly', 'test', 'Test send')}
           ${renderButton('weekly', 'production', 'Production send', true)}
@@ -444,6 +459,10 @@ async function loadBriefingStatus() {
 
 async function sendBriefingAction(type, mode) {
   if (BRIEFING_SEND_BUSY || !briefingConsoleIsReady()) return;
+  if (mode === 'production' && briefingProductionBlocked(type)) {
+    alert('Production send is blocked until briefing readiness is ready.');
+    return;
+  }
   const key = `${type}:${mode}`;
   const label = `${briefingTypeLabel(type)} 브리핑`;
   if (!confirm(`${label}을(를) ${mode === 'test' ? 'test' : 'production'} 모드로 발송할까요?`)) return;

@@ -1,7 +1,7 @@
 import json
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 import database as db
@@ -66,6 +66,7 @@ async def briefing_send_now(
         build_weekly_briefing_data,
         get_dashboard_url,
         get_recipients,
+        production_send_blocked,
         render_briefing_html,
         send_briefing_email,
     )
@@ -78,8 +79,19 @@ async def briefing_send_now(
         data = build_weekly_briefing_data(db_session)
         subject = f"[Card Event Intelligence] Weekly briefing {data['week_label']}"
 
+    if mode == "production" and production_send_blocked(data):
+        return JSONResponse(
+            status_code=409,
+            content={
+                "detail": "briefing readiness is blocked",
+                "readiness_status": "blocked",
+                "delivery_mode": mode,
+                "period_label": data.get("period_label", ""),
+            },
+        )
+
     html = render_briefing_html(data, type, dashboard_url)
-    recipients = get_recipients()
+    recipients = get_recipients(mode=mode)
     success, error = send_briefing_email(html, subject, recipients)
 
     log_metadata = build_briefing_log_metadata(

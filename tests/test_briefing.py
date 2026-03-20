@@ -360,6 +360,99 @@ def test_daily_payload_warns_when_company_coverage_is_missing(monkeypatch):
     assert "Gamma Card" in coverage_warning["missing_companies"]
 
 
+def test_daily_payload_defaults_to_supported_four_issuers_without_coverage_block():
+    session = _FakeSession(
+        [
+            _make_event(
+                4,
+                company="신한카드",
+                created_at=datetime.now(),
+                one_line_summary="Shinhan coverage evidence.",
+                evidence=["Shinhan evidence"],
+            ),
+            _make_event(
+                5,
+                company="삼성카드",
+                created_at=datetime.now(),
+                one_line_summary="Samsung coverage evidence.",
+                evidence=["Samsung evidence"],
+            ),
+            _make_event(
+                6,
+                company="현대카드",
+                created_at=datetime.now(),
+                one_line_summary="Hyundai coverage evidence.",
+                evidence=["Hyundai evidence"],
+            ),
+            _make_event(
+                7,
+                company="KB국민카드",
+                created_at=datetime.now(),
+                one_line_summary="KB coverage evidence.",
+                evidence=["KB evidence"],
+            ),
+        ]
+    )
+
+    payload = briefing.build_daily_briefing_data(session)
+    snapshot = briefing.build_briefing_status_snapshot(payload)
+
+    assert all(warning["code"] != "company_coverage_low" for warning in payload["quality_warnings"])
+    assert payload["warning_count"] == 0
+    assert snapshot["readiness_status"] == "ready"
+
+
+def test_daily_payload_ignores_stale_historical_issuer_rows_for_coverage(monkeypatch):
+    monkeypatch.setattr(
+        briefing,
+        "EXPECTED_COMPANIES",
+        ("신한카드", "삼성카드", "현대카드", "KB국민카드"),
+        raising=False,
+    )
+    session = _FakeSession(
+        [
+            _make_event(
+                8,
+                company="신한카드",
+                created_at=datetime.now(),
+                one_line_summary="Fresh Shinhan evidence.",
+                evidence=["Shinhan evidence"],
+            ),
+            _make_event(
+                9,
+                company="삼성카드",
+                created_at=datetime.now(),
+                one_line_summary="Fresh Samsung evidence.",
+                evidence=["Samsung evidence"],
+            ),
+            _make_event(
+                10,
+                company="현대카드",
+                created_at=datetime.now(),
+                one_line_summary="Fresh Hyundai evidence.",
+                evidence=["Hyundai evidence"],
+            ),
+            _make_event(
+                11,
+                company="KB국민카드",
+                created_at=datetime.now() - timedelta(days=30),
+                period_end=date.today() - timedelta(days=20),
+                status="ended",
+                one_line_summary="Stale KB history.",
+                evidence=["Historical KB evidence"],
+            ),
+        ]
+    )
+
+    payload = briefing.build_daily_briefing_data(session)
+    coverage_warning = next(
+        warning for warning in payload["quality_warnings"] if warning["code"] == "company_coverage_low"
+    )
+
+    assert "KB국민카드" in coverage_warning["missing_companies"]
+    assert payload["source_event_count"] == 3
+
+
 def test_daily_payload_warns_when_evidence_events_are_missing(monkeypatch):
     monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
     session = _FakeSession(
@@ -563,47 +656,60 @@ def test_briefing_module_exports_single_daily_and_weekly_builder_definition():
 
 
 def test_create_briefing_log_persists_new_metadata():
+    original_database_url = os.environ.get("DATABASE_URL")
+    original_database_module = sys.modules.get("database")
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "briefing_test.db"
-        os.environ["DATABASE_URL"] = f"sqlite:///{db_path.as_posix()}"
-        if "database" in sys.modules:
-            del sys.modules["database"]
-        database = importlib.import_module("database")
-        database.init_db()
-
-        session = database.SessionLocal()
         try:
-            created = database.create_briefing_log(
-                session,
-                briefing_type="daily",
-                recipient_count=3,
-                new_events_count=1,
-                high_threat_count=0,
-                ending_soon_count=0,
-                status="sent",
-                error_msg=None,
-                period_label="2026-03-20",
-                source_event_count=5,
-                source_product_count=2,
-                warning_count=2,
-                warning_json={"warnings": ["late_renewal"]},
-                ai_summary_status="rule",
-                delivery_mode="digest",
-                template_version="v3",
-            )
+            os.environ["DATABASE_URL"] = f"sqlite:///{db_path.as_posix()}"
+            if "database" in sys.modules:
+                del sys.modules["database"]
+            database = importlib.import_module("database")
+            database.init_db()
 
-            persisted = session.query(database.BriefingLog).filter_by(id=created.id).one()
-            assert persisted.period_label == "2026-03-20"
-            assert persisted.source_event_count == 5
-            assert persisted.source_product_count == 2
-            assert persisted.ai_summary_status == "rule"
-            assert persisted.template_version == "v3"
-            assert persisted.warning_json == json.dumps({"warnings": ["late_renewal"]}, ensure_ascii=False)
-            assert persisted.delivery_mode == "digest"
-            assert persisted.warning_count == 2
+            session = database.SessionLocal()
+            try:
+                created = database.create_briefing_log(
+                    session,
+                    briefing_type="daily",
+                    recipient_count=3,
+                    new_events_count=1,
+                    high_threat_count=0,
+                    ending_soon_count=0,
+                    status="sent",
+                    error_msg=None,
+                    period_label="2026-03-20",
+                    source_event_count=5,
+                    source_product_count=2,
+                    warning_count=2,
+                    warning_json={"warnings": ["late_renewal"]},
+                    ai_summary_status="rule",
+                    delivery_mode="digest",
+                    template_version="v3",
+                )
+
+                persisted = session.query(database.BriefingLog).filter_by(id=created.id).one()
+                assert persisted.period_label == "2026-03-20"
+                assert persisted.source_event_count == 5
+                assert persisted.source_product_count == 2
+                assert persisted.ai_summary_status == "rule"
+                assert persisted.template_version == "v3"
+                assert persisted.warning_json == json.dumps({"warnings": ["late_renewal"]}, ensure_ascii=False)
+                assert persisted.delivery_mode == "digest"
+                assert persisted.warning_count == 2
+            finally:
+                session.close()
+                database.engine.dispose()
         finally:
-            session.close()
-            database.engine.dispose()
+            if original_database_url is None:
+                os.environ.pop("DATABASE_URL", None)
+            else:
+                os.environ["DATABASE_URL"] = original_database_url
+
+            if original_database_module is None:
+                sys.modules.pop("database", None)
+            else:
+                sys.modules["database"] = original_database_module
 
 
 def test_build_briefing_status_snapshot_infers_readiness_from_warnings():
@@ -653,7 +759,7 @@ def test_send_now_briefing_route_returns_mode_and_metadata(monkeypatch):
     monkeypatch.setattr(briefing, "build_daily_briefing_data", lambda _session: sample_payload)
     monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
     monkeypatch.setattr(briefing, "render_briefing_html", lambda *args, **kwargs: "<html></html>")
-    monkeypatch.setattr(briefing, "get_recipients", lambda: ["tester@example.com"])
+    monkeypatch.setattr(briefing, "get_recipients", lambda mode="production": ["tester@example.com"])
     monkeypatch.setattr(briefing, "send_briefing_email", lambda *args, **kwargs: (True, ""))
 
     import routers.briefing as briefing_router
@@ -688,6 +794,201 @@ def test_send_now_briefing_route_returns_mode_and_metadata(monkeypatch):
     assert captured_log["source_product_count"] == 2
     assert captured_log["template_version"] == "v3"
     assert captured_log["warning_json"] == sample_payload["quality_warnings"]
+
+
+def test_send_now_briefing_route_uses_test_recipients_for_test_mode(monkeypatch):
+    sample_payload = {
+        "report_type": "daily",
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "2026-03-20",
+        "date_label": "2026-03-20",
+        "week_label": "",
+        "warning_count": 0,
+        "quality_warnings": [],
+        "ai_summary_status": "rule",
+        "source_event_count": 5,
+        "source_product_count": 2,
+        "notable_count": 3,
+        "ending_soon_count": 1,
+        "template_version": "v3",
+    }
+    captured = {}
+
+    monkeypatch.setenv("EMAIL_RECIPIENTS", "production@example.com")
+    monkeypatch.setenv("EMAIL_TEST_RECIPIENTS", "test-a@example.com,test-b@example.com")
+    monkeypatch.setattr(briefing, "build_daily_briefing_data", lambda _session: sample_payload)
+    monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
+    monkeypatch.setattr(briefing, "render_briefing_html", lambda *args, **kwargs: "<html></html>")
+
+    def _capture_send(_html, _subject, recipients):
+        captured["recipients"] = list(recipients)
+        return True, ""
+
+    monkeypatch.setattr(briefing, "send_briefing_email", _capture_send)
+
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.post("/api/briefing/send-now?type=daily&mode=test")
+            assert response.status_code == 200
+            body = response.json()
+            assert body["delivery_mode"] == "test"
+            assert body["recipients"] == ["test-a@example.com", "test-b@example.com"]
+
+    asyncio.run(_run())
+
+    assert captured["recipients"] == ["test-a@example.com", "test-b@example.com"]
+    assert "production@example.com" not in captured["recipients"]
+
+
+def test_send_now_briefing_route_blocks_production_when_readiness_is_blocked(monkeypatch):
+    sample_payload = {
+        "report_type": "daily",
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "2026-03-20",
+        "date_label": "2026-03-20",
+        "week_label": "",
+        "warning_count": 1,
+        "quality_warnings": [{"code": "company_coverage_low", "severity": "high"}],
+        "ai_summary_status": "rule",
+        "source_event_count": 5,
+        "source_product_count": 2,
+        "notable_count": 3,
+        "ending_soon_count": 1,
+        "template_version": "v3",
+    }
+    called = {"send": False, "log": False}
+
+    monkeypatch.setattr(briefing, "build_daily_briefing_data", lambda _session: sample_payload)
+    monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
+    monkeypatch.setattr(briefing, "render_briefing_html", lambda *args, **kwargs: "<html></html>")
+    monkeypatch.setattr(
+        briefing,
+        "send_briefing_email",
+        lambda *args, **kwargs: called.__setitem__("send", True) or (True, ""),
+    )
+
+    import routers.briefing as briefing_router
+
+    monkeypatch.setattr(
+        briefing_router.db,
+        "create_briefing_log",
+        lambda *args, **kwargs: called.__setitem__("log", True),
+    )
+
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.post("/api/briefing/send-now?type=daily&mode=production")
+            assert response.status_code == 409
+            body = response.json()
+            assert body["detail"] == "briefing readiness is blocked"
+            assert body["readiness_status"] == "blocked"
+
+    asyncio.run(_run())
+
+    assert called["send"] is False
+    assert called["log"] is False
+
+
+def test_send_daily_briefing_job_skips_blocked_readiness(monkeypatch):
+    sample_payload = {
+        "report_type": "daily",
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "2026-03-20",
+        "date_label": "2026-03-20",
+        "warning_count": 1,
+        "quality_warnings": [{"code": "company_coverage_low", "severity": "high"}],
+        "new_events_count": 0,
+        "notable_count": 0,
+    }
+    called = {"render": False, "recipients": False, "send": False, "log": False, "closed": False}
+
+    class _FakeJobSession:
+        def close(self):
+            called["closed"] = True
+
+    monkeypatch.setattr(briefing.db, "SessionLocal", lambda: _FakeJobSession())
+    monkeypatch.setattr(briefing, "build_daily_briefing_data", lambda _session: sample_payload)
+    monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
+    monkeypatch.setattr(
+        briefing,
+        "render_briefing_html",
+        lambda *args, **kwargs: called.__setitem__("render", True) or "<html></html>",
+    )
+    monkeypatch.setattr(
+        briefing,
+        "get_recipients",
+        lambda mode="production": called.__setitem__("recipients", True) or ["ops@example.com"],
+    )
+    monkeypatch.setattr(
+        briefing,
+        "send_briefing_email",
+        lambda *args, **kwargs: called.__setitem__("send", True) or (True, ""),
+    )
+    monkeypatch.setattr(
+        briefing.db,
+        "create_briefing_log",
+        lambda *args, **kwargs: called.__setitem__("log", True),
+    )
+
+    asyncio.run(briefing.send_daily_briefing_job())
+
+    assert called["render"] is False
+    assert called["recipients"] is False
+    assert called["send"] is False
+    assert called["log"] is False
+    assert called["closed"] is True
+
+
+def test_send_weekly_briefing_job_skips_blocked_readiness(monkeypatch):
+    sample_payload = {
+        "report_type": "weekly",
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "03/13 ~ 03/20",
+        "week_label": "03/13 ~ 03/20",
+        "warning_count": 1,
+        "quality_warnings": [{"code": "company_coverage_low", "severity": "high"}],
+        "new_events_count": 0,
+        "notable_count": 0,
+    }
+    called = {"render": False, "recipients": False, "send": False, "log": False, "closed": False}
+
+    class _FakeJobSession:
+        def close(self):
+            called["closed"] = True
+
+    monkeypatch.setattr(briefing.db, "SessionLocal", lambda: _FakeJobSession())
+    monkeypatch.setattr(briefing, "build_weekly_briefing_data", lambda _session: sample_payload)
+    monkeypatch.setattr(briefing, "get_dashboard_url", lambda: "https://example.com/dashboard")
+    monkeypatch.setattr(
+        briefing,
+        "render_briefing_html",
+        lambda *args, **kwargs: called.__setitem__("render", True) or "<html></html>",
+    )
+    monkeypatch.setattr(
+        briefing,
+        "get_recipients",
+        lambda mode="production": called.__setitem__("recipients", True) or ["ops@example.com"],
+    )
+    monkeypatch.setattr(
+        briefing,
+        "send_briefing_email",
+        lambda *args, **kwargs: called.__setitem__("send", True) or (True, ""),
+    )
+    monkeypatch.setattr(
+        briefing.db,
+        "create_briefing_log",
+        lambda *args, **kwargs: called.__setitem__("log", True),
+    )
+
+    asyncio.run(briefing.send_weekly_briefing_job())
+
+    assert called["render"] is False
+    assert called["recipients"] is False
+    assert called["send"] is False
+    assert called["log"] is False
+    assert called["closed"] is True
 
 
 def test_briefing_logs_route_exposes_richer_metadata(monkeypatch):
@@ -761,7 +1062,7 @@ def test_render_daily_briefing_uses_market_intelligence_sections():
     assert "template_version" not in html
 
 
-def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
+def test_render_weekly_briefing_uses_company_narratives_and_product_summary_contract():
     html = briefing.render_briefing_html(
         _sample_briefing_payload(report_type="weekly"),
         report_type="weekly",
