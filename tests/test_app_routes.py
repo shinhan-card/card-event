@@ -36,6 +36,24 @@ def test_core_routes_respond():
     asyncio.run(_run_requests())
 
 
+def test_root_page_contains_briefing_console_shell():
+    async def _run():
+        transport = httpx.ASGITransport(app=app.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.get("/")
+            assert response.status_code == 200, f"/ returned {response.status_code}"
+            html = response.text
+            for anchor in (
+                "opsBriefingStatusGrid",
+                "opsBriefingWarnings",
+                "opsBriefingActions",
+                "opsBriefingLogTable",
+            ):
+                assert anchor in html, f"missing briefing shell anchor: {anchor}"
+
+    asyncio.run(_run())
+
+
 def test_briefing_status_route_returns_daily_and_weekly(monkeypatch):
     monkeypatch.setattr(
         briefing,
