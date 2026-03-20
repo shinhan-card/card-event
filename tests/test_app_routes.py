@@ -54,6 +54,31 @@ def test_root_page_contains_briefing_console_shell():
     asyncio.run(_run())
 
 
+def test_template_keeps_briefing_boot_path_single_sourced():
+    template = (ROOT / "templates/simple_dashboard.html").read_text(encoding="utf-8")
+
+    assert template.count("const _origLoadOps") == 0, "legacy loadOps override should not remain"
+    assert "sendBriefingNow" not in template, "old inline send helper should be removed"
+    assert "renderBriefingConsole" not in template, "template should not own briefing rendering"
+    assert template.count("async function loadOpsData()") == 1, "expected one active loadOpsData boot path"
+    assert template.count("async function loadOpsOverviewData()") == 1, "expected one active loadOpsOverviewData boot path"
+    assert "loadBriefingStatus()" in template, "template boot path should still delegate to dashboard.js"
+
+
+def test_briefing_console_js_has_failure_guardrails():
+    js = (ROOT / "static/js/dashboard.js").read_text(encoding="utf-8")
+
+    for snippet in (
+        "Promise.allSettled([",
+        "briefingConsoleHasFailure()",
+        "renderBriefingUnavailablePanel(",
+        "BRIEFING_STATUS_ERROR",
+        "BRIEFING_LOGS_ERROR",
+        "if (BRIEFING_SEND_BUSY || !briefingConsoleIsReady()) return;",
+    ):
+        assert snippet in js, f"missing JS guardrail: {snippet}"
+
+
 def test_briefing_status_route_returns_daily_and_weekly(monkeypatch):
     monkeypatch.setattr(
         briefing,
