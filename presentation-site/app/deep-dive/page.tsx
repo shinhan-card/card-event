@@ -1,5 +1,8 @@
 import ConceptArchitecture from "@/components/deep-dive/concept-architecture";
-import OrchestrationMap from "@/components/deep-dive/orchestration-map";
+import DualAxisArchitecture from "@/components/deep-dive/dual-axis-architecture";
+import DesignPrinciples from "@/components/deep-dive/design-principles";
+import EvolutionRoadmap from "@/components/deep-dive/evolution-roadmap";
+import RealModuleMap from "@/components/deep-dive/real-module-map";
 import StageBreakdown from "@/components/deep-dive/stage-breakdown";
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
@@ -28,7 +31,10 @@ export default function DeepDivePage() {
 
       <ConceptArchitecture />
       <StageBreakdown />
-      <OrchestrationMap />
+      <DualAxisArchitecture />
+      <RealModuleMap />
+      <DesignPrinciples />
+      <EvolutionRoadmap />
     </>
   );
 }

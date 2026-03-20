@@ -501,6 +501,191 @@ a:hover {
   color: var(--text-muted);
 }
 
+.dual-axis-map {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(220px, 0.8fr) minmax(0, 1.05fr);
+  align-items: start;
+}
+
+.dual-axis-map-lane,
+.dual-axis-map-bridge {
+  position: relative;
+  min-height: 100%;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1.3rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dual-axis-map-lane--left {
+  box-shadow: inset 0 0 0 1px rgba(126, 224, 255, 0.08);
+}
+
+.dual-axis-map-lane--right {
+  box-shadow: inset 0 0 0 1px rgba(255, 179, 106, 0.08);
+}
+
+.dual-axis-map-label,
+.module-cluster-map-step-label,
+.module-cluster-map-cluster-key {
+  display: inline-flex;
+  margin: 0 0 0.75rem;
+  color: var(--signal);
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.dual-axis-map h3,
+.module-cluster-map-section h3,
+.deep-dive-roadmap-card h3,
+.deep-dive-principle-card h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.dual-axis-map-summary,
+.module-cluster-map-section p,
+.module-cluster-map-cluster p,
+.deep-dive-roadmap-card p,
+.deep-dive-principle-card p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.dual-axis-map-items {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.dual-axis-map-items--bridge {
+  grid-template-columns: 1fr;
+}
+
+.dual-axis-map-item {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.dual-axis-map-item h4,
+.module-cluster-map-cluster h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.dual-axis-map-item p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.dual-axis-map-bridge {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  align-self: stretch;
+  background:
+    linear-gradient(180deg, rgba(255, 179, 106, 0.09), rgba(126, 224, 255, 0.06)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.dual-axis-map-bridge::before,
+.dual-axis-map-bridge::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 1rem;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(126, 224, 255, 0.65), rgba(255, 179, 106, 0.65));
+}
+
+.dual-axis-map-bridge::before {
+  left: -1rem;
+}
+
+.dual-axis-map-bridge::after {
+  right: -1rem;
+}
+
+.module-cluster-map {
+  display: grid;
+  gap: 1rem;
+}
+
+.module-cluster-map-step {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.module-cluster-map-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.module-cluster-map-clusters {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.module-cluster-map-cluster {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.module-cluster-map-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.module-cluster-map-files li {
+  display: inline-flex;
+  padding: 0.28rem 0.52rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.module-cluster-map-connector {
+  display: flex;
+  justify-content: center;
+  padding: 0.15rem 0;
+}
+
+.module-cluster-map-connector span {
+  position: relative;
+  width: 2px;
+  height: 1.1rem;
+  background: linear-gradient(180deg, rgba(126, 224, 255, 0.8), rgba(255, 179, 106, 0.7));
+}
+
+.module-cluster-map-connector span::after {
+  content: "";
+  position: absolute;
+  left: -0.28rem;
+  bottom: -0.1rem;
+  border-left: 0.45rem solid transparent;
+  border-right: 0.45rem solid transparent;
+  border-top: 0.55rem solid var(--signal-warm);
+}
+
+.module-cluster-map-intro {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 .deep-dive-principles {
   margin-top: 1rem;
 }
@@ -576,6 +761,7 @@ a:hover {
   .sticky-stage,
   .scene-hero,
   .signal-network-grid,
+  .dual-axis-map,
   .deep-dive-concept-grid,
   .deep-dive-stage-grid,
   .deep-dive-orchestration-flow,
@@ -619,6 +805,22 @@ a:hover {
     border-right: 0.45rem solid transparent;
     border-top: 0.55rem solid var(--signal-warm);
     border-bottom: 0;
+  }
+
+  .dual-axis-map-bridge::before,
+  .dual-axis-map-bridge::after {
+    top: auto;
+    left: 50%;
+    width: 2px;
+    height: 1rem;
+  }
+
+  .dual-axis-map-bridge::before {
+    top: -1rem;
+  }
+
+  .dual-axis-map-bridge::after {
+    bottom: -1rem;
   }
 }
 

@@ -41,6 +41,44 @@ export interface OrchestrationGroup {
   items: readonly OrchestrationGroupItem[];
 }
 
+export interface DualAxisItem {
+  key: string;
+  title: string;
+  summary: string;
+}
+
+export interface DualAxisLane {
+  key: ArchitectureAxisKey;
+  title: string;
+  summary: string;
+  items: readonly DualAxisItem[];
+}
+
+export interface DualAxisArchitecture {
+  eyebrow: string;
+  title: string;
+  summary: string;
+  lanes: readonly DualAxisLane[];
+  bridge: {
+    title: string;
+    summary: string;
+    items: readonly DualAxisItem[];
+  };
+}
+
+export interface PrincipleCard {
+  key: string;
+  title: string;
+  summary: string;
+}
+
+export interface RoadmapPhase {
+  key: string;
+  title: string;
+  summary: string;
+  next: string;
+}
+
 export interface ArchitectureContent {
   deepDive: {
     eyebrow: string;
@@ -61,6 +99,7 @@ export interface ArchitectureContent {
     summary: string;
     cards: readonly ArchitectureStage[];
   };
+  dualAxisArchitecture: DualAxisArchitecture;
   orchestration: {
     title: string;
     summary: string;
@@ -70,6 +109,18 @@ export interface ArchitectureContent {
     title: string;
     summary: string;
     groups: readonly OrchestrationGroup[];
+  };
+  principlesSection: {
+    eyebrow: string;
+    title: string;
+    summary: string;
+    cards: readonly PrincipleCard[];
+  };
+  evolutionRoadmap: {
+    eyebrow: string;
+    title: string;
+    summary: string;
+    phases: readonly RoadmapPhase[];
   };
   designPrinciples: readonly string[];
 }
@@ -240,6 +291,121 @@ const orchestrationGroups = [
   }
 ] as const;
 
+const dualAxisLanes = [
+  {
+    key: "event-intelligence",
+    title: "Event Intelligence",
+    summary: "Tracks live market motion and turns it into structured event signals.",
+    items: [
+      {
+        key: "event-sources",
+        title: "Signal sources",
+        summary: "Competitor events, market updates, and live surfaces"
+      },
+      {
+        key: "event-pipeline",
+        title: "Event pipeline",
+        summary: "Extraction and normalization for the event lane"
+      },
+      {
+        key: "event-enrichment",
+        title: "Enrichment",
+        summary: "Classification and context for event intelligence"
+      }
+    ]
+  },
+  {
+    key: "product-intelligence",
+    title: "Product / Disclosure Intelligence",
+    summary:
+      "Turns disclosures and catalogs into searchable product understanding and RAG-backed summaries.",
+    items: [
+      {
+        key: "disclosures-sync",
+        title: "Disclosures sync",
+        summary: "Keep product and disclosure records aligned"
+      },
+      {
+        key: "pdf-collection",
+        title: "PDF / catalog collection",
+        summary: "Collect disclosure PDFs and catalog artifacts"
+      },
+      {
+        key: "chunk-embed",
+        title: "Chunking and embedding",
+        summary: "Prepare content for retrieval and comparison"
+      },
+      {
+        key: "rag-summary",
+        title: "RAG / catalog summary",
+        summary: "Surface catalog summaries for operator review"
+      }
+    ]
+  }
+] as const;
+
+const bridgeItems = [
+  {
+    key: "analytics",
+    title: "Analytics",
+    summary: "Trends and comparisons"
+  },
+  {
+    key: "dashboard",
+    title: "Dashboard",
+    summary: "At-a-glance state"
+  },
+  {
+    key: "briefing",
+    title: "Briefing",
+    summary: "Decision-ready writeups"
+  },
+  {
+    key: "operator-view",
+    title: "Operator View",
+    summary: "The action layer for review"
+  }
+] as const;
+
+const principleCards = [
+  {
+    key: "separate-axes",
+    title: "Keep the lanes distinct",
+    summary: "Event intelligence and product intelligence are related, but they are not the same surface."
+  },
+  {
+    key: "structured-first",
+    title: "Structure first, prose second",
+    summary: "The system should shape data before it narrates outcomes."
+  },
+  {
+    key: "explainable-steps",
+    title: "Make each step explainable",
+    summary: "Every stage and handoff should have a visible reason."
+  }
+] as const;
+
+const roadmapPhases = [
+  {
+    key: "concept-foundation",
+    title: "Concept foundation",
+    summary: "Keep the axis split clear and the stage flow explicit.",
+    next: "Add module ownership and lane-specific views."
+  },
+  {
+    key: "module-ownership",
+    title: "Module ownership",
+    summary: "Map the real repo into shared and lane-specific clusters.",
+    next: "Tighten runtime boundaries and orchestration."
+  },
+  {
+    key: "operational-maturity",
+    title: "Operational maturity",
+    summary: "Wire the live system to the deep-dive concepts without losing clarity.",
+    next: "Refine analytics, briefing, and operator handoff."
+  }
+] as const;
+
 export const architectureContent = {
   deepDive: {
     eyebrow: "Systems Atlas",
@@ -262,6 +428,18 @@ export const architectureContent = {
       "Each stage owns a single transformation and explains why that transformation exists.",
     cards: stages
   },
+  dualAxisArchitecture: {
+    eyebrow: "Dual Axis Architecture",
+    title: "Dual Axis Architecture",
+    summary:
+      "The left lane handles event intelligence, the right lane handles product and disclosure intelligence, and the bridge holds the shared operator surfaces.",
+    lanes: dualAxisLanes,
+    bridge: {
+      title: "Bridge Area",
+      summary: "Shared surfaces show the same shaped output to different operators.",
+      items: bridgeItems
+    }
+  },
   orchestration: {
     title: "Orchestration",
     summary:
@@ -273,6 +451,18 @@ export const architectureContent = {
     summary:
       "These surfaces coordinate scheduling, routing, and lane-specific delivery without erasing ownership boundaries.",
     groups: orchestrationGroups
+  },
+  principlesSection: {
+    eyebrow: "Design Principles",
+    title: "Design Principles",
+    summary: "Rules that keep the deep-dive legible as the system grows.",
+    cards: principleCards
+  },
+  evolutionRoadmap: {
+    eyebrow: "Evolution Roadmap",
+    title: "Evolution Roadmap",
+    summary: "The architecture evolves from concept to ownership to delivery depth.",
+    phases: roadmapPhases
   },
   designPrinciples: [
     "Keep event intelligence and product intelligence separate.",

@@ -72,4 +72,22 @@ describe("route smoke", () => {
       screen.getByRole("heading", { name: /stage breakdown/i })
     ).toBeInTheDocument();
   });
+
+  it("renders deep dive axis split", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>
+    );
+
+    expect(
+      screen.getByRole("heading", { name: /event intelligence/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /product \/ disclosure intelligence/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /module reality/i })
+    ).toBeInTheDocument();
+  });
 });

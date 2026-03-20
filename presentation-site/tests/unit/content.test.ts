@@ -20,9 +20,9 @@ describe("content contracts", () => {
   });
 
   it("maps real modules into named clusters", () => {
-    expect(moduleMap.clusters.some((cluster) => cluster.key === "event-pipeline")).toBe(
-      true
-    );
-    expect(moduleMap.clusters.some((cluster) => cluster.key === "product-rag")).toBe(true);
+    expect(moduleMap.axisRoots.map((root) => root.key)).toEqual([
+      "event-pipeline",
+      "product-rag"
+    ]);
   });
 });
