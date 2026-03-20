@@ -170,6 +170,26 @@ describe("task 1 content contracts", () => {
 
     expect(Object.keys(architectureContent.eventInterpretation)).toEqual(["title", "steps"]);
     expect(Object.keys(architectureContent.productKnowledge)).toEqual(["title", "steps"]);
+    expect(architectureContent.eventInterpretation.steps.map((step) => step.key)).toEqual([
+      "collect",
+      "extract",
+      "structure",
+      "rule-interpretation",
+      "gemini-augmentation",
+      "briefing-summary",
+      "deliver",
+    ]);
+    expect(architectureContent.productKnowledge.steps.map((step) => step.key)).toEqual([
+      "collect-sources",
+      "store-raw",
+      "clean-document",
+      "chunk",
+      "embed",
+      "store-vector",
+      "retrieve-rag",
+      "compose-response",
+      "deliver",
+    ]);
 
     architectureContent.orchestrationColumns.forEach((column) => {
       expect(Object.keys(column)).toEqual(["title", "nodes", "technologies"]);
