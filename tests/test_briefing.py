@@ -608,6 +608,103 @@ def test_weekly_product_summary_counts_repeated_product_activity(monkeypatch):
     assert alpha_core["event_count"] == 2
 
 
+def test_weekly_payload_includes_company_narratives_and_catalog_summary(monkeypatch):
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    monkeypatch.setattr(
+        briefing,
+        "load_product_catalog",
+        lambda: {
+            "alpha-prime": {
+                "company": "Alpha Card",
+                "card_name": "Alpha Prime",
+                "annual_fee_display": "KRW 20k",
+                "spend_requirement": "Monthly spend KRW 300k",
+                "benefit_highlights": ["Airport lounge", "Miles"],
+                "summary_text": "Travel-focused rewards card.",
+                "preview": "Airport lounge and miles",
+                "launch_date": "2026-03-01",
+                "url": "https://example.com/alpha-prime",
+            },
+            "alpha-launch": {
+                "company": "Alpha Card",
+                "card_name": "Alpha Launch",
+                "annual_fee_display": "KRW 12k",
+                "spend_requirement": "Monthly spend KRW 200k",
+                "benefit_highlights": ["Streaming", "Coffee"],
+                "summary_text": "Freshly launched lifestyle card.",
+                "preview": "Streaming and coffee",
+                "launch_date": date.today().isoformat(),
+                "revision_type": "launch",
+                "url": "https://example.com/alpha-launch",
+            },
+        },
+        raising=False,
+    )
+    monkeypatch.setattr(
+        briefing,
+        "summarize_weekly_company_trend",
+        lambda company, snapshot: {
+            "company": company,
+            "narrative": f"{company} stayed travel-led with Alpha Prime in weekly exposure.",
+            "source": "gemini",
+        },
+        raising=False,
+    )
+    session = _FakeSession(
+        [
+            _make_event(
+                16,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=2),
+                linked_cards=["Alpha Prime"],
+                category="Travel",
+                one_line_summary="Alpha Prime weekly push.",
+            ),
+            _make_event(
+                17,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=8),
+                period_end=date.today() - timedelta(days=1),
+                status="ended",
+                linked_cards=["Alpha Core"],
+                category="Travel",
+                one_line_summary="Alpha Core weekly close.",
+            ),
+        ]
+    )
+
+    payload = briefing.build_weekly_briefing_data(session)
+
+    narrative = payload["company_weekly_narratives"][0]
+    assert narrative["company"] == "Alpha Card"
+    assert narrative["source"] == "gemini"
+    assert "travel-led" in narrative["narrative"]
+
+    catalog_names = {
+        item["product_name"] for item in payload["weekly_product_catalog_summary"]
+    }
+    assert "Alpha Prime" in catalog_names
+    assert "Alpha Launch" in catalog_names
+
+    alpha_prime = next(
+        item
+        for item in payload["weekly_product_catalog_summary"]
+        if item["product_name"] == "Alpha Prime"
+    )
+    assert alpha_prime["annual_fee_display"] == "KRW 20k"
+    assert alpha_prime["spend_requirement"] == "Monthly spend KRW 300k"
+    assert alpha_prime["benefit_highlights"] == ["Airport lounge", "Miles"]
+    assert alpha_prime["event_count"] == 1
+
+    alpha_launch = next(
+        item
+        for item in payload["weekly_product_changes"]
+        if item["product_name"] == "Alpha Launch"
+    )
+    assert alpha_launch["revision_type"] == "launch"
+    assert alpha_launch["product_url"] == "https://example.com/alpha-launch"
+
+
 def test_company_sections_prioritize_more_ending_soon_pressure(monkeypatch):
     monkeypatch.setattr(
         briefing,
@@ -1262,6 +1359,31 @@ def _weekly_render_payload_contract() -> dict:
     }
 
 
+def test_render_weekly_briefing_uses_company_narratives_and_product_summary_contract():
+    html = briefing.render_briefing_html(
+        _sample_briefing_payload(report_type="weekly"),
+        report_type="weekly",
+        dashboard_url="https://example.com/dashboard",
+    )
+
+    assert "주간 경쟁 인텔리전스 브리핑" in html
+    assert "주간 핵심 요약" in html
+    assert "회사별 주간 서술" in html
+    assert "제품/공시 요약" in html
+    assert "근거 블록" in html
+    assert "테마 변화" not in html
+    assert "class=\"pill\"" not in html
+    assert "class=\"metric\"" not in html
+    assert "dashboard" not in html.lower()
+    assert "companies" not in html
+    assert "example_event" not in html
+    assert "link_text" not in html
+    assert "benefit_summary" not in html
+    assert "warning" not in html.lower()
+    assert "delivery_mode" not in html
+    assert "template_version" not in html
+
+
 def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
     html = briefing.render_briefing_html(
         _weekly_render_payload_contract(),
@@ -1349,6 +1471,259 @@ def test_weekly_builder_render_supports_linked_cards_without_confidence(monkeypa
     assert "Alpha Card · Alpha Sky" in html
     assert "주간 핵심 요약" in html
     assert "Traceback" not in html
+
+
+def _weekly_render_payload_contract() -> dict:
+    return {
+        "generated_at": "2026-03-20T09:00:00",
+        "period_label": "03/13 ~ 03/20",
+        "week_label": "03/13 ~ 03/20",
+        "executive_summary": "Weekly briefing focused on issuer-by-issuer movement and product disclosures.",
+        "company_sections": [
+            {
+                "company": "Alpha Card",
+                "new_events_count": 2,
+                "active_events_count": 1,
+                "ended_events_count": 0,
+                "ending_soon_count": 1,
+                "top_categories": ["Travel", "Dining"],
+                "evidence_events": [
+                    {
+                        "company": "Alpha Card",
+                        "title": "Alpha Card Travel Event",
+                        "category": "Travel",
+                        "one_line_summary": "Airport lounge and miles stayed visible.",
+                        "evidence": ["Airport lounge", "Instant discount"],
+                        "period_start": "2026-03-18",
+                        "period_end": "2026-03-25",
+                    }
+                ],
+                "evidence_products": [
+                    {
+                        "company": "Alpha Card",
+                        "product_name": "Alpha Sky",
+                        "match_method": "name",
+                        "confidence": 0.88,
+                    }
+                ],
+            },
+            {
+                "company": "Beta Card",
+                "new_events_count": 1,
+                "active_events_count": 0,
+                "ended_events_count": 1,
+                "ending_soon_count": 0,
+                "top_categories": ["Lifestyle"],
+                "evidence_events": [
+                    {
+                        "company": "Beta Card",
+                        "title": "Beta Card Lifestyle Event",
+                        "category": "Lifestyle",
+                        "one_line_summary": "Lifestyle retention stayed concentrated.",
+                        "evidence": ["Streaming", "Weekend usage"],
+                        "period_start": "2026-03-16",
+                        "period_end": "2026-03-24",
+                    }
+                ],
+                "evidence_products": [
+                    {
+                        "company": "Beta Card",
+                        "product_name": "Beta Live",
+                        "match_method": "alias",
+                        "confidence": 0.71,
+                    }
+                ],
+            },
+        ],
+        "company_weekly_narratives": [
+            {
+                "company": "Alpha Card",
+                "narrative": "Alpha Card kept travel bundles centered on Alpha Sky this week.",
+                "source": "gemini",
+                "new_events_count": 2,
+                "ended_events_count": 0,
+                "ending_soon_count": 1,
+                "top_categories": ["Travel", "Dining"],
+            },
+            {
+                "company": "Beta Card",
+                "narrative": "Beta Card concentrated lifestyle retention around Beta Live.",
+                "source": "rule",
+                "new_events_count": 1,
+                "ended_events_count": 1,
+                "ending_soon_count": 0,
+                "top_categories": ["Lifestyle"],
+            },
+        ],
+        "theme_summary": [
+            {
+                "theme": "Travel",
+                "event_count": 3,
+                "companies": ["Alpha Card"],
+            },
+            {
+                "theme": "Lifestyle",
+                "event_count": 2,
+                "companies": ["Beta Card"],
+            },
+        ],
+        "product_summary": [
+            {
+                "company": "Alpha Card",
+                "product_name": "Alpha Sky",
+                "event_count": 2,
+                "match_method": "name",
+                "confidence": 0.88,
+            },
+            {
+                "company": "Beta Card",
+                "product_name": "Beta Live",
+                "event_count": 1,
+                "match_method": "alias",
+                "confidence": 0.71,
+            },
+        ],
+        "weekly_product_catalog_summary": [
+            {
+                "company": "Alpha Card",
+                "product_name": "Alpha Sky",
+                "event_count": 2,
+                "match_method": "name",
+                "confidence": 0.88,
+                "annual_fee_display": "KRW 20k",
+                "spend_requirement": "Monthly spend KRW 300k",
+                "benefit_highlights": ["Airport lounge", "Miles"],
+                "summary_text": "Travel-focused rewards card.",
+                "preview": "Airport lounge and miles",
+                "product_url": "https://example.com/alpha-sky",
+                "pdf_url": "https://example.com/alpha-sky.pdf",
+                "launch_date": "2026-03-18",
+                "revision_type": "launch",
+            },
+            {
+                "company": "Beta Card",
+                "product_name": "Beta Live",
+                "event_count": 1,
+                "match_method": "alias",
+                "confidence": 0.71,
+                "annual_fee_display": "KRW 12k",
+                "spend_requirement": "Monthly spend KRW 200k",
+                "benefit_highlights": ["Streaming", "Coffee"],
+                "summary_text": "Lifestyle retention card.",
+                "preview": "Streaming and coffee",
+                "product_url": "https://example.com/beta-live",
+                "pdf_url": "",
+                "launch_date": "2026-03-16",
+                "revision_type": "refresh",
+            },
+        ],
+        "weekly_product_changes": [
+            {
+                "company": "Alpha Card",
+                "product_name": "Alpha Sky",
+                "event_count": 2,
+                "revision_type": "launch",
+                "launch_date": "2026-03-18",
+                "product_url": "https://example.com/alpha-sky",
+            },
+            {
+                "company": "Beta Card",
+                "product_name": "Beta Live",
+                "event_count": 1,
+                "revision_type": "refresh",
+                "launch_date": "2026-03-16",
+                "product_url": "https://example.com/beta-live",
+            },
+        ],
+        "evidence_events": [
+            {
+                "company": "Alpha Card",
+                "title": "Alpha Card Travel Event",
+                "category": "Travel",
+                "one_line_summary": "Airport lounge and miles stayed visible.",
+                "evidence": ["Airport lounge", "Instant discount"],
+                "period_start": "2026-03-18",
+                "period_end": "2026-03-25",
+            },
+            {
+                "company": "Beta Card",
+                "title": "Beta Card Lifestyle Event",
+                "category": "Lifestyle",
+                "one_line_summary": "Lifestyle retention stayed concentrated.",
+                "evidence": ["Streaming", "Weekend usage"],
+                "period_start": "2026-03-16",
+                "period_end": "2026-03-24",
+            },
+        ],
+        "evidence_products": [
+            {
+                "company": "Alpha Card",
+                "product_name": "Alpha Sky",
+                "match_method": "name",
+                "confidence": 0.88,
+            },
+            {
+                "company": "Beta Card",
+                "product_name": "Beta Live",
+                "match_method": "alias",
+                "confidence": 0.71,
+            },
+        ],
+        "new_events_count": 3,
+        "ending_soon_count": 1,
+        "ended_events_count": 1,
+    }
+
+
+def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
+    html = briefing.render_briefing_html(
+        _weekly_render_payload_contract(),
+        report_type="weekly",
+        dashboard_url="https://example.com/dashboard",
+    )
+
+    assert "Weekly briefing focused on issuer-by-issuer movement and product disclosures." in html
+    assert "Alpha Card kept travel bundles centered on Alpha Sky this week." in html
+    assert "Beta Card concentrated lifestyle retention around Beta Live." in html
+    assert "Alpha Card 쨌 Alpha Sky" in html
+    assert "Beta Card 쨌 Beta Live" in html
+    assert "KRW 20k" in html
+    assert "Monthly spend KRW 300k" in html
+    assert "Airport lounge" in html
+    assert "Miles" in html
+    assert "https://example.com/alpha-sky" in html
+    assert "launch" in html
+    assert "refresh" in html
+    assert "class=\"pill\"" not in html
+    assert "class=\"metric\"" not in html
+    assert "companies" not in html
+    assert "example_event" not in html
+    assert "link_text" not in html
+    assert "benefit_summary" not in html
+    assert "warning" not in html.lower()
+    assert "delivery_mode" not in html
+    assert "template_version" not in html
+
+
+def test_render_weekly_briefing_handles_products_without_confidence():
+    payload = _weekly_render_payload_contract()
+    payload["product_summary"][0].pop("confidence", None)
+    payload["weekly_product_catalog_summary"][0].pop("confidence", None)
+    payload["evidence_products"][0].pop("confidence", None)
+
+    html = briefing.render_briefing_html(
+        payload,
+        report_type="weekly",
+        dashboard_url="https://example.com/dashboard",
+    )
+
+    assert "Alpha Card 쨌 Alpha Sky" in html
+    assert "Beta Card 쨌 Beta Live" in html
+    assert "KRW 20k" in html
+    assert "Monthly spend KRW 300k" in html
+    assert "https://example.com/alpha-sky" in html
+    assert "Traceback" not in html
+    assert "confidence" not in html
 
 
 if __name__ == "__main__":
