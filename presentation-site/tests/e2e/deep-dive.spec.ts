@@ -1,36 +1,83 @@
 import { expect, test } from "@playwright/test";
+import { architectureContent } from "@/content/architecture-content";
 
-test("deep dive shows Korean-first architecture structure and technology labels", async ({ page }) => {
+test("deep dive renders contract-driven top boards with representative labels", async ({
+  page,
+}) => {
   await page.goto("/deep-dive");
 
-  await expect(page.getByRole("heading", { name: "개념 아키텍처" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "수집", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "강화", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "실제 모듈 지도" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "이벤트 인텔리전스" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "상품 / 공시 인텔리전스" })).toBeVisible();
-  await expect(page.getByText("구조 스냅샷", { exact: true })).toBeVisible();
-  await expect(page.getByText("핵심 기술", { exact: true })).toBeVisible();
-  await expect(page.getByText("Playwright", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Gemini", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("FastAPI", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("APScheduler", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("SQLite", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("SQLAlchemy", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("BeautifulSoup", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("ChromaDB", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("RAG", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("PDF/HTML extraction", { exact: true }).first()).toBeVisible();
+  const executiveBoard = page.locator("section#executive-blueprint");
+  const dualAxisBoard = page.locator("section#dual-axis-macro");
+  const eventBoard = page.locator("section#event-interpretation");
+  const productBoard = page.locator("section#product-knowledge");
+
+  await expect(
+    executiveBoard.getByRole("heading", { name: architectureContent.copy.deepDiveExecutive }),
+  ).toBeVisible();
+  await expect(
+    dualAxisBoard.getByRole("heading", { name: architectureContent.copy.deepDiveDualAxis }),
+  ).toBeVisible();
+  await expect(
+    eventBoard.getByRole("heading", { name: architectureContent.copy.deepDiveEvent }),
+  ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", { name: architectureContent.copy.deepDiveProduct }),
+  ).toBeVisible();
+
+  await expect(executiveBoard.getByText("ChromaDB", { exact: true })).toBeVisible();
+  await expect(
+    dualAxisBoard.getByRole("heading", { name: architectureContent.axes[0].title }),
+  ).toBeVisible();
+  await expect(
+    dualAxisBoard.getByRole("heading", { name: architectureContent.axes[1].title }),
+  ).toBeVisible();
+  await expect(
+    eventBoard.getByRole("heading", {
+      name: architectureContent.eventInterpretation.steps[3].title,
+    }),
+  ).toBeVisible();
+  await expect(
+    eventBoard.getByRole("heading", {
+      name: architectureContent.eventInterpretation.steps[4].title,
+    }),
+  ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", {
+      name: architectureContent.productKnowledge.steps[3].title,
+    }),
+  ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", {
+      name: architectureContent.productKnowledge.steps[5].title,
+    }),
+  ).toBeVisible();
+  await expect(productBoard.getByText("ChromaDB", { exact: true })).toBeVisible();
 });
 
-test("deep dive stays readable on mobile", async ({ page }) => {
+test("deep dive stays readable on mobile after the top-board refresh", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/deep-dive");
 
-  await expect(page.getByRole("heading", { name: "이벤트 인텔리전스" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "상품 / 공시 인텔리전스" })).toBeVisible();
-  await expect(page.getByText("Playwright", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Gemini", { exact: true }).first()).toBeVisible();
+  const dualAxisBoard = page.locator("section#dual-axis-macro");
+  const eventBoard = page.locator("section#event-interpretation");
+  const productBoard = page.locator("section#product-knowledge");
+
+  await expect(
+    dualAxisBoard.getByRole("heading", { name: architectureContent.axes[0].title }),
+  ).toBeVisible();
+  await expect(
+    dualAxisBoard.getByRole("heading", { name: architectureContent.axes[1].title }),
+  ).toBeVisible();
+  await expect(
+    eventBoard.getByRole("heading", {
+      name: architectureContent.eventInterpretation.steps[4].title,
+    }),
+  ).toBeVisible();
+  await expect(
+    productBoard.getByRole("heading", {
+      name: architectureContent.productKnowledge.steps[5].title,
+    }),
+  ).toBeVisible();
 
   const viewportWidth = await page.evaluate(() => window.innerWidth);
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
-import HomePage from "@/app/page";
 import DeepDivePage from "@/app/deep-dive/page";
+import HomePage from "@/app/page";
 import PresentationShell from "@/components/chrome/presentation-shell";
 import { architectureContent } from "@/content/architecture-content";
 import { siteContent } from "@/content/site-content";
@@ -36,6 +36,7 @@ describe("route smoke", () => {
         <HomePage />
       </PresentationShell>,
     );
+
     const cta = screen.getByRole("link", {
       name: siteContent.hero.primaryCta.label,
     });
@@ -121,8 +122,9 @@ describe("route smoke", () => {
         <DeepDivePage />
       </PresentationShell>,
     );
+
     expect(
-      screen.getByRole("heading", { name: architectureContent.deepDive.title, level: 1 }),
+      screen.getByRole("heading", { name: architectureContent.copy.deepDiveExecutive, level: 1 }),
     ).toBeInTheDocument();
   });
 
@@ -150,56 +152,134 @@ describe("route smoke", () => {
     expect(document.getElementById("executive-blueprint")).toBeInTheDocument();
   });
 
-  it("renders deep dive concept sections", () => {
+  it("renders contract-driven deep dive headings for the first four boards", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
       </PresentationShell>,
     );
 
+    const executiveBoard = document.getElementById("executive-blueprint");
+    const dualAxisBoard = document.getElementById("dual-axis-macro");
+    const eventBoard = document.getElementById("event-interpretation");
+    const productBoard = document.getElementById("product-knowledge");
+
+    expect(executiveBoard).toBeInTheDocument();
+    expect(dualAxisBoard).toBeInTheDocument();
+    expect(eventBoard).toBeInTheDocument();
+    expect(productBoard).toBeInTheDocument();
+
     expect(
-      screen.getByRole("heading", { name: architectureContent.conceptArchitecture.title }),
+      within(executiveBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveExecutive,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: architectureContent.stageBreakdown.title }),
+      within(dualAxisBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveDualAxis,
+      }),
     ).toBeInTheDocument();
+    expect(
+      within(eventBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveEvent,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(productBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.copy.deepDiveProduct,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders remaining lower deep dive sections after the top-four board swap", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>,
+    );
+
     expect(
       screen.getByRole("heading", { name: architectureContent.orchestrationMap.title }),
     ).toBeInTheDocument();
+    expect(document.getElementById("evidence-module-map")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: architectureContent.principlesSection.title }),
+    ).toBeInTheDocument();
   });
 
-  it("renders deep dive axis split", () => {
+  it("surfaces representative labels and technologies inside the first four deep dive boards", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
       </PresentationShell>,
     );
 
+    const executiveBoard = document.getElementById("executive-blueprint");
+    const dualAxisBoard = document.getElementById("dual-axis-macro");
+    const eventBoard = document.getElementById("event-interpretation");
+    const productBoard = document.getElementById("product-knowledge");
+
     expect(
-      screen.getByRole("heading", { name: architectureContent.dualAxisArchitecture.lanes[0].title }),
+      within(executiveBoard as HTMLElement).getByText(
+        architectureContent.executiveBlueprint.inputLanes[0],
+      ),
+    ).toBeInTheDocument();
+    expect(within(executiveBoard as HTMLElement).getByText("ChromaDB")).toBeInTheDocument();
+
+    expect(
+      within(dualAxisBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.axes[0].title,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: architectureContent.dualAxisArchitecture.lanes[1].title }),
+      within(dualAxisBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.axes[1].title,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "실제 모듈 지도" })).toBeInTheDocument();
-  });
+    expect(within(dualAxisBoard as HTMLElement).getByText("Playwright")).toBeInTheDocument();
+    expect(within(dualAxisBoard as HTMLElement).getByText("ChromaDB")).toBeInTheDocument();
 
-  it("renders explicit deep dive technology labels", () => {
-    render(
-      <PresentationShell>
-        <DeepDivePage />
-      </PresentationShell>,
-    );
+    expect(
+      within(eventBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.eventInterpretation.steps[0].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(eventBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.eventInterpretation.steps[3].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(eventBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.eventInterpretation.steps[4].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(eventBoard as HTMLElement).getByText(
+        architectureContent.eventInterpretation.steps[4].technologies[0],
+      ),
+    ).toBeInTheDocument();
 
-    expect(screen.getAllByText("Playwright").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Gemini").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("FastAPI").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("APScheduler").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("SQLite").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("SQLAlchemy").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("BeautifulSoup").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("ChromaDB").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("RAG").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("PDF/HTML extraction").length).toBeGreaterThan(0);
+    expect(
+      within(productBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.productKnowledge.steps[3].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(productBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.productKnowledge.steps[4].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(productBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.productKnowledge.steps[5].title,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(productBoard as HTMLElement).getByRole("heading", {
+        name: architectureContent.productKnowledge.steps[7].title,
+      }),
+    ).toBeInTheDocument();
+    expect(within(productBoard as HTMLElement).getByText("ChromaDB")).toBeInTheDocument();
   });
 });
