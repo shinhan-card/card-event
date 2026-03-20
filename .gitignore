@@ -54,6 +54,16 @@ Thumbs.db
 playwright-report/
 test-results/
 
+# Presentation site workspace
+presentation-site/node_modules/
+presentation-site/.next/
+presentation-site/playwright-report/
+presentation-site/test-results/
+presentation-site/coverage/
+
+# 아카이브
+_archive/
+
 # 기타
 *.bak
 *.tmp
