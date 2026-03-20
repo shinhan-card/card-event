@@ -27,9 +27,13 @@ describe("content contracts", () => {
   });
 
   it("covers extraction normalization and classification responsibilities", () => {
+    const eventCollection = moduleMap.sections.find(
+      (section) => section.key === "event-collection"
+    );
     const eventPipeline = moduleMap.sections.find((section) => section.key === "event-pipeline");
     const enrichment = moduleMap.sections.find((section) => section.key === "enrichment");
 
+    expect(eventCollection?.clusters[0].key).toBe("event-pipeline");
     expect(eventPipeline?.clusters[0].files).toEqual(
       expect.arrayContaining([
         "modules/pipeline.py",

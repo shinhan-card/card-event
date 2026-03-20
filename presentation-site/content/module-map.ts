@@ -41,7 +41,7 @@ const apiSurfaceCluster = {
 } as const satisfies ModuleCluster;
 
 const eventCollectionCluster = {
-  key: "shared",
+  key: "event-pipeline",
   title: "Event Collection",
   summary: "Connectors and crawlers that gather event inputs.",
   files: ["modules/connectors/*"]
@@ -55,7 +55,7 @@ const eventPipelineCluster = {
 } as const satisfies ModuleCluster;
 
 const enrichmentCluster = {
-  key: "shared",
+  key: "event-pipeline",
   title: "Enrichment",
   summary: "Event enrichment, classification, and insights responsibilities.",
   files: ["modules/event_enrichment.py", "modules/classification.py", "modules/insights.py"]
