@@ -436,7 +436,11 @@ a:hover {
 
 .problem-grid,
 .outcome-grid,
-.orchestration-map {
+.orchestration-map,
+.deep-dive-concept-grid,
+.deep-dive-stage-grid,
+.deep-dive-orchestration-grid,
+.deep-dive-principles {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -467,12 +471,54 @@ a:hover {
   color: var(--text-muted);
 }
 
+.deep-dive-stage-card h3,
+.deep-dive-concept-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+
+.deep-dive-stage-metrics {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.deep-dive-stage-metrics div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.deep-dive-stage-metrics dt {
+  color: var(--signal);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.deep-dive-stage-metrics dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.deep-dive-principles {
+  margin-top: 1rem;
+}
+
+.deep-dive-principle-card {
+  border-style: dashed;
+}
+
 @media (max-width: 800px) {
   .site-header,
   .site-footer,
   .sticky-stage,
   .scene-hero,
-  .signal-network-grid {
+  .signal-network-grid,
+  .deep-dive-concept-grid,
+  .deep-dive-stage-grid,
+  .deep-dive-orchestration-grid,
+  .deep-dive-principles {
     grid-template-columns: 1fr;
     flex-direction: column;
   }

@@ -57,4 +57,19 @@ describe("route smoke", () => {
       screen.getByRole("heading", { name: /architecture deep dive/i, level: 1 })
     ).toBeInTheDocument();
   });
+
+  it("renders deep dive concept sections", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>
+    );
+
+    expect(
+      screen.getByRole("heading", { name: /concept architecture/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /stage breakdown/i })
+    ).toBeInTheDocument();
+  });
 });
