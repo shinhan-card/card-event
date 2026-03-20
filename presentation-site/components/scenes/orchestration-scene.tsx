@@ -5,6 +5,7 @@ import { siteContent } from "@/content/site-content";
 export default function OrchestrationScene() {
   return (
     <StickyStageLayout
+      id="decision-surfaces"
       eyebrow={siteContent.showroom.orchestration.eyebrow}
       title={siteContent.showroom.orchestration.title}
       summary={siteContent.showroom.orchestration.summary}

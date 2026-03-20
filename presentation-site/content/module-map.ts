@@ -143,7 +143,7 @@ const publicClusters = [
     group: "shared-core",
     title: "공유 코어",
     summary: "앱 진입점, 저장 계층, 헬스 체크와 API 유틸이 함께 놓이는 공용 기반입니다.",
-    evidenceLevel: "implemented",
+    evidenceLevel: "approved",
     files: ["app.py", "database.py", "routers/health.py", "modules/api_utils.py"],
   },
   {
@@ -151,7 +151,7 @@ const publicClusters = [
     group: "event-axis",
     title: "이벤트 축",
     summary: "경쟁 카드 이벤트를 수집하고 해석하는 구현 경로와 승인 경로를 한 축으로 묶었습니다.",
-    evidenceLevel: "implemented",
+    evidenceLevel: "approved",
     files: [
       "modules/connectors/*",
       "modules/extraction.py",
@@ -189,7 +189,7 @@ const publicClusters = [
     group: "delivery-surfaces",
     title: "전달면",
     summary: "대시보드, 브리핑, 애널리틱스, 이메일 리포트를 잇는 결과 표면입니다.",
-    evidenceLevel: "implemented",
+    evidenceLevel: "approved",
     files: [
       "templates/dashboard_luxury.html",
       "templates/dashboard_pro.html",

@@ -35,6 +35,25 @@ describe("route smoke", () => {
     expect(cta).toHaveAttribute("href", siteContent.hero.primaryCta.href);
   });
 
+  it("renders the public landing anchor ids", () => {
+    render(
+      <PresentationShell>
+        <HomePage />
+      </PresentationShell>
+    );
+
+    [
+      "overview",
+      "axes",
+      "how-it-works",
+      "decision-surfaces",
+      "value",
+      "deep-dive-cta",
+    ].forEach((id) => {
+      expect(document.getElementById(id)).toBeInTheDocument();
+    });
+  });
+
   it("renders signal flow labels", () => {
     render(
       <PresentationShell>
@@ -55,6 +74,16 @@ describe("route smoke", () => {
     expect(
       screen.getByRole("heading", { name: "아키텍처 딥다이브", level: 1 })
     ).toBeInTheDocument();
+  });
+
+  it("renders the executive blueprint anchor on deep dive", () => {
+    render(
+      <PresentationShell>
+        <DeepDivePage />
+      </PresentationShell>
+    );
+
+    expect(document.getElementById("executive-blueprint")).toBeInTheDocument();
   });
 
   it("renders deep dive concept sections", () => {

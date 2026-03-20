@@ -262,6 +262,15 @@ describe("task 1 content contracts", () => {
       expectKoreanLabel(cluster.title);
       expectKoreanLabel(cluster.summary);
     });
+
+    expect(
+      moduleMap.clusters.map(({ group, evidenceLevel }) => ({ group, evidenceLevel })),
+    ).toEqual([
+      { group: "shared-core", evidenceLevel: "approved" },
+      { group: "event-axis", evidenceLevel: "approved" },
+      { group: "product-axis", evidenceLevel: "approved" },
+      { group: "delivery-surfaces", evidenceLevel: "approved" },
+    ]);
   });
 
   it("keeps module map compatibility helpers hidden from the public contract", () => {

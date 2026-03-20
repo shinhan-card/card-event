@@ -8,7 +8,7 @@ export default function ProblemScene() {
       eyebrow={siteContent.showroom.problem.eyebrow}
       title={siteContent.showroom.problem.title}
       summary={siteContent.showroom.problem.summary}
-      id="problem"
+      id="axes"
     >
       <div className="problem-grid">
         {architectureContent.axes.map((axis, index) => (

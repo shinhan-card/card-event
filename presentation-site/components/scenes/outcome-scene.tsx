@@ -7,6 +7,7 @@ export default function OutcomeScene() {
       eyebrow={siteContent.showroom.outcomes.eyebrow}
       title={siteContent.showroom.outcomes.title}
       summary={siteContent.showroom.outcomes.summary}
+      id="value"
     >
       <div className="outcome-grid">
         {siteContent.showroom.outcomes.cards.map((outcome) => (

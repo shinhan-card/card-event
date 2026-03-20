@@ -8,6 +8,7 @@ export default function DeepDiveCtaScene() {
       eyebrow={siteContent.showroom.deepDiveCta.eyebrow}
       title={siteContent.showroom.deepDiveCta.title}
       summary={siteContent.showroom.deepDiveCta.summary}
+      id="deep-dive-cta"
     >
       <div className="scene-stack">
         <p className="scene-intro">{siteContent.showroom.deepDiveCta.supportingCopy}</p>

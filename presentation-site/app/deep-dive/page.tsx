@@ -15,7 +15,7 @@ export default function DeepDivePage() {
         eyebrow={architectureContent.deepDive.eyebrow}
         title={architectureContent.deepDive.title}
         summary={architectureContent.deepDive.summary}
-        id="deep-dive"
+        id="executive-blueprint"
         headingLevel={1}
       >
         <section className="deep-dive-overview" aria-label="딥다이브 개요 다이어그램">
