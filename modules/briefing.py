@@ -98,7 +98,7 @@ def _find_notable_events(all_events, active_events) -> list:
     return notable
 
 
-def build_daily_briefing_data(session: Session) -> dict:
+def _legacy_flat_build_daily_briefing_data(session: Session) -> dict:
     """지난 24시간 기준 일간 브리핑 데이터 수집."""
     now = datetime.now()
     yesterday = now - timedelta(hours=24)
@@ -149,7 +149,7 @@ def build_daily_briefing_data(session: Session) -> dict:
     }
 
 
-def build_weekly_briefing_data(session: Session) -> dict:
+def _legacy_flat_build_weekly_briefing_data(session: Session) -> dict:
     """이번 주 기준 주간 브리핑 데이터 수집."""
     now = datetime.now()
     week_ago = now - timedelta(days=7)

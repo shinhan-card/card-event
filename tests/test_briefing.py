@@ -1,5 +1,6 @@
 import json
 import importlib
+import inspect
 import os
 import sys
 import tempfile
@@ -186,6 +187,13 @@ def test_weekly_payload_falls_back_to_rule_summary(monkeypatch):
     assert payload["ai_summary_status"] == "rule"
     assert isinstance(payload["executive_summary"], str)
     assert payload["executive_summary"]
+
+
+def test_briefing_module_exports_single_daily_and_weekly_builder_definition():
+    source = inspect.getsource(briefing)
+
+    assert source.count("def build_daily_briefing_data(") == 1
+    assert source.count("def build_weekly_briefing_data(") == 1
 
 
 def test_create_briefing_log_persists_new_metadata():
