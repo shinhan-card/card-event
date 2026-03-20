@@ -1,10 +1,5 @@
 import Link from "next/link";
-
-const navItems = [
-  { href: "/", label: "개요" },
-  { href: "/#how-it-works", label: "작동 흐름" },
-  { href: "/deep-dive", label: "딥다이브" }
-] as const;
+import { siteContent } from "@/content/site-content";
 
 export default function SiteHeader() {
   return (
@@ -17,7 +12,7 @@ export default function SiteHeader() {
       </div>
       <nav aria-label="주요 탐색">
         <ul className="site-nav">
-          {navItems.map((item) => (
+          {siteContent.navigation.map((item) => (
             <li key={item.href}>
               <Link href={item.href}>{item.label}</Link>
             </li>

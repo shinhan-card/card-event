@@ -9,26 +9,34 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <HomePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
     const navigation = screen.getByRole("navigation", { name: /주요 탐색/i });
-    const deepDiveLink = within(navigation).getByRole("link", {
-      name: "딥다이브"
-    });
+    const links = within(navigation).getAllByRole("link");
 
     expect(navigation).toBeInTheDocument();
-    expect(deepDiveLink).toHaveAttribute("href", "/deep-dive");
+    expect(
+      links.map((link) => ({
+        label: link.textContent,
+        href: link.getAttribute("href"),
+      })),
+    ).toEqual(
+      siteContent.navigation.map((item) => ({
+        label: item.label,
+        href: item.href,
+      })),
+    );
   });
 
   it("renders landing CTAs", () => {
     render(
       <PresentationShell>
         <HomePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
     const cta = screen.getByRole("link", {
-      name: siteContent.hero.primaryCta.label
+      name: siteContent.hero.primaryCta.label,
     });
 
     expect(cta).toBeInTheDocument();
@@ -39,7 +47,7 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <HomePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
     [
@@ -58,7 +66,7 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <HomePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
     expect(screen.getByText("수집")).toBeInTheDocument();
@@ -69,10 +77,10 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
     expect(
-      screen.getByRole("heading", { name: "아키텍처 딥다이브", level: 1 })
+      screen.getByRole("heading", { name: "아키텍처 딥다이브", level: 1 }),
     ).toBeInTheDocument();
   });
 
@@ -80,7 +88,7 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
     expect(document.getElementById("executive-blueprint")).toBeInTheDocument();
@@ -90,43 +98,31 @@ describe("route smoke", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
-    expect(
-      screen.getByRole("heading", { name: "개념 아키텍처" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "처리 단계 구조" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "오케스트레이션 맵" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "개념 아키텍처" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "처리 단계 구조" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "오케스트레이션 맵" })).toBeInTheDocument();
   });
 
   it("renders deep dive axis split", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
-    expect(
-      screen.getByRole("heading", { name: "이벤트 인텔리전스" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "상품 / 공시 인텔리전스" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "실제 모듈 지도" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "이벤트 인텔리전스" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "상품 / 공시 인텔리전스" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "실제 모듈 지도" })).toBeInTheDocument();
   });
 
   it("renders explicit deep dive technology labels", () => {
     render(
       <PresentationShell>
         <DeepDivePage />
-      </PresentationShell>
+      </PresentationShell>,
     );
 
     expect(screen.getAllByText("Playwright").length).toBeGreaterThan(0);
