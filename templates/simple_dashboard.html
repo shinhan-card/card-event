@@ -1961,46 +1961,6 @@ function coTag(c) {
 }
 
 // ===== ??????癲ル슢??蹂좉슈?????怨멸텛? ??=====
-async function loadOpsDataLegacy() {
-  try {
-    await Promise.all([
-      loadOpsOverviewData(),
-      loadDisclosureStats(),
-      loadDisclosureSyncStatus(),
-      typeof loadBriefingStatus === 'function' ? loadBriefingStatus() : Promise.resolve(),
-    ]);
-  } catch(e) { console.error('ops load fail', e); }
-}
-
-async function loadOpsOverviewDataLegacy() {
-  try {
-    const [progR, ragR] = await Promise.all([
-      fetch('/api/pipeline/progress'),
-      fetch('/api/rag/stats'),
-    ]);
-    const prog = progR.ok ? await progR.json() : {};
-    const rag = ragR.ok ? await ragR.json() : {};
-
-    const inEl = document.getElementById('opsIngestStatus');
-    if (inEl) inEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
-      <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
-    </div>`;
-
-    const exEl = document.getElementById('opsExtractStatus');
-    if (exEl) exEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
-      <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
-    </div>`;
-
-    const rgEl = document.getElementById('opsRagStatus');
-    if (rgEl) rgEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
-      <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
-    </div>`;
-  } catch(e) { console.error('ops load fail', e); }
-}
-
 async function loadDisclosureStats() {
   try {
     const [statsR, newR] = await Promise.all([
@@ -2712,46 +2672,6 @@ function renderGantt() {
   chart.innerHTML = html;
 }
 
-async function loadOpsData() {
-  try {
-    await Promise.all([
-      loadOpsOverviewData(),
-      loadDisclosureStats(),
-      loadDisclosureSyncStatus(),
-      typeof loadBriefingStatus === 'function' ? loadBriefingStatus() : Promise.resolve(),
-    ]);
-  } catch(e) { console.error('ops load fail', e); }
-}
-
-async function loadOpsOverviewData() {
-  try {
-    const [progR, ragR] = await Promise.all([
-      fetch('/api/pipeline/progress'),
-      fetch('/api/rag/stats'),
-    ]);
-    const prog = progR.ok ? await progR.json() : {};
-    const rag = ragR.ok ? await ragR.json() : {};
-
-    const inEl = document.getElementById('opsIngestStatus');
-    if (inEl) inEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Last ingest: <strong>${prog.last_ingest_at ? new Date(prog.last_ingest_at).toLocaleString('ko-KR') : 'none'}</strong></div>
-      <div class="text-xs">Collected events: <strong>${prog.total_collected || '-'}</strong></div>
-    </div>`;
-
-    const exEl = document.getElementById('opsExtractStatus');
-    if (exEl) exEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Completed extractions: <strong>${prog.total_extracted || '-'}</strong></div>
-      <div class="text-xs">Pending extractions: <strong>${prog.pending_extraction || '-'}</strong></div>
-    </div>`;
-
-    const rgEl = document.getElementById('opsRagStatus');
-    if (rgEl) rgEl.innerHTML = `<div class="space-y-1">
-      <div class="text-xs">Status: <strong>${rag.status || 'unknown'}</strong></div>
-      <div class="text-xs">?? ?: <strong>${rag.total_chunks || 0}</strong></div>
-    </div>`;
-  } catch(e) { console.error('ops load fail', e); }
-}
-
 async function loadDisclosureStats() {
   try {
     const [statsR, newR] = await Promise.all([
@@ -3118,3 +3038,4 @@ if (document.readyState === 'complete') {
 <script src="/static/js/dashboard_extras.js?v=2"></script>
 </body>
 </html>
+
