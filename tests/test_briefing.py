@@ -859,6 +859,65 @@ def test_render_weekly_briefing_uses_company_narratives_and_product_summary():
     assert "template_version" not in html
 
 
+def test_render_weekly_briefing_handles_products_without_confidence():
+    payload = _weekly_render_payload_contract()
+    payload["product_summary"][0].pop("confidence", None)
+    payload["evidence_products"][0].pop("confidence", None)
+
+    html = briefing.render_briefing_html(
+        payload,
+        report_type="weekly",
+        dashboard_url="https://example.com/dashboard",
+    )
+
+    assert "Alpha Card · Alpha Sky" in html
+    assert "Beta Card · Beta Live" in html
+    assert "신뢰도" in html
+    assert "연결 방식 name" in html
+    assert "연결 방식 alias" in html
+    assert "Traceback" not in html
+    assert "confidence" not in html
+
+
+def test_weekly_builder_render_supports_linked_cards_without_confidence(monkeypatch):
+    monkeypatch.setattr(briefing, "EXPECTED_COMPANIES", ("Alpha Card",), raising=False)
+    session = _FakeSession(
+        [
+            _make_event(
+                17,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=2),
+                linked_cards=["Alpha Sky"],
+                one_line_summary="Weekly linked-card offer.",
+                evidence=["Linked-card evidence"],
+            ),
+            _make_event(
+                18,
+                company="Alpha Card",
+                created_at=datetime.now() - timedelta(days=11),
+                period_end=date.today() - timedelta(days=1),
+                status="ended",
+                linked_cards=["Alpha Sky"],
+                one_line_summary="Ended linked-card offer.",
+                evidence=["Ended linked-card evidence"],
+            ),
+        ]
+    )
+
+    payload = briefing.build_weekly_briefing_data(session)
+    html = briefing.render_briefing_html(
+        payload,
+        report_type="weekly",
+        dashboard_url="https://example.com/dashboard",
+    )
+
+    assert payload["product_summary"]
+    assert all("confidence" not in item or item["confidence"] is None for item in payload["product_summary"])
+    assert "Alpha Card · Alpha Sky" in html
+    assert "주간 핵심 요약" in html
+    assert "Traceback" not in html
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_") and callable(fn):
@@ -867,9 +926,42 @@ if __name__ == "__main__":
                 if not params:
                     fn()
                 elif len(params) == 1 and params[0].name == "monkeypatch":
-                    from pytest import MonkeyPatch
+                    class _DirectMonkeyPatch:
+                        def __init__(self):
+                            self._changes = []
 
-                    monkeypatch = MonkeyPatch()
+                        def setattr(self, target, name, value=None, raising=True):
+                            if isinstance(target, str):
+                                module_name, attr_name = target.rsplit(".", 1)
+                                target_obj = importlib.import_module(module_name)
+                                attr_name = name
+                                new_value = value
+                            else:
+                                target_obj = target
+                                attr_name = name
+                                new_value = value
+
+                            if not hasattr(target_obj, attr_name):
+                                if raising:
+                                    raise AttributeError(f"{target_obj!r} has no attribute {attr_name!r}")
+                                original = None
+                                existed = False
+                            else:
+                                original = getattr(target_obj, attr_name)
+                                existed = True
+
+                            self._changes.append((target_obj, attr_name, existed, original))
+                            setattr(target_obj, attr_name, new_value)
+
+                        def undo(self):
+                            while self._changes:
+                                target_obj, attr_name, existed, original = self._changes.pop()
+                                if existed:
+                                    setattr(target_obj, attr_name, original)
+                                else:
+                                    delattr(target_obj, attr_name)
+
+                    monkeypatch = _DirectMonkeyPatch()
                     try:
                         fn(monkeypatch)
                     finally:
