@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
-import SiteFooter from "@/components/chrome/site-footer";
-import SiteHeader from "@/components/chrome/site-header";
+import PresentationShell from "@/components/chrome/presentation-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,11 +30,7 @@ export default function RootLayout({
         <a className="skip-link" href="#content">
           Skip to content
         </a>
-        <div className="shell-frame">
-          <SiteHeader />
-          <main id="content">{children}</main>
-          <SiteFooter />
-        </div>
+        <PresentationShell>{children}</PresentationShell>
       </body>
     </html>
   );
