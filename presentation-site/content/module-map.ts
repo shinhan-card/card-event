@@ -27,6 +27,17 @@ type LegacyModuleMap = {
   }[];
 };
 
+const mergeEvidenceLevel = (
+  current: EvidenceLevel | undefined,
+  next: EvidenceLevel,
+): EvidenceLevel => {
+  if (current === "implemented" || next === "implemented") {
+    return "implemented";
+  }
+
+  return next;
+};
+
 const defineHidden = <T extends object, K extends PropertyKey, V>(
   target: T,
   key: K,
@@ -218,6 +229,14 @@ const technologiesByGroup: Record<ClusterGroup, readonly string[]> = {
   "delivery-surfaces": ["FastAPI", "SQLAlchemy", "APScheduler"],
 };
 
+const pathEvidence = detailedClusters.reduce<Record<string, EvidenceLevel>>((map, cluster) => {
+  cluster.files.forEach((file) => {
+    map[file] = mergeEvidenceLevel(map[file], cluster.evidenceLevel);
+  });
+
+  return map;
+}, {});
+
 export const moduleMap: LegacyModuleMap = defineHidden(
   {
     clusters: publicClusters,
@@ -271,3 +290,6 @@ export const moduleMap: LegacyModuleMap = defineHidden(
     },
   ],
 );
+
+export const resolveModulePathStatus = (relativePath: string): EvidenceLevel =>
+  pathEvidence[relativePath] ?? "approved";

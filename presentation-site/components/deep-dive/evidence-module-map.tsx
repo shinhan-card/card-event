@@ -1,9 +1,6 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
-
 import SectionShell from "@/components/chrome/section-shell";
 import { architectureContent } from "@/content/architecture-content";
-import { moduleMap } from "@/content/module-map";
+import { moduleMap, resolveModulePathStatus } from "@/content/module-map";
 
 const groupLabels = {
   "shared-core": "공유 코어",
@@ -16,18 +13,6 @@ const evidenceLabels = {
   implemented: "구현됨",
   approved: "승인 경로",
 } as const;
-
-const repoRootCandidates = [process.cwd(), path.resolve(process.cwd(), "..")];
-
-const resolvePathStatus = (relativePath: string): keyof typeof evidenceLabels => {
-  if (relativePath.includes("*")) {
-    return "approved";
-  }
-
-  return repoRootCandidates.some((repoRoot) => existsSync(path.resolve(repoRoot, relativePath)))
-    ? "implemented"
-    : "approved";
-};
 
 export default function EvidenceModuleMap() {
   return (
@@ -56,7 +41,7 @@ export default function EvidenceModuleMap() {
             </div>
             <ul className="module-cluster-map-files">
               {cluster.files.map((file) => {
-                const pathStatus = resolvePathStatus(file);
+                const pathStatus = resolveModulePathStatus(file);
 
                 return (
                   <li data-path-status={pathStatus} key={file}>

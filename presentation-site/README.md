@@ -48,5 +48,6 @@ That metadata is currently captured as of `2026-03-20` and should be updated whe
 
 - Keep this workspace self-contained inside `presentation-site/`.
 - Add future presentation changes here rather than in the FastAPI runtime.
-- `npm run test:e2e` runs the showroom and deep-dive Playwright coverage; the bootstrap placeholder spec remains skipped until it is retired.
+- `npm run test:e2e` runs the showroom and deep-dive Playwright coverage without skipped placeholder specs.
+- Deep-dive path provenance is driven by the snapshot content contract, so it stays stable even when this workspace is built without the backend checkout beside it.
 - The `presentation-site/next-env.d.ts` line-ending churn is still local noise in this worktree and was intentionally left alone.
