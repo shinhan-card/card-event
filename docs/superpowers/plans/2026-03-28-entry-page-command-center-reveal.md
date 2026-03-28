@@ -16,6 +16,9 @@
 - entry page의 preview 콘텐츠는 `하이브리드`로 간다.
   - hero/preview의 핵심 문장과 framing copy는 curated content
   - signal bar 또는 early signal strip에는 작은 범위의 snapshot-backed real signal을 1묶음만 사용
+- curated copy는 기존 분산/수작업 중심 모니터링 대비 무엇이 좋아졌는지를 드러내야 한다.
+  - direct comparison과 workflow transformation 메시지를 함께 사용
+  - `분산 확인 -> 통합 감지`, `수집/정리 -> 분석/브리핑`, `후행 파악 -> 실시간에 가까운 포착` 구조를 기본 문법으로 둔다
 - 1차 구현에서 3D는 `persistent ambient background`가 baseline이다.
   - section별 dramatic scene choreography는 baseline scope에 넣지 않는다
   - overlay contrast, pointer ownership, passive depth 느낌까지만 1차 목표로 둔다
@@ -72,6 +75,7 @@
   - hero에서 완성형 브리핑 패널 전체를 노출하지 않음
   - primary CTA는 `플랫폼 입장`, secondary action은 별도 보조 스타일 hook 부여
   - curated copy와 real signal 영역이 visually 섞여 보이더라도 역할은 분리
+  - hero copy에 `기존 분산 모니터링 -> 통합 브리핑 인텔리전스` 전환 메시지를 최소 1회 반영
 
 - [ ] **Step 5: 테스트 재실행**
   - Run: `pytest tests/test_entry_page_contract.py -q`
@@ -235,6 +239,7 @@ git commit -m "test: lock entry page static delivery contract"
     - 첫 화면이 대시보드처럼 과밀하지 않은지
     - CTA hierarchy가 명확한지
     - curated preview와 real signal strip의 역할이 혼동되지 않는지
+    - `기존 방식 대비 무엇이 좋아졌는지`가 hero와 preview만 읽어도 드러나는지
 
 - [ ] **Step 3: 모바일 visual smoke**
   - 375px 너비에서 확인:
@@ -273,6 +278,7 @@ git commit -m "feat: launch command center reveal entry page"
 - [ ] 기존 Spline 3D가 제거되지 않고 persistent background로 유지된다
 - [ ] hero가 과밀한 mini-dashboard처럼 보이지 않는다
 - [ ] curated copy 영역과 real signal 영역의 역할 차이가 유지된다
+- [ ] 카피만 읽어도 `분산 확인 -> 통합 감지`, `수집/정리 -> 브리핑/판단` 전환이 드러난다
 - [ ] sticky signal bar, reveal sections, briefing preview, process narrative, final CTA가 모두 순서대로 존재한다
 - [ ] 모바일 375px에서 horizontal scroll이 없다
 - [ ] 모바일에서 signal/preview/process 구성이 데스크톱 단순 적층이 아니다
