@@ -19,6 +19,9 @@
 - curated copy는 기존 분산/수작업 중심 모니터링 대비 무엇이 좋아졌는지를 드러내야 한다.
   - direct comparison과 workflow transformation 메시지를 함께 사용
   - `분산 확인 -> 통합 감지`, `수집/정리 -> 분석/브리핑`, `후행 파악 -> 실시간에 가까운 포착` 구조를 기본 문법으로 둔다
+  - 문장은 쉽고 직관적으로 쓴다
+  - 한 문장 한 메시지 원칙을 지키고, 내부 용어는 꼭 필요한 곳에만 제한적으로 사용한다
+  - `모읍니다`, `보여줍니다`, `비교합니다`, `정리합니다` 같은 쉬운 동사를 우선한다
 - 1차 구현에서 3D는 `persistent ambient background`가 baseline이다.
   - section별 dramatic scene choreography는 baseline scope에 넣지 않는다
   - overlay contrast, pointer ownership, passive depth 느낌까지만 1차 목표로 둔다
@@ -76,6 +79,8 @@
   - primary CTA는 `플랫폼 입장`, secondary action은 별도 보조 스타일 hook 부여
   - curated copy와 real signal 영역이 visually 섞여 보이더라도 역할은 분리
   - hero copy에 `기존 분산 모니터링 -> 통합 브리핑 인텔리전스` 전환 메시지를 최소 1회 반영
+  - hero 설명은 2문장 또는 2줄 안에서 즉시 이해되도록 정리
+  - `인텔리전스`, `시그널`, `vertical AI` 같은 표현은 전략 라벨을 제외하고 반복 남용하지 않음
 
 - [ ] **Step 5: 테스트 재실행**
   - Run: `pytest tests/test_entry_page_contract.py -q`
@@ -240,6 +245,8 @@ git commit -m "test: lock entry page static delivery contract"
     - CTA hierarchy가 명확한지
     - curated preview와 real signal strip의 역할이 혼동되지 않는지
     - `기존 방식 대비 무엇이 좋아졌는지`가 hero와 preview만 읽어도 드러나는지
+    - 문장이 짧고 바로 이해되는지
+    - 어려운 내부 용어가 전면 카피를 지배하지 않는지
 
 - [ ] **Step 3: 모바일 visual smoke**
   - 375px 너비에서 확인:
@@ -279,6 +286,8 @@ git commit -m "feat: launch command center reveal entry page"
 - [ ] hero가 과밀한 mini-dashboard처럼 보이지 않는다
 - [ ] curated copy 영역과 real signal 영역의 역할 차이가 유지된다
 - [ ] 카피만 읽어도 `분산 확인 -> 통합 감지`, `수집/정리 -> 브리핑/판단` 전환이 드러난다
+- [ ] hero/body copy가 어렵지 않고 한 번에 읽힌다
+- [ ] 쉬운 동사가 중심이고, 내부 용어는 전략 라벨 수준으로만 쓰인다
 - [ ] sticky signal bar, reveal sections, briefing preview, process narrative, final CTA가 모두 순서대로 존재한다
 - [ ] 모바일 375px에서 horizontal scroll이 없다
 - [ ] 모바일에서 signal/preview/process 구성이 데스크톱 단순 적층이 아니다
