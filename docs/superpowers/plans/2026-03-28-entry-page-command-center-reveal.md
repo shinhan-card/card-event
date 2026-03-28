@@ -38,7 +38,7 @@
 - Create: `C:\Users\82104\Desktop\Cursor\card-event-intelligence\tests\test_entry_page_contract.py`
   - required section ids, hero budget guardrails, CTA hierarchy markers, reduced-motion hooks, semantic structure 검증
 - Modify: `C:\Users\82104\Desktop\Cursor\card-event-intelligence\tests\test_app_routes.py`
-  - `/entry-page/index.html` 또는 `/entry-page/` static delivery 회귀 보강
+  - `/entry` primary route와 `/entry-page/*` supporting asset delivery 회귀 보강
 
 ## Task 1: Entry page information architecture를 HTML에 고정
 
@@ -225,10 +225,10 @@ git commit -m "test: lock entry page static delivery contract"
 
 - [ ] **Step 1: 로컬 서버 실행 경로 확인**
   - Run: `python app.py`
-  - Expected: FastAPI server boot, `/entry-page` static mount available
+  - Expected: FastAPI server boot, `/entry` route 및 `/entry-page/*` asset 경로 available
 
 - [ ] **Step 2: 데스크톱 visual smoke**
-  - Open: `http://localhost:8000/entry-page/index.html`
+  - Open: `http://localhost:8000/entry`
   - 확인 항목:
     - 3D가 전체 페이지 배경으로 유지되는지
     - 첫 화면이 포스터처럼 읽히는지
