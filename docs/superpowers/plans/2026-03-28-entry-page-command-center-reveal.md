@@ -10,6 +10,23 @@
 
 ---
 
+## Fixed Product Decisions
+
+- 사용자 진입 계약은 `/entry`를 primary route로 본다. `/entry-page/*`는 asset/static support 경로다.
+- entry page의 preview 콘텐츠는 `하이브리드`로 간다.
+  - hero/preview의 핵심 문장과 framing copy는 curated content
+  - signal bar 또는 early signal strip에는 작은 범위의 snapshot-backed real signal을 1묶음만 사용
+- 1차 구현에서 3D는 `persistent ambient background`가 baseline이다.
+  - section별 dramatic scene choreography는 baseline scope에 넣지 않는다
+  - overlay contrast, pointer ownership, passive depth 느낌까지만 1차 목표로 둔다
+- pytest는 markup contract와 route contract를 검증한다.
+  - scroll reveal, count-up feel, 실제 motion 품질은 browser/manual verification 범위로 둔다
+- 모바일은 데스크톱 레이아웃을 단순 적층하지 않는다.
+  - hero signal 밀도 축소
+  - sticky signal 단순화
+  - preview 패널 수 축소
+  - process narrative는 vertical sequence로 재배치
+
 ## File Structure
 
 - Modify: `C:\Users\82104\Desktop\Cursor\card-event-intelligence\entry-page\index.html`
@@ -54,6 +71,7 @@
   - 첫 화면에 동급 위계 카드 다수 배치 금지
   - hero에서 완성형 브리핑 패널 전체를 노출하지 않음
   - primary CTA는 `플랫폼 입장`, secondary action은 별도 보조 스타일 hook 부여
+  - curated copy와 real signal 영역이 visually 섞여 보이더라도 역할은 분리
 
 - [ ] **Step 5: 테스트 재실행**
   - Run: `pytest tests/test_entry_page_contract.py -q`
@@ -101,6 +119,13 @@ git commit -m "feat: add entry page command center structure"
   - 모바일에서 3D가 과하지 않도록 overlay contrast 강화
   - touch target 44px 이상 유지
   - `@media (prefers-reduced-motion: reduce)` 대응 추가
+  - 모바일에서 signal cluster, preview panel, process narrative 배치를 별도 정의
+
+- [ ] **Step 5.5: accessibility baseline 추가**
+  - `:focus-visible` 스타일 추가
+  - primary/secondary CTA의 keyboard focus order 확인
+  - overlay 위 텍스트 contrast가 유지되도록 배경 그라데이션 또는 surface 강도 조정
+  - interactive element의 최소 hit area 44px 보장
 
 - [ ] **Step 6: 최소 계약 테스트 보강**
   - reduced-motion 관련 class/hook 또는 data attr 존재를 검사
@@ -128,6 +153,7 @@ git commit -m "style: add premium command center visual system"
   - active section을 표시할 수 있는 hook 존재 여부
   - count-up target data attr 존재 여부
   - script가 reduced-motion일 때 heavy animation path를 피할 수 있는 guard를 갖는지 검증
+  - 이 테스트는 runtime feel 자체가 아니라 markup/hook 존재 여부만 다룬다고 주석으로 명시
 
 - [ ] **Step 2: 테스트를 실패시키기**
   - Run: `pytest tests/test_entry_page_contract.py -q -k "script or interaction"`
@@ -142,6 +168,7 @@ git commit -m "style: add premium command center visual system"
 - [ ] **Step 4: input ownership model 보조**
   - hero 구간과 본문 구간에서 class/state를 달리해 CSS가 pointer-events를 제어할 수 있게 함
   - 모바일 또는 reduced-motion 환경에서는 parallax/active motion 강도 축소
+  - iframe scene을 직접 choreography 하지 않고, ambient layer로 유지하는 baseline을 지킴
 
 - [ ] **Step 5: graceful fallback 보장**
   - JS가 없어도 모든 콘텐츠가 순서대로 읽히는 구조 유지
@@ -165,7 +192,8 @@ git commit -m "feat: add entry page scroll interaction states"
 - Modify: `C:\Users\82104\Desktop\Cursor\card-event-intelligence\tests\test_entry_page_contract.py`
 
 - [ ] **Step 1: static route 회귀 테스트 작성**
-  - `/entry-page/index.html` 또는 `/entry-page/` 요청이 200을 반환하는지 검증
+  - `/entry` 요청이 200을 반환하는지 검증
+  - `/entry-page/style.css`, `/entry-page/script.js` asset 요청이 200을 반환하는지 검증
   - 응답 body에 새 핵심 섹션 id가 포함되는지 검증
   - entry page에서 새 primary CTA 라벨이 포함되는지 검증
 
@@ -174,8 +202,8 @@ git commit -m "feat: add entry page scroll interaction states"
   - Expected: route assertion missing 또는 새 구조 부재로 FAIL
 
 - [ ] **Step 3: 테스트가 기대하는 경로를 현재 static mount와 맞추기**
-  - `app.py`의 `/entry-page` mount 계약을 기준으로 테스트 경로를 고정
-  - 필요시 `/entry-page/`와 `/entry-page/index.html` 둘 다 지원 여부를 확인
+  - `app.py`의 `/entry` FileResponse contract를 primary로 고정
+  - `/entry-page/*`는 supporting asset contract로 유지
 
 - [ ] **Step 4: tests 재실행**
   - Run: `pytest tests/test_app_routes.py -q -k entry_page`
@@ -206,6 +234,7 @@ git commit -m "test: lock entry page static delivery contract"
     - 첫 화면이 포스터처럼 읽히는지
     - 첫 화면이 대시보드처럼 과밀하지 않은지
     - CTA hierarchy가 명확한지
+    - curated preview와 real signal strip의 역할이 혼동되지 않는지
 
 - [ ] **Step 3: 모바일 visual smoke**
   - 375px 너비에서 확인:
@@ -213,9 +242,13 @@ git commit -m "test: lock entry page static delivery contract"
     - horizontal scroll 없음
     - CTA touch target 충분
     - 3D가 텍스트를 가리지 않음
+    - hero signal 밀도가 자동으로 줄어드는지
+    - preview 패널이 하나의 강한 패널 중심으로 재배치되는지
+    - process narrative가 vertical sequence로 읽히는지
 
 - [ ] **Step 4: reduced motion smoke**
   - `prefers-reduced-motion` 환경에서 reveal/count-up이 과격하지 않게 축소되는지 확인
+  - section activation이 있어도 scene choreography가 과장되지 않는지 확인
 
 - [ ] **Step 5: polish fix 적용**
   - spacing/hierarchy/contrast에서 마지막 미세 조정
@@ -234,13 +267,17 @@ git commit -m "feat: launch command center reveal entry page"
 
 ## Verification Checklist
 
-- [ ] `/entry-page` 또는 `/entry-page/index.html`이 로컬 서버에서 정상 렌더링된다
+- [ ] `/entry`가 로컬 서버에서 정상 렌더링된다
+- [ ] `/entry-page/style.css`와 `/entry-page/script.js` asset이 정상 응답한다
 - [ ] 첫 화면에서 플랫폼 위상과 monitoring scope가 동시에 전달된다
 - [ ] 기존 Spline 3D가 제거되지 않고 persistent background로 유지된다
 - [ ] hero가 과밀한 mini-dashboard처럼 보이지 않는다
+- [ ] curated copy 영역과 real signal 영역의 역할 차이가 유지된다
 - [ ] sticky signal bar, reveal sections, briefing preview, process narrative, final CTA가 모두 순서대로 존재한다
 - [ ] 모바일 375px에서 horizontal scroll이 없다
+- [ ] 모바일에서 signal/preview/process 구성이 데스크톱 단순 적층이 아니다
 - [ ] reduced-motion 환경에서 과한 모션이 줄어든다
+- [ ] focus-visible, keyboard order, 44px touch target, overlay text contrast가 유지된다
 
 ## Recommended Next Step
 
