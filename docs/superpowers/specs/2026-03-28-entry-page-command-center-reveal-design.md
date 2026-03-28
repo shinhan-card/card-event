@@ -116,6 +116,28 @@ entry page는 `한 페이지 안에서 점진적으로 깊어지는 플랫폼 �
 - 이 플랫폼은 시장을 여러 축으로 지속 감시한다
 - 단순 소개 페이지가 아니라 살아 있는 시스템이다
 
+### Hero Budget Rules
+
+첫 뷰포트는 `포스터 같은 한 장의 구성`으로 읽혀야지, 작은 대시보드처럼 보이면 안 된다.
+
+첫 화면에 동시에 허용되는 정보 예산은 아래로 제한한다.
+
+- 브랜드 라벨 1개
+- 강한 헤드라인 1개
+- 설명 문장 1개
+- Primary CTA 1개
+- 압축된 신호 묶음 1개
+- 시각 앵커 1개
+
+첫 화면에서 금지할 것:
+
+- 동급 위계의 카드 여러 개
+- 큰 KPI 그리드
+- 완성형 브리핑 패널 전체 노출
+- 좌우에 정보 박스를 과도하게 쌓는 구성
+
+즉 첫 화면은 `브랜드 + 범위 + 암시된 신호`까지만 보여주고, 깊은 설명은 스크롤 이후로 넘긴다.
+
 ### Section 2. Sticky Signal Bar
 
 히어로를 지나면 얇은 상태 바가 상단 또는 상단 인접 구간에 붙는다. 이 구간은 페이지 전체를 하나의 시스템처럼 느끼게 하는 연결 장치다.
@@ -170,6 +192,26 @@ entry page가 실제 플랫폼처럼 느껴지게 만드는 구간이다. 완성
 - 플랫폼 입장
 - 브리핑 보기
 
+CTA 위계는 아래처럼 고정한다.
+
+- `플랫폼 입장`은 primary CTA로 유지
+- `브리핑 보기`는 secondary action으로 내린다
+- secondary action은 ghost button 또는 text link 수준으로 절제한다
+- 두 CTA가 시각적으로 같은 무게를 갖지 않도록 한다
+
+## Section Grammar Rules
+
+모든 섹션이 같은 카드/패널 문법으로 반복되면 AI SaaS 랜딩처럼 보일 위험이 크다. 각 섹션은 서로 다른 레이아웃 역할을 가져야 한다.
+
+- Hero Command Layer: split composition
+- Sticky Signal Bar: thin ribbon / status strip
+- Intelligence Reveal Grid: staggered module reveal, not equal 4-up dashboard grid
+- Briefing Preview Stage: full-width editorial sheet 또는 large preview panel
+- Process Narrative: narrow timeline or sequenced rail
+- Final CTA: calm closing composition
+
+섹션별로 같은 반투명 카드가 반복되는 느낌을 피하고, 각 구간이 `하나의 장면`처럼 읽히게 해야 한다.
+
 ## 3D And Interaction System
 
 ### Core Rule
@@ -183,6 +225,18 @@ entry page가 실제 플랫폼처럼 느껴지게 만드는 구간이다. 완성
 - 섹션이 바뀔 때 3D의 초점, 글로우, 시선축은 미세하게만 이동한다
 - 과도한 카메라 이동, 과격한 parallax, 현란한 회전 효과는 피한다
 - 모바일에서는 3D 강도를 낮추고 가독성을 우선한다
+
+### Input Ownership Model
+
+스크롤형 페이지에서 3D와 콘텐츠가 입력 우선권을 두고 싸우면 바로 품질이 떨어진다. 아래 규칙을 명시적으로 지킨다.
+
+- Hero 구간에서는 3D가 시각적 반응을 가져도 된다
+- Hero 구간에서도 CTA와 핵심 텍스트 주변은 콘텐츠가 우선권을 가진다
+- 본문 스크롤 구간에서는 콘텐츠 레이어가 스크롤과 포인터 입력의 우선권을 가진다
+- 본문 구간의 3D는 passive reaction 또는 미세한 parallax 수준으로 제한한다
+- 모바일에서는 3D 직접 조작을 기본적으로 약화하거나 비활성화한다
+
+즉 사용자는 `콘텐츠를 읽는 동안 방해받지 않고`, 동시에 `뒤에 살아 있는 시스템이 계속 존재한다`고 느껴야 한다.
 
 ### Approved Motion Vocabulary
 
@@ -223,6 +277,19 @@ entry page가 실제 플랫폼처럼 느껴지게 만드는 구간이다. 완성
 - 본문과 데이터 라벨은 정밀하고 차분해야 한다
 - 설명문은 길게 쓰지 않고, 브리핑 문장처럼 짧고 단단하게 유지한다
 
+타이포 시스템은 최소 3개 역할로 분리한다.
+
+- Display: hero headline 전용, 브랜드 위상과 첫인상을 담당
+- UI Sans: 본문, 라벨, 버튼, 설명 텍스트 담당
+- Numeric/Data: 수치, 타임스탬프, signal label 담당
+
+추가 규칙:
+
+- body용 서체와 hero용 서체가 완전히 같은 인상으로 보이면 안 된다
+- 숫자는 tabular figures 또는 동등한 정렬 특성을 갖도록 한다
+- 첫 화면의 영문 라벨과 한글 헤드라인이 함께 있어도 조형적으로 충돌하지 않게 weight와 tracking을 따로 조정한다
+- 현재 body에 가까운 `Pretendard` 계열은 UI Sans로 유지 가능하지만, hero는 별도 display voice가 필요하다
+
 ### Card Language
 
 - 완전 불투명 패널보다 얇은 반투명 패널을 사용한다
@@ -253,6 +320,12 @@ entry page가 실제 플랫폼처럼 느껴지게 만드는 구간이다. 완성
 - 설명보다 `관측된 시스템`처럼 보이기
 - 카드보다 `command module`처럼 보이기
 - 텍스트보다 `브리핑/시그널 조각`처럼 읽히기
+
+추가 원칙:
+
+- 첫 화면은 headline만 훑어도 제품의 정체성이 이해되어야 한다
+- 각 섹션은 한 가지 역할만 수행해야 한다
+- 30%를 덜어냈을 때 더 좋아 보이면 과감히 덜어낸다
 
 ## Content Model
 
