@@ -233,9 +233,20 @@ document.addEventListener("DOMContentLoaded", () => {
   function initProcess() {
     const track = document.querySelector(".process__track");
     const fill = document.querySelector(".process__progress-fill");
+    const header = document.querySelector(".process__header");
     if (!track || window.innerWidth <= 760) return;
 
     const totalScroll = track.scrollWidth - window.innerWidth;
+    /* 2.5x multiplier for slower, more immersive scroll */
+    const scrollDistance = () => totalScroll * 2.5;
+
+    /* Fade in + pin the header text first */
+    if (header) {
+      gsap.from(header, {
+        opacity: 0, y: 30, duration: 0.7, ease: "power3.out",
+        scrollTrigger: { trigger: ".sec--process", start: "top 75%" }
+      });
+    }
 
     gsap.to(track, {
       x: () => -totalScroll,
@@ -243,9 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
       scrollTrigger: {
         trigger: ".sec--process",
         start: "top top",
-        end: () => "+=" + totalScroll,
+        end: () => "+=" + scrollDistance(),
         pin: true,
-        scrub: 0.5,
+        scrub: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           if (fill) fill.style.width = (self.progress * 100) + "%";
@@ -257,14 +268,17 @@ document.addEventListener("DOMContentLoaded", () => {
     ScrollTrigger.create({
       trigger: ".sec--process",
       start: "top top",
-      end: () => "+=" + totalScroll,
+      end: () => "+=" + scrollDistance(),
       scrub: true,
       onUpdate: (self) => {
         const p = self.progress;
         cards.forEach((card, i) => {
           const cardP = (i + 0.5) / cards.length;
           const dist = Math.abs(p - cardP);
-          card.style.opacity = Math.max(0.35, 1 - dist * 2.5);
+          const opacity = Math.max(0.3, 1 - dist * 2);
+          const scale = 0.92 + 0.08 * Math.max(0, 1 - dist * 2.5);
+          card.style.opacity = opacity;
+          card.style.transform = "scale(" + scale + ")";
         });
       }
     });

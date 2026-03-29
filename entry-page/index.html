@@ -11,10 +11,10 @@
 </head>
 <body data-page="entry-cinematic">
 
-  <!-- Spline background (hero) -->
-  <div class="spline-bg" id="spline-hero-bg" aria-hidden="true">
+  <!-- Spline background (hero) — interactive 3D canvas -->
+  <div class="spline-bg" id="spline-hero-bg">
     <div class="spline-placeholder"></div>
-    <iframe class="spline-iframe" data-spline-src="https://my.spline.design/particlenebula-FmTId8FDbY8eWvqPNBbVSBDl/" title="3D hero background" loading="lazy"></iframe>
+    <canvas id="spline-hero-canvas" class="spline-canvas"></canvas>
     <div class="scene-wash"></div>
   </div>
 
@@ -241,6 +241,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+  <script type="module">
+    import { Application } from 'https://unpkg.com/@splinetool/runtime@1.9.48/build/runtime.js';
+
+    const canvas = document.getElementById('spline-hero-canvas');
+    if (canvas) {
+      const spline = new Application(canvas);
+      spline.load('https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode')
+        .then(() => {
+          canvas.classList.add('is-loaded');
+        })
+        .catch((err) => {
+          console.warn('Spline load failed, showing placeholder:', err);
+        });
+    }
+  </script>
   <script src="/entry-page/script.js"></script>
 </body>
 </html>
