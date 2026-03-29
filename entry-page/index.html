@@ -14,6 +14,7 @@
   <!-- Spline background (hero) -->
   <div class="spline-bg" id="spline-hero-bg" aria-hidden="true">
     <div class="spline-placeholder"></div>
+    <iframe class="spline-iframe" data-spline-src="https://my.spline.design/particlenebula-FmTId8FDbY8eWvqPNBbVSBDl/" title="3D hero background" loading="lazy"></iframe>
     <div class="scene-wash"></div>
   </div>
 
@@ -53,23 +54,188 @@
     </section>
 
     <section id="intelligence" class="sec sec--intel" data-section="intelligence">
-      <div class="sec__inner"><!-- Task 5 --></div>
+      <div class="sec__inner">
+        <div class="intel__header">
+          <span class="eyebrow">INTELLIGENCE COVERAGE</span>
+          <h2 class="sec__title">놓치는 변화가 없도록</h2>
+          <p class="sec__sub">4개 축으로 카드 시장을 입체적으로 모니터링합니다</p>
+        </div>
+
+        <div class="spline-layer spline-layer--intel" aria-hidden="true">
+          <div class="spline-placeholder spline-placeholder--crystal"></div>
+          <iframe class="spline-iframe" data-spline-src="" title="3D crystal scene" loading="lazy"></iframe>
+        </div>
+
+        <div class="intel__grid">
+          <article class="intel__card" data-accent="green">
+            <div class="intel__icon" style="background:var(--accent);">📡</div>
+            <h3>이벤트 변화</h3>
+            <p>신규 런칭, 조건 변경, 종료 예정 — 카드사별 이벤트 변동을 실시간 감지</p>
+            <div class="intel__stats">
+              <div class="intel__stat"><strong data-countup="24">0</strong><span>h 수집 주기</span></div>
+              <div class="intel__stat"><strong data-countup="4">0</strong><span>카드사</span></div>
+            </div>
+          </article>
+
+          <article class="intel__card" data-accent="indigo">
+            <div class="intel__icon" style="background:var(--accent-indigo);">💳</div>
+            <h3>상품 출시</h3>
+            <p>신상품 출시, 발급중단, 혜택 변경 — 상품 라이프사이클 전체 추적</p>
+            <div class="intel__stats">
+              <div class="intel__stat"><strong data-countup="150">0</strong><span>+ 추적 상품</span></div>
+              <div class="intel__stat"><strong data-countup="7">0</strong><span>d 출시일 추정</span></div>
+            </div>
+          </article>
+
+          <article class="intel__card" data-accent="red">
+            <div class="intel__icon" style="background:var(--accent-red);">⚔️</div>
+            <h3>경쟁사 비교</h3>
+            <p>동일 기간, 동일 기준으로 카드사별 전략 변화를 횡단면 비교</p>
+            <div class="intel__stats">
+              <div class="intel__stat"><strong data-countup="4">0</strong><span>비교 카드사</span></div>
+              <div class="intel__stat"><strong data-countup="7">0</strong><span>분석 카테고리</span></div>
+            </div>
+          </article>
+
+          <article class="intel__card" data-accent="yellow">
+            <div class="intel__icon" style="background:var(--accent-yellow);">📊</div>
+            <h3>시장 반응</h3>
+            <p>검색 트렌드, 관심도 변화, 뉴스 시그널로 시장 온도를 측정</p>
+            <div class="intel__stats">
+              <div class="intel__stat"><strong>실시간</strong><span>시그널 수집</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
 
     <section id="metrics" class="sec sec--metrics" data-section="metrics">
-      <div class="sec__inner"><!-- Task 6 --></div>
+      <div class="sec__inner">
+        <div class="metrics__wrap">
+          <div class="metrics__hero-num">
+            <strong class="metrics__big" data-countup="2400">0</strong>
+            <span class="metrics__big-plus">+</span>
+          </div>
+          <p class="metrics__big-label">분석된 이벤트 &amp; 상품 변화</p>
+          <div class="metrics__row">
+            <div class="metrics__item"><strong data-countup="4">0</strong><span>모니터링 카드사</span></div>
+            <div class="metrics__divider"></div>
+            <div class="metrics__item"><strong>24h</strong><span>수집 주기</span></div>
+            <div class="metrics__divider"></div>
+            <div class="metrics__item"><strong data-countup="7">0</strong><span>분석 카테고리</span></div>
+            <div class="metrics__divider"></div>
+            <div class="metrics__item"><strong>AI</strong><span>Gemini 기반 인사이트</span></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="process" class="sec sec--process" data-section="process">
-      <div class="sec__inner"><!-- Task 7 --></div>
+      <div class="sec__inner">
+        <div class="process__header">
+          <span class="eyebrow">HOW IT WORKS</span>
+          <h2 class="sec__title">AI가 일하고, 당신은 판단합니다</h2>
+        </div>
+        <div class="process__track-wrapper">
+          <div class="process__track">
+            <article class="process__card" data-step="1" style="--step-color:var(--accent);">
+              <div class="process__num"><span>01</span></div>
+              <span class="process__label">COLLECT</span>
+              <h3>수집</h3>
+              <p>4개 카드사의 이벤트, 상품, 공시 데이터를 자동으로 크롤링합니다</p>
+              <div class="process__detail">신한 · 삼성 · 현대 · KB<br><em>하나 · 우리 · BC — coming soon</em></div>
+            </article>
+            <article class="process__card" data-step="2" style="--step-color:var(--accent-indigo);">
+              <div class="process__num"><span>02</span></div>
+              <span class="process__label">ANALYZE</span>
+              <h3>분석</h3>
+              <p>Gemini AI가 변화의 맥락을 읽고 카테고리별로 분류합니다</p>
+              <div class="process__detail">할인/적립 · 여행 · 프리미엄 · 생활 · 제휴 · 금융</div>
+            </article>
+            <article class="process__card" data-step="3" style="--step-color:var(--accent-orange);">
+              <div class="process__num"><span>03</span></div>
+              <span class="process__label">ORGANIZE</span>
+              <h3>정리</h3>
+              <p>중복을 제거하고 타임라인 위에 배치해 한눈에 볼 수 있게 정리합니다</p>
+              <div class="process__detail">Gantt 타임라인 · 카드사별 뷰</div>
+            </article>
+            <article class="process__card" data-step="4" style="--step-color:var(--accent-cyan);">
+              <div class="process__num"><span>04</span></div>
+              <span class="process__label">BRIEF</span>
+              <h3>브리핑</h3>
+              <p>주간/일간 AI 브리핑으로 핵심 변화만 요약해 전달합니다</p>
+              <div class="process__detail">주간 리포트 · 일간 알림 · 이메일</div>
+            </article>
+            <article class="process__card" data-step="5" style="--step-color:var(--accent-red);">
+              <div class="process__num"><span>05</span></div>
+              <span class="process__label">DECIDE</span>
+              <h3>대응</h3>
+              <p>찾는 시간을 줄이고, 경쟁사보다 먼저 전략적 판단을 내립니다</p>
+              <div class="process__detail">경쟁 우위 · 선제 대응 · 전략 수립</div>
+            </article>
+          </div>
+          <div class="process__progress"><div class="process__progress-fill"></div></div>
+        </div>
+      </div>
     </section>
 
     <section id="proof" class="sec sec--proof" data-section="proof">
-      <div class="sec__inner"><!-- Task 8 --></div>
+      <div class="sec__inner">
+        <div class="proof__header">
+          <span class="eyebrow">TRANSFORMATION</span>
+          <h2 class="sec__title">업무가 달라집니다</h2>
+        </div>
+        <div class="spline-layer spline-layer--proof" aria-hidden="true">
+          <div class="spline-placeholder spline-placeholder--morph"></div>
+          <iframe class="spline-iframe" data-spline-src="" title="3D morph scene" loading="lazy"></iframe>
+        </div>
+        <div class="proof__split">
+          <div class="proof__before">
+            <div class="proof__badge proof__badge--before">BEFORE</div>
+            <ul>
+              <li>❌ 카드사 4곳 개별 방문</li>
+              <li>❌ 수동으로 변화 취합</li>
+              <li>❌ Excel에 정리하는 데 반나절</li>
+              <li>❌ 이미 지나간 변화를 뒤늦게 발견</li>
+              <li>❌ "경쟁사가 뭘 했지?" 매번 처음부터</li>
+            </ul>
+          </div>
+          <div class="proof__after">
+            <div class="proof__badge proof__badge--after">AFTER</div>
+            <ul>
+              <li>✅ 한 화면에서 전체 파악</li>
+              <li>✅ AI가 자동 수집 + 분류</li>
+              <li>✅ 대시보드 열면 즉시 확인</li>
+              <li>✅ 변화 발생 당일 알림</li>
+              <li>✅ 주간 AI 브리핑으로 트렌드 파악</li>
+            </ul>
+          </div>
+        </div>
+        <div class="proof__evidence">
+          <span class="proof__evidence-label">시간 절약 효과</span>
+          <strong class="proof__big-num" data-countup="80">0</strong>
+          <span class="proof__big-pct">%</span>
+          <p class="proof__evidence-sub">경쟁사 모니터링에 쓰던 시간 절감</p>
+        </div>
+      </div>
     </section>
 
     <section id="cta" class="sec sec--cta" data-section="cta">
-      <div class="sec__inner"><!-- Task 9 --></div>
+      <div class="sec__inner">
+        <div class="cta__wrap">
+          <div class="cta__glow" aria-hidden="true"></div>
+          <span class="eyebrow">VERTICAL AI PLATFORM</span>
+          <h2 class="cta__line1">경쟁사보다 먼저.</h2>
+          <h2 class="cta__line2">판단은 더 빠르게.</h2>
+          <p class="cta__sub">카드 시장의 변화를 AI가 수집하고 정리합니다.<br>당신은 대시보드를 열기만 하면 됩니다.</p>
+          <a href="/" class="btn btn--primary btn--lg">대시보드 시작하기 <span class="btn__arrow">→</span></a>
+          <p class="cta__note">로그인 없이 바로 확인</p>
+        </div>
+        <div class="spline-layer spline-layer--cta" aria-hidden="true">
+          <div class="spline-placeholder spline-placeholder--energy"></div>
+          <iframe class="spline-iframe" data-spline-src="" title="3D energy scene" loading="lazy"></iframe>
+        </div>
+      </div>
     </section>
   </main>
 
