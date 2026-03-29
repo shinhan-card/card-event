@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const chars = splitChars(title);
 
+    const tagline = document.querySelector(".hero__tagline");
+
     const tl = gsap.timeline({ delay: 0.3 });
 
     tl.from(eyebrow, {
@@ -55,6 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     .from(chars, {
       opacity: 0, y: 40, duration: 0.6,
       stagger: 0.025, ease: "power3.out"
+    }, "-=0.2")
+    .from(tagline, {
+      opacity: 0, y: 16, duration: 0.5, ease: "power2.out"
     }, "-=0.2")
     .from(sub, {
       opacity: 0, y: 20, duration: 0.6, ease: "power2.out"
