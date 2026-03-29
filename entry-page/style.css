@@ -1,0 +1,204 @@
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body {
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Tokens ── */
+:root {
+  --bg-base: #07111e;
+  --bg-deep: #040b14;
+  --bg-panel: rgba(8, 17, 29, 0.68);
+  --bg-panel-strong: rgba(10, 19, 33, 0.86);
+  --bg-line: rgba(196, 216, 255, 0.08);
+  --text-primary: rgba(247, 250, 255, 0.96);
+  --text-secondary: rgba(214, 225, 243, 0.78);
+  --text-muted: rgba(189, 201, 221, 0.58);
+  --text-dim: rgba(120, 140, 170, 0.5);
+  --accent: #4ade80;
+  --accent-cyan: #22d3ee;
+  --accent-indigo: #818cf8;
+  --accent-red: #f87171;
+  --accent-yellow: #facc15;
+  --accent-purple: #c084fc;
+  --accent-orange: #fb923c;
+  --accent-glow: rgba(74, 222, 128, 0.2);
+  --content-w: min(1180px, calc(100vw - 48px));
+  --sec-gap: 124px;
+  --radius-xl: 36px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --ptr-x: 0;
+  --ptr-y: 0;
+}
+
+/* ── Layout ── */
+.page-main { position: relative; z-index: 1; }
+.sec { position: relative; }
+.sec__inner { width: var(--content-w); margin: 0 auto; }
+
+/* ── Spline BG ── */
+.spline-bg {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+.spline-placeholder {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, #0a1e3a 0%, var(--bg-base) 70%);
+}
+.scene-wash {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, var(--bg-base) 100%);
+}
+
+/* ── Hero ── */
+.sec--hero {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0 80px;
+  text-align: center;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+.hero__title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.hero__title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.hero__sub {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Buttons ── */
+.hero__actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--bg-base);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+
+.btn__arrow {
+  transition: transform 180ms ease;
+}
+.btn--primary:hover .btn__arrow {
+  transform: translateX(4px);
+}
+
+.btn--ghost {
+  border: 1px solid var(--bg-line);
+  color: var(--text-secondary);
+  background: transparent;
+}
+.btn--ghost:hover {
+  border-color: rgba(196, 216, 255, 0.24);
+  color: var(--text-primary);
+}
+
+/* ── Scroll cue ── */
+.hero__scroll-cue {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.scroll-cue__line {
+  display: block;
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(180deg, var(--accent) 0%, transparent 100%);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* ── Reduced motion / no-JS fallbacks ── */
+.no-gsap .char,
+.reduced-motion .char {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.reduced-motion .hero__sub,
+.reduced-motion .hero__actions,
+.reduced-motion .hero__scroll-cue,
+.reduced-motion .eyebrow {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue__line { animation: none; opacity: 0.5; }
+}
+
+/* ── Spline BG pointer reaction ── */
+.spline-placeholder {
+  transition: transform 400ms ease-out;
+  transform: translate3d(
+    calc(var(--ptr-x) * -12px),
+    calc(var(--ptr-y) * -12px),
+    0
+  ) scale(1.04);
+}
