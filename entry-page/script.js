@@ -123,7 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!wrap || !old || !newH) return;
 
     const chars = splitChars(newH);
+    /* Set initial states explicitly */
     newH.style.opacity = "1";
+    gsap.set(chars, { opacity: 0, y: 30 });
+    gsap.set(sub, { opacity: 0, y: 16 });
     old.style.setProperty("--strike-w", "0%");
 
     const tl = gsap.timeline({
@@ -136,14 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    tl.from(old, { opacity: 0, y: 20, duration: 0.15, ease: "none" })
+    tl.fromTo(old, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.15, ease: "none" })
       .fromTo(old, { "--strike-w": "0%" }, { "--strike-w": "100%", duration: 0.2, ease: "none" })
       .to(old, { opacity: 0, filter: "blur(4px)", duration: 0.1, ease: "none" })
-      .from(chars, {
-        opacity: 0, y: 30, duration: 0.25,
+      .to(chars, {
+        opacity: 1, y: 0, duration: 0.25,
         stagger: 0.015, ease: "none"
       })
-      .from(sub, { opacity: 0, y: 16, duration: 0.15, ease: "none" }, "-=0.05")
+      .to(sub, { opacity: 1, y: 0, duration: 0.15, ease: "none" }, "-=0.05")
       /* Hold — let the user read the full message */
       .to({}, { duration: 0.3 });
   }
