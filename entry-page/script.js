@@ -130,20 +130,22 @@ document.addEventListener("DOMContentLoaded", () => {
       scrollTrigger: {
         trigger: ".sec--signal",
         start: "top top",
-        end: "+=150%",
+        end: "+=300%",
         pin: ".signal__wrap",
         scrub: 0.8,
       }
     });
 
-    tl.from(old, { opacity: 0, y: 20, duration: 0.2, ease: "none" })
-      .fromTo(old, { "--strike-w": "0%" }, { "--strike-w": "100%", duration: 0.3, ease: "none" })
-      .to(old, { opacity: 0, filter: "blur(4px)", duration: 0.2, ease: "none" })
+    tl.from(old, { opacity: 0, y: 20, duration: 0.15, ease: "none" })
+      .fromTo(old, { "--strike-w": "0%" }, { "--strike-w": "100%", duration: 0.2, ease: "none" })
+      .to(old, { opacity: 0, filter: "blur(4px)", duration: 0.1, ease: "none" })
       .from(chars, {
-        opacity: 0, y: 30, duration: 0.4,
-        stagger: 0.02, ease: "none"
-      }, "-=0.1")
-      .from(sub, { opacity: 0, y: 16, duration: 0.3, ease: "none" });
+        opacity: 0, y: 30, duration: 0.25,
+        stagger: 0.015, ease: "none"
+      })
+      .from(sub, { opacity: 0, y: 16, duration: 0.15, ease: "none" }, "-=0.05")
+      /* Hold — let the user read the full message */
+      .to({}, { duration: 0.3 });
   }
 
   /* ── Countup utility ── */
