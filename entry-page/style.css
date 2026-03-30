@@ -120,7 +120,7 @@ body {
   background-clip: text;
 }
 
-.hero__title .char {
+.hero__title:not(.hero__title--gradient) .char {
   display: inline-block;
   opacity: 0;
   transform: translateY(40px);

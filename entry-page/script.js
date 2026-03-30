@@ -45,22 +45,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const eyebrow = document.querySelector(".sec--hero .eyebrow");
     if (!title) return;
 
-    const chars = splitChars(title);
-
     const tagline = document.querySelector(".hero__tagline");
+    const isGradient = title.classList.contains("hero__title--gradient");
 
     const tl = gsap.timeline({ delay: 0.3 });
 
     tl.from(eyebrow, {
       opacity: 0, y: 10, duration: 0.5, ease: "power2.out"
-    })
-    .from(chars, {
-      opacity: 0, y: 40, duration: 0.6,
-      stagger: 0.025, ease: "power3.out"
-    }, "-=0.2")
-    .from(tagline, {
+    });
+
+    if (isGradient) {
+      tl.from(title, {
+        opacity: 0, y: 40, scale: 0.95, duration: 0.8, ease: "power3.out"
+      }, "-=0.2");
+    } else {
+      var chars = splitChars(title);
+      tl.from(chars, {
+        opacity: 0, y: 40, duration: 0.6,
+        stagger: 0.025, ease: "power3.out"
+      }, "-=0.2");
+    }
+
+    tl.from(tagline, {
       opacity: 0, y: 16, duration: 0.5, ease: "power2.out"
-    }, "-=0.2")
+    }, "-=0.3")
     .from(sub, {
       opacity: 0, y: 20, duration: 0.6, ease: "power2.out"
     }, "-=0.3")
