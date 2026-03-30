@@ -139,16 +139,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    tl.fromTo(old, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.15, ease: "none" })
-      .fromTo(old, { "--strike-w": "0%" }, { "--strike-w": "100%", duration: 0.2, ease: "none" })
-      .to(old, { opacity: 0, filter: "blur(4px)", duration: 0.1, ease: "none" })
+    tl.fromTo(old, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.12, ease: "none" })
+      .fromTo(old, { "--strike-w": "0%" }, { "--strike-w": "100%", duration: 0.15, ease: "none" })
+      .to(old, { opacity: 0, filter: "blur(4px)", duration: 0.08, ease: "none" })
       .to(chars, {
-        opacity: 1, y: 0, duration: 0.25,
-        stagger: 0.015, ease: "none"
+        opacity: 1, y: 0, duration: 0.2,
+        stagger: 0.012, ease: "none"
       })
-      .to(sub, { opacity: 1, y: 0, duration: 0.15, ease: "none" }, "-=0.05")
-      /* Hold — let the user read the full message */
-      .to({}, { duration: 0.3 });
+      .to(sub, { opacity: 1, y: 0, duration: 0.1, ease: "none" }, "-=0.03")
+      /* Brief hold */
+      .to({}, { duration: 0.12 })
+      /* Fade out before unpin so next section doesn't overlap */
+      .to([newH, sub], { opacity: 0, y: -20, duration: 0.1, ease: "none" });
   }
 
   /* ── Countup utility ── */

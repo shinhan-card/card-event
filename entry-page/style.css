@@ -298,7 +298,7 @@ body {
 
 /* ── Intelligence ── */
 .sec--intel {
-  padding: var(--sec-gap) 0;
+  padding: calc(var(--sec-gap) + 40px) 0 var(--sec-gap);
   position: relative;
 }
 
