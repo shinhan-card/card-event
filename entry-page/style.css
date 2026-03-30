@@ -278,13 +278,10 @@ body {
   color: var(--text-primary);
   letter-spacing: -0.04em;
   margin-top: 16px;
-  opacity: 0;
 }
 
 .signal__new .char {
   display: inline-block;
-  opacity: 0;
-  transform: translateY(30px);
 }
 
 .signal__sub {
@@ -292,7 +289,6 @@ body {
   color: var(--text-muted);
   line-height: 1.7;
   margin-top: 28px;
-  opacity: 0;
 }
 
 .reduced-motion .signal__old::after { width: 100%; }
