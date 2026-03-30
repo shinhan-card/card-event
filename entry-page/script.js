@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ── Hero entrance timeline ── */
   function initHero() {
     const title = document.querySelector(".hero__title");
-    const sub = document.querySelector(".hero__sub");
     const actions = document.querySelector(".hero__actions");
     const cue = document.querySelector(".hero__scroll-cue");
     const eyebrow = document.querySelector(".sec--hero .eyebrow");
@@ -68,9 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tl.from(tagline, {
       opacity: 0, y: 16, duration: 0.5, ease: "power2.out"
-    }, "-=0.3")
-    .from(sub, {
-      opacity: 0, y: 20, duration: 0.6, ease: "power2.out"
     }, "-=0.3")
     .from(actions, {
       opacity: 0, y: 16, scale: 0.97, duration: 0.5, ease: "power2.out"
