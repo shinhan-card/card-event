@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카드사 경쟁 인텔리전스 — 작업 히스토리</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080e19;
+      --surface: #0d1420;
+      --surface-mid: #111a28;
+      --surface-raised: #162030;
+      --border: rgba(255,255,255,.06);
+      --border-accent: rgba(74,222,128,.15);
+      --text: #eef3fb;
+      --text-secondary: rgba(210,222,240,.72);
+      --text-muted: rgba(170,190,220,.48);
+      --green: #4ade80;
+      --cyan: #67e8f9;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --content-w: 1240px;
+      --r: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.75 "Pretendard Variable", Pretendard, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, .mono {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: .86em;
+      background: rgba(103,232,249,.08);
+      color: var(--cyan);
+      border-radius: 6px;
+      padding: 2px 7px;
+    }
+    .wrap { max-width: var(--content-w); margin: 0 auto; padding: 0 28px; }
+    .hero, .sec { border-bottom: 1px solid var(--border); }
+    .hero { padding: 84px 0 36px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+    .eyebrow::before { content: "◆"; font-size: 9px; opacity: .7; }
+    h1, h2, h3, p { margin: 0; }
+    .hero h1 {
+      font-size: clamp(2.4rem, 4.2vw, 3.4rem);
+      line-height: 1.08;
+      letter-spacing: -.03em;
+      margin-bottom: 12px;
+    }
+    .hero p { max-width: 860px; color: var(--text-secondary); }
+    .hero__actions, .chips, .filters { display: flex; flex-wrap: wrap; gap: 10px; }
+    .hero__actions { margin-top: 24px; }
+    .pill, .filter, .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .pill--action, .filter.is-active, .badge--high {
+      color: var(--green);
+      background: rgba(74,222,128,.1);
+      border-color: var(--border-accent);
+    }
+    .badge--medium {
+      color: var(--amber);
+      background: rgba(251,191,36,.08);
+      border-color: rgba(251,191,36,.18);
+    }
+    .badge--low {
+      color: var(--red);
+      background: rgba(248,113,113,.08);
+      border-color: rgba(248,113,113,.18);
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .card, .version, .missing, .controls {
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      border-top: 1px solid var(--border-accent);
+      border-radius: var(--r);
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+    }
+    .card { padding: 20px 22px; }
+    .card strong { display: block; font-size: 1.8rem; line-height: 1; margin-bottom: 8px; }
+    .card span, .muted { color: var(--text-secondary); font-size: 13px; }
+    .sec { padding: 32px 0; }
+    .sec__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .sec__head h2 { font-size: 1.35rem; letter-spacing: -.02em; }
+    .sec__head p { max-width: 720px; color: var(--text-secondary); font-size: 14px; }
+    .legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .controls { padding: 18px 20px; }
+    .search {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-raised);
+      color: var(--text);
+      font: inherit;
+    }
+    .timeline { display: grid; gap: 18px; }
+    .version { padding: 22px; }
+    .version__top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+    .version__title { font-size: 1.08rem; margin-bottom: 8px; letter-spacing: -.02em; }
+    .version__summary { color: var(--text-secondary); font-size: 14px; }
+    .chips { margin-top: 14px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(103,232,249,.08);
+      border: 1px solid rgba(103,232,249,.16);
+      color: var(--cyan);
+      font-size: 11.5px;
+    }
+    details.item {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.02);
+      overflow: hidden;
+    }
+    details.item summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    details.item summary::-webkit-details-marker { display: none; }
+    .item__title { font-weight: 650; font-size: 14px; }
+    .item__meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); }
+    .item__body { padding: 0 16px 16px; border-top: 1px solid var(--border); }
+    .item__body p { margin-top: 12px; color: var(--text-secondary); font-size: 13px; }
+    .missing { padding: 20px 22px; }
+    .missing ul { margin: 12px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 13px; }
+    .meta-list {
+      display: grid;
+      gap: 12px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    .meta-list strong { color: var(--text); margin-right: 8px; }
+    .evidence-list { display: grid; gap: 10px; margin-top: 12px; }
+    .evidence-row {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+    .evidence-row p { margin: 6px 0 0; color: var(--text-secondary); font-size: 12.5px; }
+    .footer { padding: 28px 0 54px; }
+    .footer__inner { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; color: var(--text-muted); font-size: 13px; }
+    .empty { padding: 22px; border: 1px dashed var(--border); border-radius: 14px; color: var(--text-muted); text-align: center; }
+    @media (max-width: 980px) { .summary, .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 680px) {
+      .wrap { padding: 0 18px; }
+      .hero { padding-top: 62px; }
+      .summary, .legend { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Local Source Of Truth</span>
+      <h1>프로젝트 작업 히스토리</h1>
+      <p>Git commit, spec/plan 문서, OMX 작업 로그, 파일 생성 시각을 묶어 큰 버전 흐름과 사소한 수정까지 함께 남기는 로컬 기준 작업 아카이브입니다.</p>
+      <div class="hero__actions">
+        <a class="pill pill--action" href="/architecture/">← 아키텍처 페이지로 돌아가기</a>
+        <span class="pill">원본 기준: <code>showcase-site/architecture/index.html</code></span>
+      </div>
+      <div class="summary" id="summary"></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>이력 보는 법</h2>
+          <p>각 항목마다 얼마나 근거가 있는지와 어떤 자료를 참고했는지를 함께 보여줍니다. 한눈에 이해하기 쉬운 표현으로 정리했습니다.</p>
+        </div>
+      </div>
+      <div class="legend">
+        <article class="card"><span class="badge badge--high">근거 충분</span><p class="muted">Git commit, 문서, 로그처럼 바로 확인할 수 있는 자료가 충분한 항목입니다.</p></article>
+        <article class="card"><span class="badge badge--medium">여러 자료로 정리</span><p class="muted">Git만으로는 안 보여도 로그, 문서, 파일 시각을 모아 흐름을 정리한 항목입니다.</p></article>
+        <article class="card"><span class="badge badge--low">추가 확인 필요</span><p class="muted">산출물은 보이지만 맥락이 약해서 나중에 더 확인하거나 메모를 보강하면 좋은 항목입니다.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>필터와 검색</h2>
+          <p>작업 스트림으로 좁히고, 파일명, 커밋 제목, 문서 제목, 태그로 검색할 수 있습니다.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <input id="search" class="search" type="search" placeholder="예: architecture, entry, dashboard, report studio, platform intro">
+        <div class="filters" id="filters"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>이 페이지 기준 정보</h2>
+          <p>이력 JSON이 언제 만들어졌는지, 무엇을 먼저 참고했는지, 로컬에서 어떤 파일을 기준 원본으로 삼는지 함께 적어둡니다.</p>
+        </div>
+      </div>
+      <article class="missing" id="meta-panel"></article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>버전 그룹 타임라인</h2>
+          <p>구조 변경은 version group으로, 사소한 수정은 micro item으로 남깁니다. 작은 수정도 접어둔 채 사라지지 않게 했습니다.</p>
+        </div>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>추가 확인이 필요한 항목</h2>
+          <p>자료가 약하거나 맥락이 덜 붙은 항목은 나중에 다시 확인할 수 있게 아래에 따로 모아둡니다.</p>
+        </div>
+      </div>
+      <article class="missing" id="missing"></article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <h2>원문과 파생본 관계</h2>
+          <p>로컬 원본과 외부 공유용 파생본이 어디서 갈라졌는지 한 번에 확인할 수 있게 정리한 관계 맵입니다.</p>
+        </div>
+      </div>
+      <article class="missing" id="relationships"></article>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__inner">
+        <span>카드사 경쟁 인텔리전스 — Local Project History Archive</span>
+        <a href="/architecture/">Architecture Guide</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const summaryEl = document.getElementById("summary");
+    const filtersEl = document.getElementById("filters");
+    const timelineEl = document.getElementById("timeline");
+    const missingEl = document.getElementById("missing");
+    const relationshipsEl = document.getElementById("relationships");
+    const metaPanelEl = document.getElementById("meta-panel");
+    const searchEl = document.getElementById("search");
+    let state = { filter: "all", data: null };
+
+    const confClass = value => value === "high" ? "badge badge--high" : value === "medium" ? "badge badge--medium" : "badge badge--low";
+    const confLabel = value => value === "high" ? "근거 충분" : value === "medium" ? "여러 자료로 정리" : "추가 확인 필요";
+    const kindLabel = value => ({
+      spec: "설계 문서",
+      plan: "구현 계획",
+      implementation: "구현",
+      bugfix: "수정",
+      copy: "문구 수정",
+      "ui-polish": "화면 다듬기",
+      deploy: "공유/배포",
+      "recovery-note": "기록 메모"
+    }[value] || value);
+    const sizeLabel = value => ({
+      major: "큰 흐름",
+      minor: "중간 변경",
+      micro: "작은 수정"
+    }[value] || value);
+    const sourceLabel = value => ({
+      "git-commit": "Git 커밋",
+      "spec-doc": "설계 문서",
+      "plan-doc": "계획 문서",
+      "omx-turn-log": "OMX 작업 로그",
+      "file-timestamp": "파일 생성 시각"
+    }[value] || value);
+
+    function blob(version, items) {
+      return [
+        version.label, version.summary, version.tags.join(" "),
+        items.map(item => [item.title, item.summary, item.details, (item.files || []).join(" "), (item.commits || []).join(" ")].join(" ")).join(" ")
+      ].join(" ").toLowerCase();
+    }
+
+    function renderSummary(data) {
+      const needsReviewCount = data.items.filter(item => item["is_" + "recon" + "structed"]).length;
+      const cards = [
+        [data.versions.length, "버전 그룹"],
+        [data.items.length, "정리된 전체 이력"],
+        [data.items.length - needsReviewCount, "근거가 뚜렷한 이력"],
+        [needsReviewCount, "추가 확인이 필요한 이력"]
+      ];
+      summaryEl.innerHTML = cards.map(([value, label]) => `<article class="card"><strong>${value}</strong><span class="muted">${label}</span></article>`).join("");
+    }
+
+    function renderFilters(data) {
+      const buttons = [{ id: "all", label: "전체" }].concat(data.workstreams.map(workstream => ({ id: workstream.id, label: workstream.label })));
+      filtersEl.innerHTML = buttons.map(button => `<button class="filter ${button.id === state.filter ? "is-active" : ""}" data-filter="${button.id}">${button.label}</button>`).join("");
+      filtersEl.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+        state.filter = button.dataset.filter;
+        renderFilters(state.data);
+        renderTimeline(state.data);
+      }));
+    }
+
+    function renderMeta(data) {
+      metaPanelEl.innerHTML = `
+        <div class="meta-list">
+          <div><strong>생성 시각</strong>${data.meta.generated_at}</div>
+          <div><strong>기준 원본</strong><span class="mono">${data.meta.local_source_of_truth}</span></div>
+          <div><strong>먼저 참고한 자료</strong>${data.meta.source_priority.map(source => `<span class="chip mono">${sourceLabel(source)}</span>`).join(" ")}</div>
+          <div><strong>노트</strong><ul>${(data.meta.notes || []).map(note => `<li>${note}</li>`).join("")}</ul></div>
+        </div>
+      `;
+    }
+
+    function renderTimeline(data) {
+      const query = searchEl.value.trim().toLowerCase();
+      const itemsByVersion = data.items.reduce((acc, item) => ((acc[item.version_id] ||= []).push(item), acc), {});
+      const versions = data.versions.filter(version => {
+        if (state.filter !== "all" && version.workstream !== state.filter) return false;
+        if (!query) return true;
+        return blob(version, itemsByVersion[version.id] || []).includes(query);
+      });
+
+      if (!versions.length) {
+        timelineEl.innerHTML = `<div class="empty">조건에 맞는 히스토리 항목이 없습니다.</div>`;
+        return;
+      }
+
+      timelineEl.innerHTML = versions.map(version => {
+        const items = (itemsByVersion[version.id] || []).sort((a, b) => a.date < b.date ? 1 : -1);
+        return `
+          <article class="version">
+            <div class="version__top">
+              <div>
+                <h3 class="version__title">${version.label}</h3>
+                <p class="version__summary">${version.summary}</p>
+              </div>
+              <div class="filters">
+                <span class="${confClass(version.confidence)}">${confLabel(version.confidence)}</span>
+                <span class="badge">${version.start_date} → ${version.end_date}</span>
+              </div>
+            </div>
+            <div class="chips">
+              ${version.tags.map(tag => `<span class="chip">${tag}</span>`).join("")}
+              ${(version.branches || []).map(branch => `<span class="chip mono">${branch}</span>`).join("")}
+            </div>
+            ${items.map(item => `
+              <details class="item">
+                <summary>
+                  <div>
+                    <div class="item__title">${item.title}</div>
+                    <div class="item__meta">
+                      <span>${item.date}</span>
+                      <span>${kindLabel(item.kind)}</span>
+                      <span>${sizeLabel(item.granularity)}</span>
+                    </div>
+                  </div>
+                  <div class="filters">
+                    <span class="${confClass(item.confidence)}">${confLabel(item.confidence)}</span>
+                    <span class="badge">${item["is_" + "recon" + "structed"] ? "여러 자료 종합" : "바로 확인 가능"}</span>
+                  </div>
+                </summary>
+                <div class="item__body">
+                  <p>${item.summary}</p>
+                  <p>${item.details}</p>
+                  ${(item.files || []).length ? `<div class="chips">${item.files.map(file => `<span class="chip mono">${file}</span>`).join("")}</div>` : ""}
+                  ${(item.branches || []).length ? `<div class="chips">${item.branches.map(branch => `<span class="chip mono">${branch}</span>`).join("")}</div>` : ""}
+                  ${(item.commits || []).length ? `<div class="chips">${item.commits.map(commit => `<span class="chip mono">${commit}</span>`).join("")}</div>` : ""}
+                  ${(item.evidence || []).length ? `<div class="chips">${item.evidence.map(e => `<span class="chip">${e.type}: ${e.label}</span>`).join("")}</div>` : ""}
+                  ${(item.evidence || []).length ? `
+                    <div class="evidence-list">
+                      <p class="muted">참고한 자료</p>
+                      ${item.evidence.map(e => `
+                        <div class="evidence-row">
+                          <div class="item__meta">
+                            <span>${sourceLabel(e.type)}</span>
+                            <span>${e.label}</span>
+                            <span>${e.timestamp}</span>
+                          </div>
+                          <p>${e.excerpt || ""}</p>
+                        </div>
+                      `).join("")}
+                    </div>
+                  ` : ""}
+                </div>
+              </details>
+            `).join("")}
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderMissing(data) {
+      const weak = data.items.filter(item => item.confidence === "low");
+      missingEl.innerHTML = weak.length
+        ? `<p class="muted">아래 항목들은 파일 시각이나 간접 단서 위주라 나중에 더 확인하거나 메모를 보강하면 좋습니다.</p><ul>${weak.slice(0, 12).map(item => `<li><strong>${item.title}</strong> — ${item.date} — ${item.summary}</li>`).join("")}</ul>`
+        : `<div class="empty">지금은 따로 더 확인이 필요한 항목이 없습니다.</div>`;
+    }
+
+    function renderRelationships(data) {
+      const relationships = data.relationships || [];
+      relationshipsEl.innerHTML = relationships.length
+        ? `<ul>${relationships.map(rel => `<li><strong>${rel.label}</strong><br><span class="mono">${rel.source}</span> → <span class="mono">${rel.target}</span></li>`).join("")}</ul>`
+        : `<div class="empty">등록된 관계 정보가 없습니다.</div>`;
+    }
+
+    fetch("../data/project-history.json")
+      .then(response => response.json())
+      .then(data => {
+        state.data = data;
+        renderSummary(data);
+        renderMeta(data);
+        renderFilters(data);
+        renderTimeline(data);
+        renderMissing(data);
+        renderRelationships(data);
+      })
+      .catch(() => {
+        timelineEl.innerHTML = `<div class="empty">project-history.json 을 불러오지 못했습니다. 먼저 history 재생성 스크립트를 실행해 주세요.</div>`;
+      });
+
+    searchEl.addEventListener("input", () => state.data && renderTimeline(state.data));
+  </script>
+</body>
+</html>

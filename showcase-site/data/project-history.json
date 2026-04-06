@@ -1,0 +1,3914 @@
+{
+  "meta": {
+    "generated_at": "2026-04-06 22:36",
+    "source_priority": [
+      "git-commit",
+      "spec-doc",
+      "plan-doc",
+      "omx-turn-log",
+      "file-timestamp"
+    ],
+    "local_source_of_truth": "showcase-site/architecture/index.html",
+    "notes": [
+      "GitHub보다 로컬 아키텍처 페이지를 우선 기준으로 삼습니다.",
+      "과거 이력은 자동 수집 결과와 사람이 덧붙인 정리를 함께 사용합니다."
+    ]
+  },
+  "workstreams": [
+    {
+      "id": "core-platform",
+      "label": "코어 플랫폼"
+    },
+    {
+      "id": "data-connectors",
+      "label": "데이터/커넥터"
+    },
+    {
+      "id": "briefing-reporting",
+      "label": "브리핑/리포트"
+    },
+    {
+      "id": "product-rag",
+      "label": "상품/RAG"
+    },
+    {
+      "id": "architecture-docs",
+      "label": "아키텍처/문서"
+    },
+    {
+      "id": "entry-showcase",
+      "label": "엔트리/쇼케이스"
+    },
+    {
+      "id": "deployment-sharing",
+      "label": "배포/공유"
+    },
+    {
+      "id": "dashboard-ops",
+      "label": "대시보드/운영"
+    }
+  ],
+  "versions": [
+    {
+      "id": "dashboard-stabilization-2026-04",
+      "label": "2026-04 대시보드 안정화",
+      "workstream": "dashboard-ops",
+      "start_date": "2026-03-30",
+      "end_date": "2026-04-05",
+      "summary": "주간 변화, 최근 출시 카드, AI 분석 탭, snapshot recovery 등 운영 화면 보정이 누적된 시기입니다.",
+      "status": "reconstructed",
+      "confidence": "low",
+      "primary_evidence": "인사이트 탭 월별 보기 기본값 복구",
+      "tags": [
+        "dashboard",
+        "stabilization",
+        "weekly-changes"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "showcase-split-2026-04",
+      "label": "2026-04 외부 공유용 쇼케이스 분리",
+      "workstream": "deployment-sharing",
+      "start_date": "2026-04-04",
+      "end_date": "2026-04-04",
+      "summary": "외부 공유용 정적 microsite가 showcase-site로 분리되고 architecture/entry가 재배치된 시기입니다.",
+      "status": "reconstructed",
+      "confidence": "medium",
+      "primary_evidence": "showcase 정적 라우팅 manifest 추가",
+      "tags": [
+        "showcase",
+        "share",
+        "vercel"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "architecture-as-is-to-be-2026-03",
+      "label": "2026-03 As-Is / To-Be 아키텍처 문서",
+      "workstream": "architecture-docs",
+      "start_date": "2026-03-30",
+      "end_date": "2026-03-31",
+      "summary": "현재 구조와 향후 개선 구조를 설명하는 As-Is / To-Be 아키텍처 HTML이 만들어진 시기입니다.",
+      "status": "reconstructed",
+      "confidence": "medium",
+      "primary_evidence": "As-Is / To-Be 아키텍처 원문 산출물",
+      "tags": [
+        "as-is",
+        "to-be",
+        "architecture-html"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "entry-cinematic-2026-03",
+      "label": "2026-03 엔트리 시네마틱 리디자인",
+      "workstream": "entry-showcase",
+      "start_date": "2026-03-28",
+      "end_date": "2026-03-30",
+      "summary": "GSAP 기반 cinematic entry page와 hero/Spline/metrics/process 구간이 고도화된 시기입니다.",
+      "status": "confirmed",
+      "confidence": "high",
+      "primary_evidence": "feat(entry): interactive Spline 3D canvas + longer process scroll",
+      "tags": [
+        "entry",
+        "cinematic",
+        "gsap",
+        "spline"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "entry-command-center-2026-03",
+      "label": "2026-03 엔트리 커맨드센터 구상",
+      "workstream": "entry-showcase",
+      "start_date": "2026-03-28",
+      "end_date": "2026-03-28",
+      "summary": "엔트리 페이지를 command center 방향으로 재구성하려던 초기 설계 흐름입니다.",
+      "status": "reconstructed",
+      "confidence": "medium",
+      "primary_evidence": "Entry Page Command Center Reveal Implementation Plan",
+      "tags": [
+        "entry",
+        "command-center"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "product-rag-2026-03",
+      "label": "2026-03 상품 탐색과 문서 검색",
+      "workstream": "product-rag",
+      "start_date": "2026-03-21",
+      "end_date": "2026-03-26",
+      "summary": "상품 탐색, 문서 검색, 출시 판단, 공시 동기화 설계가 집중적으로 쌓인 시기입니다.",
+      "status": "reconstructed",
+      "confidence": "medium",
+      "primary_evidence": "Shinhan Check Disclosure Sync Implementation Plan",
+      "tags": [
+        "products",
+        "rag",
+        "search"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "is_manual": false
+    },
+    {
+      "id": "briefing-ops-2026-03",
+      "label": "2026-03 브리핑과 운영 콘솔",
+      "workstream": "briefing-reporting",
+      "start_date": "2026-03-20",
+      "end_date": "2026-03-25",
+      "summary": "브리핑 payload, ops console, report studio 흐름이 정리된 시기입니다.",
+      "status": "confirmed",
+      "confidence": "high",
+      "primary_evidence": "Ops Report Studio Screen-Based Implementation Plan",
+      "tags": [
+        "briefing",
+        "ops",
+        "report"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "is_manual": false
+    },
+    {
+      "id": "dashboard-snapshot-2026-03",
+      "label": "2026-03 대시보드 스냅샷과 수동 갱신",
+      "workstream": "dashboard-ops",
+      "start_date": "2026-03-20",
+      "end_date": "2026-03-25",
+      "summary": "대시보드 스냅샷, 수동 갱신, 디테일 패널 개선 관련 설계가 정리된 시기입니다.",
+      "status": "confirmed",
+      "confidence": "high",
+      "primary_evidence": "Dashboard Snapshot And Manual Refresh Implementation Plan",
+      "tags": [
+        "dashboard",
+        "snapshot",
+        "manual-refresh"
+      ],
+      "branches": [],
+      "is_manual": false
+    },
+    {
+      "id": "architecture-docs-console-2026-03",
+      "label": "2026-03 아키텍처 문서 콘솔",
+      "workstream": "architecture-docs",
+      "start_date": "2026-03-21",
+      "end_date": "2026-03-21",
+      "summary": "단일 문서형 아키텍처 콘솔 설계와 구현 계획이 잡힌 시기입니다.",
+      "status": "confirmed",
+      "confidence": "high",
+      "primary_evidence": "Card Event Intelligence Architecture Docs Console Implementation Plan",
+      "tags": [
+        "architecture",
+        "docs-console"
+      ],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "is_manual": false
+    },
+    {
+      "id": "presentation-site-2026-03",
+      "label": "2026-03 프레젠테이션 사이트",
+      "workstream": "architecture-docs",
+      "start_date": "2026-03-20",
+      "end_date": "2026-03-21",
+      "summary": "presentation-site 실험용 프런트와 deep-dive 문서 셸이 구성된 시기입니다.",
+      "status": "confirmed",
+      "confidence": "high",
+      "primary_evidence": "Rebuild landing showroom scenes",
+      "tags": [
+        "presentation-site",
+        "deep-dive"
+      ],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "is_manual": false
+    },
+    {
+      "id": "core-foundation-2026-02",
+      "label": "2026-02 기본 골격 구축",
+      "workstream": "core-platform",
+      "start_date": "2026-02-07",
+      "end_date": "2026-02-09",
+      "summary": "초기 카드 이벤트 수집기, FastAPI, SQLite, 기본 대시보드 코어가 형성된 시기입니다.",
+      "status": "reconstructed",
+      "confidence": "low",
+      "primary_evidence": "v3.0: PRD 고도화 전체 구현 (Phase 1~3 + UX 개선)",
+      "tags": [
+        "foundation",
+        "fastapi",
+        "sqlite"
+      ],
+      "branches": [],
+      "is_manual": false
+    }
+  ],
+  "items": [
+    {
+      "id": "omx-item-2026-04-05-14-01",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "인사이트 탭 월별 보기 기본값 복구",
+      "date": "2026-04-05 14:01",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "맞게 고쳤습니다. 이제 인사이트 탭은 `월별 보기`가 기본이고, `기준월`도 항상 이번 달부터 잡히도록 정리했습니다. `현재 활성이벤트`를 선택하면 옆 `기준월` 셀렉트는 실제로 `disabled`되고, 회색 배경과 흐린 텍스트로 비활성 상태가 바로 보이게 바꿨습니다. 수정한 곳은 [dashboard.js](C:/Users/82104/Desktop/Cur",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-05.jsonl",
+          "path": ".omx/logs/turns-2026-04-05.jsonl",
+          "ref": "019d5dee-ebea-7e62-8b70-3bda9823f9b0",
+          "timestamp": "2026-04-05 14:01",
+          "excerpt": "맞게 고쳤습니다. 이제 인사이트 탭은 `월별 보기`가 기본이고, `기준월`도 항상 이번 달부터 잡히도록 정리했습니다. `현재 활성이벤트`를 선택하면 옆 `기준월` 셀렉트는 실제로 `disabled`되고, 회색 배경과 흐린 텍스트로 비활성 상태가 바로 보이게 바꿨습니다. 수정한 곳은 [dashboard.js](C:/Users/82104/Desktop/Cur"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-ai-2026-04-05-12-46",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "AI 분석 패널에서 검수/분류 상태 제거",
+      "date": "2026-04-05 12:46",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "`AI 분석` 패널을 1번 방향으로 정리했습니다. 이제 상단의 `검수 및 분류 상태` 섹션은 제거했고, 구조는 `이벤트 핵심 요약` 다음에 `AI 분석`이 오도록 단순화했습니다. 중복되던 `AI 혜택 분석 / AI 타겟 분석 / AI 조건 분석`도 걷어내고, 분류 관련 정보는 작은 `분류 메모` 블록으로만 축소했습니다. 타이포도 섹션 헤더, 카드 라벨, 본",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-05.jsonl",
+          "path": ".omx/logs/turns-2026-04-05.jsonl",
+          "ref": "019d5da7-6440-7051-a4e5-e1bdd93b668b",
+          "timestamp": "2026-04-05 12:46",
+          "excerpt": "`AI 분석` 패널을 1번 방향으로 정리했습니다. 이제 상단의 `검수 및 분류 상태` 섹션은 제거했고, 구조는 `이벤트 핵심 요약` 다음에 `AI 분석`이 오도록 단순화했습니다. 중복되던 `AI 혜택 분석 / AI 타겟 분석 / AI 조건 분석`도 걷어내고, 분류 관련 정보는 작은 `분류 메모` 블록으로만 축소했습니다. 타이포도 섹션 헤더, 카드 라벨, 본"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-snapshot-2026-04-05-09-25",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "최근 출시 카드 기사 영역 snapshot 복구",
+      "date": "2026-04-05 09:25",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "원인 확인됐습니다. 제가 `업데이트 1/4` 느림 문제를 줄이려고 `recent_product_news_groups`를 dashboard snapshot에서 뺐는데, 최근 3개월 출시 카드 UI는 그 snapshot 값만 보고 있어서 기사 영역이 전부 비어버린 상태였습니다. 지금은 복구했습니다. - 백엔드에 `/api/dashboard/recent-pro",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-05.jsonl",
+          "path": ".omx/logs/turns-2026-04-05.jsonl",
+          "ref": "019d5cec-c259-79a2-b025-6f0897dc0d85",
+          "timestamp": "2026-04-05 09:25",
+          "excerpt": "원인 확인됐습니다. 제가 `업데이트 1/4` 느림 문제를 줄이려고 `recent_product_news_groups`를 dashboard snapshot에서 뺐는데, 최근 3개월 출시 카드 UI는 그 snapshot 값만 보고 있어서 기사 영역이 전부 비어버린 상태였습니다. 지금은 복구했습니다. - 백엔드에 `/api/dashboard/recent-pro"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "filesystem-showcase-manifest-2026-04-04-14-36",
+      "version_id": "showcase-split-2026-04",
+      "title": "showcase 정적 라우팅 manifest 추가",
+      "date": "2026-04-04 14:36",
+      "granularity": "micro",
+      "kind": "deploy",
+      "summary": "파일이 만들어진 시점을 바탕으로 파생 산출물 관계를 남긴 기록입니다.",
+      "details": "showcase-site/vercel.json 파일이 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "showcase-site/vercel.json"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "file-timestamp",
+          "label": "vercel.json",
+          "path": "showcase-site/vercel.json",
+          "ref": "",
+          "timestamp": "2026-04-04 14:36",
+          "excerpt": "showcase 정적 라우팅 manifest 추가"
+        }
+      ],
+      "confidence": "low",
+      "source_origin": "filesystem",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "filesystem-showcase-2026-04-04-14-34",
+      "version_id": "showcase-split-2026-04",
+      "title": "showcase 엔트리 정적 파생본 생성",
+      "date": "2026-04-04 14:34",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "파일이 만들어진 시점을 바탕으로 파생 산출물 관계를 남긴 기록입니다.",
+      "details": "showcase-site/index.html 파일이 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "showcase-site/index.html"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "file-timestamp",
+          "label": "index.html",
+          "path": "showcase-site/index.html",
+          "ref": "",
+          "timestamp": "2026-04-04 14:34",
+          "excerpt": "showcase 엔트리 정적 파생본 생성"
+        }
+      ],
+      "confidence": "low",
+      "source_origin": "filesystem",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "filesystem-showcase-2026-04-04-14-33",
+      "version_id": "showcase-split-2026-04",
+      "title": "showcase 아키텍처 정적 파생본 생성",
+      "date": "2026-04-04 14:33",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "파일이 만들어진 시점을 바탕으로 파생 산출물 관계를 남긴 기록입니다.",
+      "details": "showcase-site/architecture/index.html 파일이 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "showcase-site/architecture/index.html"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "file-timestamp",
+          "label": "index.html",
+          "path": "showcase-site/architecture/index.html",
+          "ref": "",
+          "timestamp": "2026-04-04 14:33",
+          "excerpt": "showcase 아키텍처 정적 파생본 생성"
+        }
+      ],
+      "confidence": "low",
+      "source_origin": "filesystem",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-showcase-2026-04-04-06-16",
+      "version_id": "showcase-split-2026-04",
+      "title": "showcase 엔트리에서 플랫폼 소개 버튼 제거",
+      "date": "2026-04-04 06:16",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "`플랫폼 소개` 버튼 제거해서 다시 배포해뒀습니다. 현재 반영 상태: - 메인: [https://showcase-site-alpha.vercel.app](https://showcase-site-alpha.vercel.app) - 아키텍처: [https://showcase-site-alpha.vercel.app/architecture/](https://sh",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d571c-03c9-7062-8df8-c999512585c6",
+          "timestamp": "2026-04-04 06:16",
+          "excerpt": "`플랫폼 소개` 버튼 제거해서 다시 배포해뒀습니다. 현재 반영 상태: - 메인: [https://showcase-site-alpha.vercel.app](https://showcase-site-alpha.vercel.app) - 아키텍처: [https://showcase-site-alpha.vercel.app/architecture/](https://sh"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-showcase-site-2026-04-04-05-55",
+      "version_id": "showcase-split-2026-04",
+      "title": "showcase-site 외부 공유 배포 완료",
+      "date": "2026-04-04 05:55",
+      "granularity": "minor",
+      "kind": "deploy",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "배포 완료됐습니다. 공유 URL: - 메인: [https://showcase-site-alpha.vercel.app](https://showcase-site-alpha.vercel.app) - 아키텍처: [https://showcase-site-alpha.vercel.app/architecture/](https://showcase-site-alpha.ve",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d570d-5cef-7de3-8083-5ad20513aae5",
+          "timestamp": "2026-04-04 05:55",
+          "excerpt": "배포 완료됐습니다. 공유 URL: - 메인: [https://showcase-site-alpha.vercel.app](https://showcase-site-alpha.vercel.app) - 아키텍처: [https://showcase-site-alpha.vercel.app/architecture/](https://showcase-site-alpha.ve"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-showcase-site-2026-04-04-05-45",
+      "version_id": "showcase-split-2026-04",
+      "title": "외부 공유용 showcase-site 분리",
+      "date": "2026-04-04 05:45",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "됩니다. 외부 공유용 사이트는 이미 분리해뒀습니다. 현재 준비된 건 이겁니다. - 엔트리 페이지: [showcase-site/index.html](C:/Users/82104/Desktop/Cursor/card-event-intelligence/showcase-site/index.html) - 아키텍처 페이지: [showcase-site/architect",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d56f8-7445-7882-9853-e7511b3423e7",
+          "timestamp": "2026-04-04 05:45",
+          "excerpt": "됩니다. 외부 공유용 사이트는 이미 분리해뒀습니다. 현재 준비된 건 이겁니다. - 엔트리 페이지: [showcase-site/index.html](C:/Users/82104/Desktop/Cursor/card-event-intelligence/showcase-site/index.html) - 아키텍처 페이지: [showcase-site/architect"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-item-2026-04-04-04-51",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "종료 이벤트를 종료됨 배지 기준으로 재정렬",
+      "date": "2026-04-04 04:51",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "분리해서 반영했습니다. `이번 주 종료 이벤트`는 이제 이번 주 안의 종료일을 모두 보여주되, `예정/오늘종료`는 위에, 이미 지난 건은 `종료됨` 배지로 아래에 오도록 정렬됩니다. 섹션/요약 카드 문구도 `종료 예정` 대신 `종료`로 맞췄습니다. 관련 로직은 [dashboard.js](/Users/82104/Desktop/Cursor/card-event-",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d56cf-92df-76e0-a9dd-e739dd514318",
+          "timestamp": "2026-04-04 04:51",
+          "excerpt": "분리해서 반영했습니다. `이번 주 종료 이벤트`는 이제 이번 주 안의 종료일을 모두 보여주되, `예정/오늘종료`는 위에, 이미 지난 건은 `종료됨` 배지로 아래에 오도록 정렬됩니다. 섹션/요약 카드 문구도 `종료 예정` 대신 `종료`로 맞췄습니다. 관련 로직은 [dashboard.js](/Users/82104/Desktop/Cursor/card-event-"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-5-2026-04-04-04-30",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "주간 변화 카드사별 5개 + 더보기 구조 적용",
+      "date": "2026-04-04 04:30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "`주간 변화`는 이제 `이번 주 신규 이벤트`와 `이번 주 종료 예정 이벤트`만 카드사별로 묶어서 보여주고, 각 카드사당 기본 5개만 노출한 뒤 `더보기`로 확장되게 바꿨습니다. 토글 상태도 전역 맵으로 유지해서 다시 그려져도 같은 카드사는 펼침 상태가 유지됩니다. 같이 [dashboard.js](/Users/82104/Desktop/Cursor/card-",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d56bb-b694-7430-81ca-c584cd892a12",
+          "timestamp": "2026-04-04 04:30",
+          "excerpt": "`주간 변화`는 이제 `이번 주 신규 이벤트`와 `이번 주 종료 예정 이벤트`만 카드사별로 묶어서 보여주고, 각 카드사당 기본 5개만 노출한 뒤 `더보기`로 확장되게 바꿨습니다. 토글 상태도 전역 맵으로 유지해서 다시 그려져도 같은 카드사는 펼침 상태가 유지됩니다. 같이 [dashboard.js](/Users/82104/Desktop/Cursor/card-"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-kpi-2026-04-04-04-21",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "전체 이벤트 KPI 천 단위 콤마 포맷 적용",
+      "date": "2026-04-04 04:21",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "[dashboard.js](/Users/82104/Desktop/Cursor/card-event-intelligence/static/js/dashboard.js#L827)에서 `전체 이벤트` KPI를 `toLocaleString('ko-KR')`로 바꿔 `1000 -> 1,000`으로 나오게 했고, 같은 파일의 [주간 변화 필터](/Users/82104/D",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-04-04.jsonl",
+          "path": ".omx/logs/turns-2026-04-04.jsonl",
+          "ref": "019d56b5-7fa7-7953-8a82-902cfcdfe433",
+          "timestamp": "2026-04-04 04:21",
+          "excerpt": "[dashboard.js](/Users/82104/Desktop/Cursor/card-event-intelligence/static/js/dashboard.js#L827)에서 `전체 이벤트` KPI를 `toLocaleString('ko-KR')`로 바꿔 `1000 -> 1,000`으로 나오게 했고, 같은 파일의 [주간 변화 필터](/Users/82104/D"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "filesystem-as-is-to-be-2026-03-31-08-27",
+      "version_id": "architecture-as-is-to-be-2026-03",
+      "title": "As-Is / To-Be 아키텍처 원문 산출물",
+      "date": "2026-03-31 08:27",
+      "granularity": "minor",
+      "kind": "recovery-note",
+      "summary": "파일이 만들어진 시점을 바탕으로 파생 산출물 관계를 남긴 기록입니다.",
+      "details": "docs/architecture/as-is-to-be-architecture.html 파일이 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/architecture/as-is-to-be-architecture.html"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "file-timestamp",
+          "label": "as-is-to-be-architecture.html",
+          "path": "docs/architecture/as-is-to-be-architecture.html",
+          "ref": "",
+          "timestamp": "2026-03-31 08:27",
+          "excerpt": "As-Is / To-Be 아키텍처 원문 산출물"
+        }
+      ],
+      "confidence": "low",
+      "source_origin": "filesystem",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-as-is-to-be-html-2026-03-30-13-01",
+      "version_id": "architecture-as-is-to-be-2026-03",
+      "title": "As-Is / To-Be 아키텍처 HTML 생성",
+      "date": "2026-03-30 13:01",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "웹페이지 형태로 그려뒀습니다. 파일은 [as-is-to-be-architecture.html](/Users/82104/Desktop/Cursor/card-event-intelligence/docs/architecture/as-is-to-be-architecture.html) 에 있고, `As-Is 시스템 전경`, `페이지/라우트 구조`, `API 도메인 밀",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-03-30.jsonl",
+          "path": ".omx/logs/turns-2026-03-30.jsonl",
+          "ref": "019d3ece-edb0-7033-b426-be21eaee3d3a",
+          "timestamp": "2026-03-30 13:01",
+          "excerpt": "웹페이지 형태로 그려뒀습니다. 파일은 [as-is-to-be-architecture.html](/Users/82104/Desktop/Cursor/card-event-intelligence/docs/architecture/as-is-to-be-architecture.html) 에 있고, `As-Is 시스템 전경`, `페이지/라우트 구조`, `API 도메인 밀"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-ai-2026-03-30-00-43",
+      "version_id": "dashboard-stabilization-2026-04",
+      "title": "주간 AI 인사이트의 미래 출시 오인식 수정",
+      "date": "2026-03-30 00:43",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "원인은 `주간 AI 인사이트`가 “이번 주 범위(3/30~4/5)에 들어오는 출시일”을 그대로 신규상품으로 봤기 때문입니다. 그래서 오늘이 `2026-03-30`이어도, `2026-04-01` 출시인 `네스프레소 신한카드`를 미리 “신규 출시”로 요약하고 있었습니다. 숫자 쪽은 사실상 “오늘까지 실제 출시된 건” 기준으로 보여서 0이었던 거고요. 수정은",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-03-30.jsonl",
+          "path": ".omx/logs/turns-2026-03-30.jsonl",
+          "ref": "019d3c1f-8e5b-77e0-aaff-0675eb2ead3e",
+          "timestamp": "2026-03-30 00:43",
+          "excerpt": "원인은 `주간 AI 인사이트`가 “이번 주 범위(3/30~4/5)에 들어오는 출시일”을 그대로 신규상품으로 봤기 때문입니다. 그래서 오늘이 `2026-03-30`이어도, `2026-04-01` 출시인 `네스프레소 신한카드`를 미리 “신규 출시”로 요약하고 있었습니다. 숫자 쪽은 사실상 “오늘까지 실제 출시된 건” 기준으로 보여서 0이었던 거고요. 수정은"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "git-copy-entry-process-section-title-5-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "copy(entry): process section title → 5단계 자동화 인텔리전스 파이프라인",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "copy",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "f5b9d47 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "f5b9d47"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "f5b9d47",
+          "path": "",
+          "ref": "f5b9d47",
+          "timestamp": "2026-03-30",
+          "excerpt": "copy(entry): process section title → 5단계 자동화 인텔리전스 파이프라인"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-remove-hero-sub-text-update-cta-copy-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): remove hero sub-text + update CTA copy",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "9c0755c 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "9c0755c"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "9c0755c",
+          "path": "",
+          "ref": "9c0755c",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): remove hero sub-text + update CTA copy"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-revert-feat-entry-replace-spline-runtime-canvas-with-interactive-iframe-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "Revert \"feat(entry): replace Spline Runtime canvas with interactive iframe\"",
+      "date": "2026-03-30",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "a78eea7 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "a78eea7"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "a78eea7",
+          "path": "",
+          "ref": "a78eea7",
+          "timestamp": "2026-03-30",
+          "excerpt": "Revert \"feat(entry): replace Spline Runtime canvas with interactive iframe\""
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-entry-replace-spline-runtime-canvas-with-interactive-iframe-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat(entry): replace Spline Runtime canvas with interactive iframe",
+      "date": "2026-03-30",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "2fec68b 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "2fec68b"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "2fec68b",
+          "path": "",
+          "ref": "2fec68b",
+          "timestamp": "2026-03-30",
+          "excerpt": "feat(entry): replace Spline Runtime canvas with interactive iframe"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-signal-intelligence-transition-fade-out-spacing-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): signal/intelligence transition — fade-out + spacing",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "e0db876 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "e0db876"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "e0db876",
+          "path": "",
+          "ref": "e0db876",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): signal/intelligence transition — fade-out + spacing"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-signal-text-now-visible-use-gsap-set-to-instead-of-from-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): signal text now visible — use gsap.set + .to instead of .from",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "7a53405 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "7a53405"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "7a53405",
+          "path": "",
+          "ref": "7a53405",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): signal text now visible — use gsap.set + .to instead of .from"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-signal-text-visible-remove-css-opacity-0-overrides-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): signal text visible — remove CSS opacity:0 overrides",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5a34157 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "5a34157"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5a34157",
+          "path": "",
+          "ref": "5a34157",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): signal text visible — remove CSS opacity:0 overrides"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-signal-section-scroll-2x-longer-hold-for-readability-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): signal section scroll 2x longer + hold for readability",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5a63df7 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "5a63df7"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5a63df7",
+          "path": "",
+          "ref": "5a63df7",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): signal section scroll 2x longer + hold for readability"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-show-actual-metric-values-instead-of-countup-zeros-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): show actual metric values instead of countup zeros",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "f9e18c5 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "f9e18c5"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "f9e18c5",
+          "path": "",
+          "ref": "f9e18c5",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): show actual metric values instead of countup zeros"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-gradient-title-visible-skip-splitchars-for-gradient-text-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): gradient title visible — skip splitChars for gradient text",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "13557b0 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "13557b0"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "13557b0",
+          "path": "",
+          "ref": "13557b0",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): gradient title visible — skip splitChars for gradient text"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-entry-add-gradient-platform-title-revert-to-original-spline-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat(entry): add gradient platform title + revert to original Spline",
+      "date": "2026-03-30",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "73c652c 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "73c652c"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "73c652c",
+          "path": "",
+          "ref": "73c652c",
+          "timestamp": "2026-03-30",
+          "excerpt": "feat(entry): add gradient platform title + revert to original Spline"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-entry-improve-text-readability-colorful-spline-placeholder-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "fix(entry): improve text readability + colorful Spline placeholder",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "a1c48da 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "a1c48da"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "a1c48da",
+          "path": "",
+          "ref": "a1c48da",
+          "timestamp": "2026-03-30",
+          "excerpt": "fix(entry): improve text readability + colorful Spline placeholder"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-perf-entry-lazy-load-spline-runtime-after-page-render-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "perf(entry): lazy-load Spline runtime after page render",
+      "date": "2026-03-30",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "daab0eb 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "daab0eb"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "daab0eb",
+          "path": "",
+          "ref": "daab0eb",
+          "timestamp": "2026-03-30",
+          "excerpt": "perf(entry): lazy-load Spline runtime after page render"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-entry-interactive-spline-3d-canvas-longer-process-scroll-2026-03-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat(entry): interactive Spline 3D canvas + longer process scroll",
+      "date": "2026-03-30",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "081cff8 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "081cff8"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "081cff8",
+          "path": "",
+          "ref": "081cff8",
+          "timestamp": "2026-03-30",
+          "excerpt": "feat(entry): interactive Spline 3D canvas + longer process scroll"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-entry-page-cinematic-redesign-implementation-plan-2026-03-29-18-34",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "Entry Page Cinematic Redesign — Implementation Plan",
+      "date": "2026-03-29 18:34",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-29-entry-page-cinematic-redesign.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-29-entry-page-cinematic-redesign.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-29-entry-page-cinematic-redesign.md",
+          "path": "docs/superpowers/plans/2026-03-29-entry-page-cinematic-redesign.md",
+          "ref": "Entry Page Cinematic Redesign — Implementation Plan",
+          "timestamp": "2026-03-29 18:34",
+          "excerpt": "Entry Page Cinematic Redesign — Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-entry-page-cinematic-redesign-design-spec-2026-03-29-16-15",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "Entry Page Cinematic Redesign — Design Spec",
+      "date": "2026-03-29 16:15",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-29-entry-page-cinematic-redesign-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-29-entry-page-cinematic-redesign-design.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-29-entry-page-cinematic-redesign-design.md",
+          "path": "docs/superpowers/specs/2026-03-29-entry-page-cinematic-redesign-design.md",
+          "ref": "Entry Page Cinematic Redesign — Design Spec",
+          "timestamp": "2026-03-29 16:15",
+          "excerpt": "Entry Page Cinematic Redesign — Design Spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "omx-hero-3d-parallax-2026-03-29-06-39",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "hero 3D 직접 반응과 얕은 parallax 적용",
+      "date": "2026-03-29 06:39",
+      "granularity": "micro",
+      "kind": "ui-polish",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "3D가 hero에서만 다시 살아나도록 붙였습니다. 지금은 `직접 반응 + 얕은 parallax`를 같이 써서, 첫 화면에서는 scene이 마우스를 따라 미세하게 움직이고, 본문으로 내려가면 다시 조용한 배경으로 물러납니다. 반영 포인트는 이렇습니다. - [entry-page/index.html](C:/Users/82104/Desktop/Cursor/ca",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-03-29.jsonl",
+          "path": ".omx/logs/turns-2026-03-29.jsonl",
+          "ref": "019d3849-7f50-70e3-ac07-e437793dd727",
+          "timestamp": "2026-03-29 06:39",
+          "excerpt": "3D가 hero에서만 다시 살아나도록 붙였습니다. 지금은 `직접 반응 + 얕은 parallax`를 같이 써서, 첫 화면에서는 scene이 마우스를 따라 미세하게 움직이고, 본문으로 내려가면 다시 조용한 배경으로 물러납니다. 반영 포인트는 이렇습니다. - [entry-page/index.html](C:/Users/82104/Desktop/Cursor/ca"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-hero-3d-2026-03-29-06-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "hero 3D 인터랙션 비활성 원인 식별",
+      "date": "2026-03-29 06:29",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "맞습니다. 지금 3D가 밋밋한 이유는 코드상으로도 분명해요. - [style.css](C:/Users/82104/Desktop/Cursor/card-event-intelligence/entry-page/style.css#L62)에서 `.spline-iframe`이 `pointer-events: none`이라 Spline 자체 마우스 반응이 완전히 죽어 있",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-03-29.jsonl",
+          "path": ".omx/logs/turns-2026-03-29.jsonl",
+          "ref": "019d3848-184c-7162-9705-c931cf5eb630",
+          "timestamp": "2026-03-29 06:29",
+          "excerpt": "맞습니다. 지금 3D가 밋밋한 이유는 코드상으로도 분명해요. - [style.css](C:/Users/82104/Desktop/Cursor/card-event-intelligence/entry-page/style.css#L62)에서 `.spline-iframe`이 `pointer-events: none`이라 Spline 자체 마우스 반응이 완전히 죽어 있"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "omx-entry-startup-prewarm-2026-03-29-05-30",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "entry 진입을 막던 startup prewarm 병목 정리",
+      "date": "2026-03-29 05:30",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "OMX 작업 로그를 바탕으로 정리한 작업 기록입니다.",
+      "details": "서버 다시 띄워졌습니다. 지금 `/entry`는 정상 응답하고 있고, [http://127.0.0.1:8000/entry](http://127.0.0.1:8000/entry) 에서 바로 볼 수 있습니다. 원인은 `app.py`의 lifespan에서 `dashboard snapshot`을 동기 prewarm 하면서 startup을 붙잡고 있던 거였습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "omx-turn-log",
+          "label": "turns-2026-03-29.jsonl",
+          "path": ".omx/logs/turns-2026-03-29.jsonl",
+          "ref": "019d380c-05fd-7aa3-b9f4-568e0ac9e52c",
+          "timestamp": "2026-03-29 05:30",
+          "excerpt": "서버 다시 띄워졌습니다. 지금 `/entry`는 정상 응답하고 있고, [http://127.0.0.1:8000/entry](http://127.0.0.1:8000/entry) 에서 바로 볼 수 있습니다. 원인은 `app.py`의 lifespan에서 `dashboard snapshot`을 동기 prewarm 하면서 startup을 붙잡고 있던 거였습니다."
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "omx",
+      "is_manual": false,
+      "is_reconstructed": true
+    },
+    {
+      "id": "git-test-update-entry-page-tests-for-cinematic-redesign-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "test: update entry page tests for cinematic redesign",
+      "date": "2026-03-29",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "3021826 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "3021826"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "3021826",
+          "path": "",
+          "ref": "3021826",
+          "timestamp": "2026-03-29",
+          "excerpt": "test: update entry page tests for cinematic redesign"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-complete-cinematic-entry-page-redesign-tasks-5-12-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat: complete cinematic entry page redesign (Tasks 5-12)",
+      "date": "2026-03-29",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "46e99a7 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "46e99a7"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "46e99a7",
+          "path": "",
+          "ref": "46e99a7",
+          "timestamp": "2026-03-29",
+          "excerpt": "feat: complete cinematic entry page redesign (Tasks 5-12)"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-entry-add-signal-section-with-pinned-text-morph-animation-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat(entry): add signal section with pinned text morph animation",
+      "date": "2026-03-29",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "1d55cf4 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "1d55cf4"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "1d55cf4",
+          "path": "",
+          "ref": "1d55cf4",
+          "timestamp": "2026-03-29",
+          "excerpt": "feat(entry): add signal section with pinned text morph animation"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-entry-scaffold-cinematic-redesign-with-gsap-cdn-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "feat(entry): scaffold cinematic redesign with GSAP CDN",
+      "date": "2026-03-29",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "fd0f931 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "fd0f931"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "fd0f931",
+          "path": "",
+          "ref": "fd0f931",
+          "timestamp": "2026-03-29",
+          "excerpt": "feat(entry): scaffold cinematic redesign with GSAP CDN"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-cinematic-redesign-implementation-plan-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page cinematic redesign implementation plan",
+      "date": "2026-03-29",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "ed96d1f 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "ed96d1f"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "ed96d1f",
+          "path": "",
+          "ref": "ed96d1f",
+          "timestamp": "2026-03-29",
+          "excerpt": "docs: add entry page cinematic redesign implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-cinematic-redesign-design-spec-2026-03-29",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page cinematic redesign design spec",
+      "date": "2026-03-29",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "aa1217d 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "aa1217d"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "aa1217d",
+          "path": "",
+          "ref": "aa1217d",
+          "timestamp": "2026-03-29",
+          "excerpt": "docs: add entry page cinematic redesign design spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-entry-page-command-center-reveal-implementation-plan-2026-03-28-19-23",
+      "version_id": "entry-command-center-2026-03",
+      "title": "Entry Page Command Center Reveal Implementation Plan",
+      "date": "2026-03-28 19:23",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-28-entry-page-command-center-reveal.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-28-entry-page-command-center-reveal.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-28-entry-page-command-center-reveal.md",
+          "path": "docs/superpowers/plans/2026-03-28-entry-page-command-center-reveal.md",
+          "ref": "Entry Page Command Center Reveal Implementation Plan",
+          "timestamp": "2026-03-28 19:23",
+          "excerpt": "Entry Page Command Center Reveal Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-entry-page-command-center-reveal-design-2026-03-28-19-13",
+      "version_id": "entry-command-center-2026-03",
+      "title": "Entry Page Command Center Reveal Design",
+      "date": "2026-03-28 19:13",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-28-entry-page-command-center-reveal-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-28-entry-page-command-center-reveal-design.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-28-entry-page-command-center-reveal-design.md",
+          "path": "docs/superpowers/specs/2026-03-28-entry-page-command-center-reveal-design.md",
+          "ref": "Entry Page Command Center Reveal Design",
+          "timestamp": "2026-03-28 19:13",
+          "excerpt": "Entry Page Command Center Reveal Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-simplify-entry-page-tone-guidelines-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: simplify entry page tone guidelines",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "aff1055 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "aff1055"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "aff1055",
+          "path": "",
+          "ref": "aff1055",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: simplify entry page tone guidelines"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-value-transition-messaging-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page value-transition messaging",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "3f569b2 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "3f569b2"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "3f569b2",
+          "path": "",
+          "ref": "3f569b2",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: add entry page value-transition messaging"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-tighten-entry-page-implementation-plan-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: tighten entry page implementation plan",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "d3a20d7 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "d3a20d7"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "d3a20d7",
+          "path": "",
+          "ref": "d3a20d7",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: tighten entry page implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-manual-review-report-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page manual review report",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "40b8724 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "40b8724"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "40b8724",
+          "path": "",
+          "ref": "40b8724",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: add entry page manual review report"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-command-center-implementation-plan-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page command center implementation plan",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "2307919 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "2307919"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "2307919",
+          "path": "",
+          "ref": "2307919",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: add entry page command center implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-refine-entry-page-command-center-spec-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: refine entry page command center spec",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "f774e3d 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "f774e3d"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "f774e3d",
+          "path": "",
+          "ref": "f774e3d",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: refine entry page command center spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-entry-page-command-center-redesign-spec-2026-03-28",
+      "version_id": "entry-cinematic-2026-03",
+      "title": "docs: add entry page command center redesign spec",
+      "date": "2026-03-28",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "1bf4922 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "1bf4922"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "1bf4922",
+          "path": "",
+          "ref": "1bf4922",
+          "timestamp": "2026-03-28",
+          "excerpt": "docs: add entry page command center redesign spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-shinhan-check-disclosure-sync-design-2026-03-26-08-14",
+      "version_id": "product-rag-2026-03",
+      "title": "Shinhan Check Disclosure Sync Design",
+      "date": "2026-03-26 08:14",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-26-shinhan-check-disclosure-sync-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-26-shinhan-check-disclosure-sync-design.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-26-shinhan-check-disclosure-sync-design.md",
+          "path": "docs/superpowers/specs/2026-03-26-shinhan-check-disclosure-sync-design.md",
+          "ref": "Shinhan Check Disclosure Sync Design",
+          "timestamp": "2026-03-26 08:14",
+          "excerpt": "Shinhan Check Disclosure Sync Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-shinhan-check-disclosure-sync-implementation-plan-2026-03-26-08-14",
+      "version_id": "product-rag-2026-03",
+      "title": "Shinhan Check Disclosure Sync Implementation Plan",
+      "date": "2026-03-26 08:14",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-26-shinhan-check-disclosure-sync.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-26-shinhan-check-disclosure-sync.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-26-shinhan-check-disclosure-sync.md",
+          "path": "docs/superpowers/plans/2026-03-26-shinhan-check-disclosure-sync.md",
+          "ref": "Shinhan Check Disclosure Sync Implementation Plan",
+          "timestamp": "2026-03-26 08:14",
+          "excerpt": "Shinhan Check Disclosure Sync Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-report-studio-screen-based-implementation-plan-2026-03-25-22-01",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Ops Report Studio Screen-Based Implementation Plan",
+      "date": "2026-03-25 22:01",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-25-ops-report-studio-screen-based.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-25-ops-report-studio-screen-based.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-25-ops-report-studio-screen-based.md",
+          "path": "docs/superpowers/plans/2026-03-25-ops-report-studio-screen-based.md",
+          "ref": "Ops Report Studio Screen-Based Implementation Plan",
+          "timestamp": "2026-03-25 22:01",
+          "excerpt": "Ops Report Studio Screen-Based Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-report-studio-screen-based-design-2026-03-25-21-48",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Ops Report Studio Screen-Based Design",
+      "date": "2026-03-25 21:48",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-25-ops-report-studio-screen-based-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-25-ops-report-studio-screen-based-design.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-25-ops-report-studio-screen-based-design.md",
+          "path": "docs/superpowers/specs/2026-03-25-ops-report-studio-screen-based-design.md",
+          "ref": "Ops Report Studio Screen-Based Design",
+          "timestamp": "2026-03-25 21:48",
+          "excerpt": "Ops Report Studio Screen-Based Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-briefing-console-redesign-implementation-plan-2026-03-25-20-19",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Ops Briefing Console Redesign Implementation Plan",
+      "date": "2026-03-25 20:19",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-25-ops-briefing-console-redesign.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-25-ops-briefing-console-redesign.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-25-ops-briefing-console-redesign.md",
+          "path": "docs/superpowers/plans/2026-03-25-ops-briefing-console-redesign.md",
+          "ref": "Ops Briefing Console Redesign Implementation Plan",
+          "timestamp": "2026-03-25 20:19",
+          "excerpt": "Ops Briefing Console Redesign Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-briefing-console-redesign-design-2026-03-25-20-17",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Ops Briefing Console Redesign Design",
+      "date": "2026-03-25 20:17",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-25-ops-briefing-console-redesign-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-25-ops-briefing-console-redesign-design.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-25-ops-briefing-console-redesign-design.md",
+          "path": "docs/superpowers/specs/2026-03-25-ops-briefing-console-redesign-design.md",
+          "ref": "Ops Briefing Console Redesign Design",
+          "timestamp": "2026-03-25 20:17",
+          "excerpt": "Ops Briefing Console Redesign Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-dashboard-snapshot-and-manual-refresh-design-2026-03-25-14-48",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Dashboard Snapshot And Manual Refresh Design",
+      "date": "2026-03-25 14:48",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-25-dashboard-snapshot-manual-refresh-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-25-dashboard-snapshot-manual-refresh-design.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-25-dashboard-snapshot-manual-refresh-design.md",
+          "path": "docs/superpowers/specs/2026-03-25-dashboard-snapshot-manual-refresh-design.md",
+          "ref": "Dashboard Snapshot And Manual Refresh Design",
+          "timestamp": "2026-03-25 14:48",
+          "excerpt": "Dashboard Snapshot And Manual Refresh Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-dashboard-snapshot-and-manual-refresh-implementation-plan-2026-03-25-14-48",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Dashboard Snapshot And Manual Refresh Implementation Plan",
+      "date": "2026-03-25 14:48",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-25-dashboard-snapshot-manual-refresh.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-25-dashboard-snapshot-manual-refresh.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-25-dashboard-snapshot-manual-refresh.md",
+          "path": "docs/superpowers/plans/2026-03-25-dashboard-snapshot-manual-refresh.md",
+          "ref": "Dashboard Snapshot And Manual Refresh Implementation Plan",
+          "timestamp": "2026-03-25 14:48",
+          "excerpt": "Dashboard Snapshot And Manual Refresh Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-centered-event-detail-panel-design-2026-03-25-14-24",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Centered Event Detail Panel Design",
+      "date": "2026-03-25 14:24",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-25-centered-event-detail-panel-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-25-centered-event-detail-panel-design.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-25-centered-event-detail-panel-design.md",
+          "path": "docs/superpowers/specs/2026-03-25-centered-event-detail-panel-design.md",
+          "ref": "Centered Event Detail Panel Design",
+          "timestamp": "2026-03-25 14:24",
+          "excerpt": "Centered Event Detail Panel Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-weekly-related-news-design-2026-03-25-13-52",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Weekly Related News Design",
+      "date": "2026-03-25 13:52",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-25-weekly-related-news-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-25-weekly-related-news-design.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-25-weekly-related-news-design.md",
+          "path": "docs/superpowers/specs/2026-03-25-weekly-related-news-design.md",
+          "ref": "Weekly Related News Design",
+          "timestamp": "2026-03-25 13:52",
+          "excerpt": "Weekly Related News Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-weekly-related-news-implementation-plan-2026-03-25-13-52",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Weekly Related News Implementation Plan",
+      "date": "2026-03-25 13:52",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-25-weekly-related-news.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-25-weekly-related-news.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-25-weekly-related-news.md",
+          "path": "docs/superpowers/plans/2026-03-25-weekly-related-news.md",
+          "ref": "Weekly Related News Implementation Plan",
+          "timestamp": "2026-03-25 13:52",
+          "excerpt": "Weekly Related News Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-document-search-design-2026-03-23-15-27",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Document Search Design",
+      "date": "2026-03-23 15:27",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-23-product-document-search-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-23-product-document-search-design.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-23-product-document-search-design.md",
+          "path": "docs/superpowers/specs/2026-03-23-product-document-search-design.md",
+          "ref": "Product Document Search Design",
+          "timestamp": "2026-03-23 15:27",
+          "excerpt": "Product Document Search Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-document-search-implementation-plan-2026-03-23-15-27",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Document Search Implementation Plan",
+      "date": "2026-03-23 15:27",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-23-product-document-search.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-23-product-document-search.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-23-product-document-search.md",
+          "path": "docs/superpowers/plans/2026-03-23-product-document-search.md",
+          "ref": "Product Document Search Implementation Plan",
+          "timestamp": "2026-03-23 15:27",
+          "excerpt": "Product Document Search Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-ingest-link-coverage-insights-scope-refresh-design-2026-03-23-10-54",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Ops Ingest / Link Coverage / Insights Scope Refresh Design",
+      "date": "2026-03-23 10:54",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-23-ops-link-insights-refresh-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-23-ops-link-insights-refresh-design.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-23-ops-link-insights-refresh-design.md",
+          "path": "docs/superpowers/specs/2026-03-23-ops-link-insights-refresh-design.md",
+          "ref": "Ops Ingest / Link Coverage / Insights Scope Refresh Design",
+          "timestamp": "2026-03-23 10:54",
+          "excerpt": "Ops Ingest / Link Coverage / Insights Scope Refresh Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-ops-ingest-link-coverage-insights-scope-refresh-implementation-plan-2026-03-23-10-54",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Ops Ingest / Link Coverage / Insights Scope Refresh Implementation Plan",
+      "date": "2026-03-23 10:54",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-23-ops-link-insights-refresh.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-23-ops-link-insights-refresh.md"
+      ],
+      "branches": [],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-23-ops-link-insights-refresh.md",
+          "path": "docs/superpowers/plans/2026-03-23-ops-link-insights-refresh.md",
+          "ref": "Ops Ingest / Link Coverage / Insights Scope Refresh Implementation Plan",
+          "timestamp": "2026-03-23 10:54",
+          "excerpt": "Ops Ingest / Link Coverage / Insights Scope Refresh Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-explorer-redesign-design-2026-03-22-20-55",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Explorer Redesign Design",
+      "date": "2026-03-22 20:55",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-22-product-explorer-redesign-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-22-product-explorer-redesign-design.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-22-product-explorer-redesign-design.md",
+          "path": "docs/superpowers/specs/2026-03-22-product-explorer-redesign-design.md",
+          "ref": "Product Explorer Redesign Design",
+          "timestamp": "2026-03-22 20:55",
+          "excerpt": "Product Explorer Redesign Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-explorer-redesign-implementation-plan-2026-03-22-20-55",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Explorer Redesign Implementation Plan",
+      "date": "2026-03-22 20:55",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-22-product-explorer-redesign.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-22-product-explorer-redesign.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-22-product-explorer-redesign.md",
+          "path": "docs/superpowers/plans/2026-03-22-product-explorer-redesign.md",
+          "ref": "Product Explorer Redesign Implementation Plan",
+          "timestamp": "2026-03-22 20:55",
+          "excerpt": "Product Explorer Redesign Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-launch-authority-design-2026-03-21-14-58",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Launch Authority Design",
+      "date": "2026-03-21 14:58",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-21-product-launch-authority-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-21-product-launch-authority-design.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-21-product-launch-authority-design.md",
+          "path": "docs/superpowers/specs/2026-03-21-product-launch-authority-design.md",
+          "ref": "Product Launch Authority Design",
+          "timestamp": "2026-03-21 14:58",
+          "excerpt": "Product Launch Authority Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-product-launch-authority-implementation-plan-2026-03-21-14-58",
+      "version_id": "product-rag-2026-03",
+      "title": "Product Launch Authority Implementation Plan",
+      "date": "2026-03-21 14:58",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-21-product-launch-authority.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-21-product-launch-authority.md"
+      ],
+      "branches": [
+        "codex/product-explorer-redesign"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-21-product-launch-authority.md",
+          "path": "docs/superpowers/plans/2026-03-21-product-launch-authority.md",
+          "ref": "Product Launch Authority Implementation Plan",
+          "timestamp": "2026-03-21 14:58",
+          "excerpt": "Product Launch Authority Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-architecture-docs-console-implementation-plan-2026-03-21-13-59",
+      "version_id": "architecture-docs-console-2026-03",
+      "title": "Card Event Intelligence Architecture Docs Console Implementation Plan",
+      "date": "2026-03-21 13:59",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-21-card-event-intelligence-architecture-docs-console.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-21-card-event-intelligence-architecture-docs-console.md"
+      ],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-21-card-event-intelligence-architecture-docs-console.md",
+          "path": "docs/superpowers/plans/2026-03-21-card-event-intelligence-architecture-docs-console.md",
+          "ref": "Card Event Intelligence Architecture Docs Console Implementation Plan",
+          "timestamp": "2026-03-21 13:59",
+          "excerpt": "Card Event Intelligence Architecture Docs Console Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-architecture-docs-console-design-2026-03-21-13-32",
+      "version_id": "architecture-docs-console-2026-03",
+      "title": "Card Event Intelligence Architecture Docs Console Design",
+      "date": "2026-03-21 13:32",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-21-card-event-intelligence-architecture-docs-console-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-21-card-event-intelligence-architecture-docs-console-design.md"
+      ],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-21-card-event-intelligence-architecture-docs-console-design.md",
+          "path": "docs/superpowers/specs/2026-03-21-card-event-intelligence-architecture-docs-console-design.md",
+          "ref": "Card Event Intelligence Architecture Docs Console Design",
+          "timestamp": "2026-03-21 13:32",
+          "excerpt": "Card Event Intelligence Architecture Docs Console Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-launch-architecture-docs-console-2026-03-21",
+      "version_id": "architecture-docs-console-2026-03",
+      "title": "feat: launch architecture docs console",
+      "date": "2026-03-21",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "7bb582d 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "commits": [
+        "7bb582d"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "7bb582d",
+          "path": "",
+          "ref": "7bb582d",
+          "timestamp": "2026-03-21",
+          "excerpt": "feat: launch architecture docs console"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-add-architecture-docs-console-implementation-plan-2026-03-21",
+      "version_id": "architecture-docs-console-2026-03",
+      "title": "Add architecture docs console implementation plan",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "704ccd4 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "commits": [
+        "704ccd4"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "704ccd4",
+          "path": "",
+          "ref": "704ccd4",
+          "timestamp": "2026-03-21",
+          "excerpt": "Add architecture docs console implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-add-architecture-docs-console-design-spec-2026-03-21",
+      "version_id": "architecture-docs-console-2026-03",
+      "title": "Add architecture docs console design spec",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "6bfa5fa 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/architecture-docs-console"
+      ],
+      "commits": [
+        "6bfa5fa"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "6bfa5fa",
+          "path": "",
+          "ref": "6bfa5fa",
+          "timestamp": "2026-03-21",
+          "excerpt": "Add architecture docs console design spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-tighten-deep-dive-contract-provenance-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "Tighten deep-dive contract provenance",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "6a7a326 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "6a7a326"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "6a7a326",
+          "path": "",
+          "ref": "6a7a326",
+          "timestamp": "2026-03-21",
+          "excerpt": "Tighten deep-dive contract provenance"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-localize-lower-deep-dive-board-chrome-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "Localize lower deep-dive board chrome",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "f26ba45 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "f26ba45"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "f26ba45",
+          "path": "",
+          "ref": "f26ba45",
+          "timestamp": "2026-03-21",
+          "excerpt": "Localize lower deep-dive board chrome"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-implement-contract-driven-lower-deep-dive-boards-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "Implement contract-driven lower deep-dive boards",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5e0d9f6 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "5e0d9f6"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5e0d9f6",
+          "path": "",
+          "ref": "5e0d9f6",
+          "timestamp": "2026-03-21",
+          "excerpt": "Implement contract-driven lower deep-dive boards"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-tighten-deep-dive-board-contracts-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "fix: tighten deep-dive board contracts",
+      "date": "2026-03-21",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "c951fd4 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "c951fd4"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "c951fd4",
+          "path": "",
+          "ref": "c951fd4",
+          "timestamp": "2026-03-21",
+          "excerpt": "fix: tighten deep-dive board contracts"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-refresh-top-deep-dive-boards-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "feat: refresh top deep-dive boards",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "72ce3a5 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "72ce3a5"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "72ce3a5",
+          "path": "",
+          "ref": "72ce3a5",
+          "timestamp": "2026-03-21",
+          "excerpt": "feat: refresh top deep-dive boards"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-rebuild-landing-showroom-scenes-2026-03-21",
+      "version_id": "presentation-site-2026-03",
+      "title": "Rebuild landing showroom scenes",
+      "date": "2026-03-21",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "1fac665 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "1fac665"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "1fac665",
+          "path": "",
+          "ref": "1fac665",
+          "timestamp": "2026-03-21",
+          "excerpt": "Rebuild landing showroom scenes"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-presentation-site-ui-ux-upgrade-implementation-plan-2026-03-20-16-06",
+      "version_id": "presentation-site-2026-03",
+      "title": "Card Event Intelligence Presentation Site UI/UX Upgrade Implementation Plan",
+      "date": "2026-03-20 16:06",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade.md"
+      ],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade.md",
+          "path": "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade.md",
+          "ref": "Card Event Intelligence Presentation Site UI/UX Upgrade Implementation Plan",
+          "timestamp": "2026-03-20 16:06",
+          "excerpt": "Card Event Intelligence Presentation Site UI/UX Upgrade Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-presentation-site-ui-ux-upgrade-design-2026-03-20-15-48",
+      "version_id": "presentation-site-2026-03",
+      "title": "Card Event Intelligence Presentation Site UI/UX Upgrade Design",
+      "date": "2026-03-20 15:48",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade-design.md"
+      ],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade-design.md",
+          "path": "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-ui-ux-upgrade-design.md",
+          "ref": "Card Event Intelligence Presentation Site UI/UX Upgrade Design",
+          "timestamp": "2026-03-20 15:48",
+          "excerpt": "Card Event Intelligence Presentation Site UI/UX Upgrade Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-presentation-site-implementation-plan-2026-03-20-10-46",
+      "version_id": "presentation-site-2026-03",
+      "title": "Card Event Intelligence Presentation Site Implementation Plan",
+      "date": "2026-03-20 10:46",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site.md"
+      ],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-20-card-event-intelligence-presentation-site.md",
+          "path": "docs/superpowers/plans/2026-03-20-card-event-intelligence-presentation-site.md",
+          "ref": "Card Event Intelligence Presentation Site Implementation Plan",
+          "timestamp": "2026-03-20 10:46",
+          "excerpt": "Card Event Intelligence Presentation Site Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-card-event-intelligence-presentation-site-design-2026-03-20-10-40",
+      "version_id": "presentation-site-2026-03",
+      "title": "Card Event Intelligence Presentation Site Design",
+      "date": "2026-03-20 10:40",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-design.md"
+      ],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-20-card-event-intelligence-presentation-site-design.md",
+          "path": "docs/superpowers/specs/2026-03-20-card-event-intelligence-presentation-site-design.md",
+          "ref": "Card Event Intelligence Presentation Site Design",
+          "timestamp": "2026-03-20 10:40",
+          "excerpt": "Card Event Intelligence Presentation Site Design"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-briefing-intelligence-redesign-implementation-plan-2026-03-20-09-06",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Briefing Intelligence Redesign Implementation Plan",
+      "date": "2026-03-20 09:06",
+      "granularity": "major",
+      "kind": "plan",
+      "summary": "plan 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/plans/2026-03-20-briefing-intelligence-redesign.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/plans/2026-03-20-briefing-intelligence-redesign.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "plan-doc",
+          "label": "2026-03-20-briefing-intelligence-redesign.md",
+          "path": "docs/superpowers/plans/2026-03-20-briefing-intelligence-redesign.md",
+          "ref": "Briefing Intelligence Redesign Implementation Plan",
+          "timestamp": "2026-03-20 09:06",
+          "excerpt": "Briefing Intelligence Redesign Implementation Plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "docs-item-2026-03-20-09-01",
+      "version_id": "briefing-ops-2026-03",
+      "title": "브리핑 인텔리전스 개편 디자인 스펙",
+      "date": "2026-03-20 09:01",
+      "granularity": "major",
+      "kind": "spec",
+      "summary": "spec 문서가 만들어지며 이 작업 흐름의 출발점이 잡힌 기록입니다.",
+      "details": "docs/superpowers/specs/2026-03-20-briefing-intelligence-design.md 문서가 만들어진 시점을 기준으로 정리한 기록입니다.",
+      "files": [
+        "docs/superpowers/specs/2026-03-20-briefing-intelligence-design.md"
+      ],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [],
+      "evidence": [
+        {
+          "type": "spec-doc",
+          "label": "2026-03-20-briefing-intelligence-design.md",
+          "path": "docs/superpowers/specs/2026-03-20-briefing-intelligence-design.md",
+          "ref": "브리핑 인텔리전스 개편 디자인 스펙",
+          "timestamp": "2026-03-20 09:01",
+          "excerpt": "브리핑 인텔리전스 개편 디자인 스펙"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "docs",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-restore-briefing-routes-and-product-link-coverage-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Restore briefing routes and product link coverage",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "0ac3d69 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "0ac3d69"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "0ac3d69",
+          "path": "",
+          "ref": "0ac3d69",
+          "timestamp": "2026-03-20",
+          "excerpt": "Restore briefing routes and product link coverage"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-enrich-weekly-briefing-with-issuer-narratives-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Enrich weekly briefing with issuer narratives",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "1852f15 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "1852f15"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "1852f15",
+          "path": "",
+          "ref": "1852f15",
+          "timestamp": "2026-03-20",
+          "excerpt": "Enrich weekly briefing with issuer narratives"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-harden-briefing-send-safety-and-readiness-checks-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Harden briefing send safety and readiness checks",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "2c8dcd6 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "2c8dcd6"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "2c8dcd6",
+          "path": "",
+          "ref": "2c8dcd6",
+          "timestamp": "2026-03-20",
+          "excerpt": "Harden briefing send safety and readiness checks"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-move-tab-switching-into-dashboard-js-2026-03-20",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "Move tab switching into dashboard js",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "9843899 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "9843899"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "9843899",
+          "path": "",
+          "ref": "9843899",
+          "timestamp": "2026-03-20",
+          "excerpt": "Move tab switching into dashboard js"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-consolidate-briefing-console-boot-path-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Consolidate briefing console boot path",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "747977d 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "747977d"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "747977d",
+          "path": "",
+          "ref": "747977d",
+          "timestamp": "2026-03-20",
+          "excerpt": "Consolidate briefing console boot path"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-harden-briefing-console-failure-states-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Harden briefing console failure states",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "0f6a3ab 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "0f6a3ab"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "0f6a3ab",
+          "path": "",
+          "ref": "0f6a3ab",
+          "timestamp": "2026-03-20",
+          "excerpt": "Harden briefing console failure states"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-implement-briefing-quality-console-shell-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Implement briefing quality console shell",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "61f8ed7 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "61f8ed7"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "61f8ed7",
+          "path": "",
+          "ref": "61f8ed7",
+          "timestamp": "2026-03-20",
+          "excerpt": "Implement briefing quality console shell"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-add-briefing-status-and-rich-log-metadata-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Add briefing status and rich log metadata",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "987fc82 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "987fc82"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "987fc82",
+          "path": "",
+          "ref": "987fc82",
+          "timestamp": "2026-03-20",
+          "excerpt": "Add briefing status and rich log metadata"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-harden-weekly-briefing-product-rendering-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Harden weekly briefing product rendering",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "26d61ea 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "26d61ea"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "26d61ea",
+          "path": "",
+          "ref": "26d61ea",
+          "timestamp": "2026-03-20",
+          "excerpt": "Harden weekly briefing product rendering"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-align-weekly-briefing-with-real-payload-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Align weekly briefing with real payload",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "32e3164 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "32e3164"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "32e3164",
+          "path": "",
+          "ref": "32e3164",
+          "timestamp": "2026-03-20",
+          "excerpt": "Align weekly briefing with real payload"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-remove-warning-codes-from-briefing-summaries-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Remove warning codes from briefing summaries",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "e86a216 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "e86a216"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "e86a216",
+          "path": "",
+          "ref": "e86a216",
+          "timestamp": "2026-03-20",
+          "excerpt": "Remove warning codes from briefing summaries"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-tighten-briefing-surfaces-and-preview-compatibility-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Tighten briefing surfaces and preview compatibility",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "26fae2a 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "26fae2a"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "26fae2a",
+          "path": "",
+          "ref": "26fae2a",
+          "timestamp": "2026-03-20",
+          "excerpt": "Tighten briefing surfaces and preview compatibility"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-redesign-briefing-templates-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Redesign briefing templates",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "1c24b8c 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "1c24b8c"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "1c24b8c",
+          "path": "",
+          "ref": "1c24b8c",
+          "timestamp": "2026-03-20",
+          "excerpt": "Redesign briefing templates"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-tighten-briefing-payload-product-scope-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "fix: tighten briefing payload product scope",
+      "date": "2026-03-20",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "16c1922 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "16c1922"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "16c1922",
+          "path": "",
+          "ref": "16c1922",
+          "timestamp": "2026-03-20",
+          "excerpt": "fix: tighten briefing payload product scope"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-refactor-clean-up-briefing-builder-exports-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "refactor: clean up briefing builder exports",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "7f1365e 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "7f1365e"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "7f1365e",
+          "path": "",
+          "ref": "7f1365e",
+          "timestamp": "2026-03-20",
+          "excerpt": "refactor: clean up briefing builder exports"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-build-structured-briefing-payloads-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "feat: build structured briefing payloads",
+      "date": "2026-03-20",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "bbbea24 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "bbbea24"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "bbbea24",
+          "path": "",
+          "ref": "bbbea24",
+          "timestamp": "2026-03-20",
+          "excerpt": "feat: build structured briefing payloads"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-strengthen-briefing-migration-tests-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Strengthen briefing migration tests",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "75f5b23 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "75f5b23"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "75f5b23",
+          "path": "",
+          "ref": "75f5b23",
+          "timestamp": "2026-03-20",
+          "excerpt": "Strengthen briefing migration tests"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-expand-briefing-log-schema-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Expand briefing log schema",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "c0c7507 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "c0c7507"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "c0c7507",
+          "path": "",
+          "ref": "c0c7507",
+          "timestamp": "2026-03-20",
+          "excerpt": "Expand briefing log schema"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-on-main-pre-briefing-cherrypick-2026-03-20-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "On main: pre-briefing-cherrypick-2026-03-20",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "620118b 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "620118b"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "620118b",
+          "path": "",
+          "ref": "620118b",
+          "timestamp": "2026-03-20",
+          "excerpt": "On main: pre-briefing-cherrypick-2026-03-20"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-presentation-site-uiux-upgrade-design-spec-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "docs: add presentation site uiux upgrade design spec",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "9331b42 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "9331b42"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "9331b42",
+          "path": "",
+          "ref": "9331b42",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add presentation site uiux upgrade design spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-make-footer-snapshot-separator-explicit-2026-03-20",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "fix: make footer snapshot separator explicit",
+      "date": "2026-03-20",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "7b9929e 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "7b9929e"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "7b9929e",
+          "path": "",
+          "ref": "7b9929e",
+          "timestamp": "2026-03-20",
+          "excerpt": "fix: make footer snapshot separator explicit"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-clean-footer-snapshot-separator-2026-03-20",
+      "version_id": "dashboard-snapshot-2026-03",
+      "title": "fix: clean footer snapshot separator",
+      "date": "2026-03-20",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5caa762 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "5caa762"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5caa762",
+          "path": "",
+          "ref": "5caa762",
+          "timestamp": "2026-03-20",
+          "excerpt": "fix: clean footer snapshot separator"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-presentation-site-authoring-guide-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "docs: add presentation site authoring guide",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "8378e7e 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "8378e7e"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "8378e7e",
+          "path": "",
+          "ref": "8378e7e",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add presentation site authoring guide"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-polish-presentation-site-responsiveness-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "feat: polish presentation site responsiveness",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5a32014 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "5a32014"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5a32014",
+          "path": "",
+          "ref": "5a32014",
+          "timestamp": "2026-03-20",
+          "excerpt": "feat: polish presentation site responsiveness"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-build-landing-showroom-narrative-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "feat: build landing showroom narrative",
+      "date": "2026-03-20",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "c100b13 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "c100b13"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "c100b13",
+          "path": "",
+          "ref": "c100b13",
+          "timestamp": "2026-03-20",
+          "excerpt": "feat: build landing showroom narrative"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-add-presentation-site-shell-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "feat: add presentation site shell",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "5db6291 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "5db6291"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "5db6291",
+          "path": "",
+          "ref": "5db6291",
+          "timestamp": "2026-03-20",
+          "excerpt": "feat: add presentation site shell"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-redesign-ops-briefing-console-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "Redesign ops briefing console",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "af67e82 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "af67e82"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "af67e82",
+          "path": "",
+          "ref": "af67e82",
+          "timestamp": "2026-03-20",
+          "excerpt": "Redesign ops briefing console"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-expand-presentation-site-readme-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "docs: expand presentation site README",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "e2a3def 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "e2a3def"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "e2a3def",
+          "path": "",
+          "ref": "e2a3def",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: expand presentation site README"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-fix-align-presentation-site-manifest-with-plan-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "fix: align presentation site manifest with plan",
+      "date": "2026-03-20",
+      "granularity": "micro",
+      "kind": "bugfix",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "dbbadbb 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "dbbadbb"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "dbbadbb",
+          "path": "",
+          "ref": "dbbadbb",
+          "timestamp": "2026-03-20",
+          "excerpt": "fix: align presentation site manifest with plan"
+        }
+      ],
+      "confidence": "medium",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-feat-scaffold-presentation-site-workspace-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "feat: scaffold presentation site workspace",
+      "date": "2026-03-20",
+      "granularity": "major",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "a100378 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "a100378"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "a100378",
+          "path": "",
+          "ref": "a100378",
+          "timestamp": "2026-03-20",
+          "excerpt": "feat: scaffold presentation site workspace"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-presentation-site-implementation-plan-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "docs: add presentation site implementation plan",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "e888ed1 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "e888ed1"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "e888ed1",
+          "path": "",
+          "ref": "e888ed1",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add presentation site implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-presentation-site-design-spec-2026-03-20",
+      "version_id": "presentation-site-2026-03",
+      "title": "docs: add presentation site design spec",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "965b304 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/presentation-site"
+      ],
+      "commits": [
+        "965b304"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "965b304",
+          "path": "",
+          "ref": "965b304",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add presentation site design spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-briefing-intelligence-implementation-plan-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "docs: add briefing intelligence implementation plan",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "246e15d 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "246e15d"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "246e15d",
+          "path": "",
+          "ref": "246e15d",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add briefing intelligence implementation plan"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-docs-add-briefing-intelligence-design-spec-2026-03-20",
+      "version_id": "briefing-ops-2026-03",
+      "title": "docs: add briefing intelligence design spec",
+      "date": "2026-03-20",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "cfb0ef9 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [
+        "codex/briefing-intelligence-redesign",
+        "codex/report-studio-screen-based"
+      ],
+      "commits": [
+        "cfb0ef9"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "cfb0ef9",
+          "path": "",
+          "ref": "cfb0ef9",
+          "timestamp": "2026-03-20",
+          "excerpt": "docs: add briefing intelligence design spec"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-v3-0-prd-phase-1-3-ux-2026-02-09",
+      "version_id": "core-foundation-2026-02",
+      "title": "v3.0: PRD 고도화 전체 구현 (Phase 1~3 + UX 개선)",
+      "date": "2026-02-09",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "68ec0bb 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "68ec0bb"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "68ec0bb",
+          "path": "",
+          "ref": "68ec0bb",
+          "timestamp": "2026-02-09",
+          "excerpt": "v3.0: PRD 고도화 전체 구현 (Phase 1~3 + UX 개선)"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    },
+    {
+      "id": "git-initial-commit-card-event-intelligence-2026-02-07",
+      "version_id": "core-foundation-2026-02",
+      "title": "Initial commit: Card Event Intelligence",
+      "date": "2026-02-07",
+      "granularity": "minor",
+      "kind": "implementation",
+      "summary": "Git 커밋 제목을 바탕으로 정리한 작업 기록입니다.",
+      "details": "d5fae51 커밋을 기준으로 이 작업 흐름에 연결했습니다.",
+      "files": [],
+      "branches": [],
+      "commits": [
+        "d5fae51"
+      ],
+      "evidence": [
+        {
+          "type": "git-commit",
+          "label": "d5fae51",
+          "path": "",
+          "ref": "d5fae51",
+          "timestamp": "2026-02-07",
+          "excerpt": "Initial commit: Card Event Intelligence"
+        }
+      ],
+      "confidence": "high",
+      "source_origin": "git",
+      "is_manual": false,
+      "is_reconstructed": false
+    }
+  ],
+  "relationships": [
+    {
+      "type": "derived-copy",
+      "source": "docs/architecture/as-is-to-be-architecture.html",
+      "target": "showcase-site/architecture/index.html",
+      "label": "아키텍처 원문 HTML → showcase 정적 아키텍처 파생본"
+    },
+    {
+      "type": "derived-copy",
+      "source": "entry-page/index.html",
+      "target": "showcase-site/index.html",
+      "label": "entry 원본 페이지 → showcase 정적 엔트리 파생본"
+    },
+    {
+      "type": "shared-assets",
+      "source": "entry-page/script.js",
+      "target": "showcase-site/assets/entry-page/script.js",
+      "label": "엔트리 인터랙션 스크립트 → showcase 자산 공유"
+    }
+  ]
+}

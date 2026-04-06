@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/architecture",
+      "destination": "/architecture/index.html"
+    },
+    {
+      "source": "/history",
+      "destination": "/history/index.html"
+    }
+  ]
+}

@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카드사 경쟁 인텔리전스 — 시스템 아키텍처 가이드</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design Tokens ── */
+    :root {
+      --bg: #080e19;
+      --surface: #0d1420;
+      --surface-mid: #111a28;
+      --surface-raised: #162030;
+      --border: rgba(255,255,255,.06);
+      --border-accent: rgba(74,222,128,.15);
+      --text: #eef3fb;
+      --text-secondary: rgba(210,222,240,.72);
+      --text-muted: rgba(170,190,220,.48);
+      --green: #4ade80;
+      --green-dim: rgba(74,222,128,.09);
+      --green-dim2: rgba(74,222,128,.14);
+      --cyan: #67e8f9;
+      --cyan-dim: rgba(103,232,249,.07);
+      --content-w: 1240px;
+      --section-gap: 96px;
+      --r: 14px;
+      --r-sm: 10px;
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, .mono {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 0.86em;
+      background: rgba(103,232,249,.08);
+      padding: 2px 7px;
+      border-radius: 5px;
+      color: var(--cyan);
+    }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+    p { margin: 0; color: var(--text-secondary); }
+    ul { margin: 0; padding-left: 20px; }
+    li { color: var(--text-secondary); font-size: 14px; margin-bottom: 4px; }
+
+    /* ── Progress Bar ── */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      z-index: 999;
+      transition: width .1s linear;
+    }
+
+    /* ── Layout Shell ── */
+    .page { position: relative; display: flex; min-height: 100vh; }
+    .page__body { flex: 1; min-width: 0; }
+
+    .wrap {
+      max-width: var(--content-w);
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Sidebar TOC ── */
+    .toc {
+      position: sticky;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      padding: 32px 20px;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .toc__title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .toc a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all .15s;
+      line-height: 1.5;
+    }
+    .toc a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.04);
+      text-decoration: none;
+    }
+    .toc a.is-active {
+      color: var(--green);
+      background: var(--green-dim);
+      text-decoration: none;
+    }
+    .toc__mobile-toggle {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 200;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border-accent);
+      background: var(--surface);
+      color: var(--green);
+      font-size: 20px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 88px 0 56px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green), var(--cyan), transparent);
+      opacity: .6;
+    }
+    .hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 20px;
+    }
+    .hero__eyebrow::before {
+      content: '◆';
+      font-size: 9px;
+      opacity: .7;
+    }
+    .hero__title {
+      font-size: clamp(2.6rem, 4.5vw, 3.6rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .hero__subtitle {
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+      line-height: 1.25;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 28px;
+    }
+    .hero__desc {
+      max-width: 720px;
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--text-secondary);
+    }
+    .hero__pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 28px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: border-color .15s, background .15s;
+    }
+    .pill:hover {
+      border-color: var(--border-accent);
+      background: var(--green-dim);
+    }
+    .pill--action {
+      color: var(--green);
+      font-weight: 650;
+      border-color: var(--border-accent);
+      background: var(--green-dim);
+    }
+
+    /* ── Reading Guide ── */
+    .reading-guide {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 36px;
+    }
+    .reading-guide__card {
+      padding: 22px 24px;
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--green);
+      border-radius: var(--r);
+      transition: border-color .15s;
+    }
+    .reading-guide__card:hover {
+      border-color: var(--border-accent);
+      border-left-color: var(--green);
+    }
+    .reading-guide__card strong {
+      display: block;
+      font-size: 14.5px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .reading-guide__card span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    /* ── Section ── */
+    .sec {
+      padding: var(--section-gap) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec:last-of-type { border-bottom: none; }
+
+    .sec__num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--green-dim2);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .sec__title {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .sec__desc {
+      max-width: 820px;
+      font-size: 15px;
+      line-height: 1.85;
+      padding-left: 2px;
+    }
+    .sec__refs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .ref {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--green-dim2);
+      color: var(--text-muted);
+      font-size: 12px;
+      transition: background .15s, border-left-color .15s;
+    }
+    .ref:hover {
+      background: var(--green-dim);
+      border-left-color: var(--green);
+    }
+
+    /* ── Panel ── */
+    .panel {
+      margin-top: 28px;
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      border-top: 1px solid var(--border-accent);
+      border-radius: var(--r);
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+    .panel__header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 22px;
+    }
+    .panel__header h3 { font-size: 1.1rem; font-weight: 700; }
+    .panel__header p { max-width: 540px; font-size: 14px; }
+
+    /* ── Grid (2-col cells) ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .cell {
+      padding: 22px;
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      border-top: 1px solid rgba(74,222,128,.1);
+      border-radius: var(--r);
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .cell h4 {
+      font-size: 14.5px;
+      font-weight: 650;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    /* ── Split (2-col boxes) ── */
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .box {
+      padding: 28px;
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      border-top: 1px solid rgba(74,222,128,.1);
+      border-radius: var(--r);
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .box h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    /* ── Rows (key-value) ── */
+    .rows { display: grid; gap: 0; }
+    .row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 16px;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+    .row:first-child { border-top: none; padding-top: 0; }
+    .row strong { font-size: 14px; color: var(--text); }
+    .row span { font-size: 14px; color: var(--text-secondary); }
+
+    /* ── Cluster Bars ── */
+    .clusters { display: grid; gap: 8px; margin-top: 16px; }
+    .cluster {
+      display: grid;
+      grid-template-columns: 200px 52px 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 18px;
+      border-radius: var(--r-sm);
+      background: var(--surface-mid);
+      border: 1px solid var(--border);
+      transition: border-color .15s;
+    }
+    .cluster:hover { border-color: var(--border-accent); }
+    .cluster strong { font-size: 14px; color: var(--text); }
+    .cluster .count {
+      text-align: right;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--green);
+    }
+    .cluster .bar {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      width: 0%;
+      opacity: .7;
+      transition: width .8s cubic-bezier(.4,0,.2,1);
+    }
+    .cluster .bar.animated { width: var(--w, 50%); }
+
+    /* ── Note / Callout ── */
+    .note {
+      margin-top: 24px;
+      padding: 22px 26px;
+      background: linear-gradient(135deg, var(--green-dim2) 0%, var(--green-dim) 100%);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--r-sm);
+    }
+    .note strong {
+      display: block;
+      font-size: 14px;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .note strong::before {
+      content: '💡 ';
+    }
+    .note p { font-size: 14px; line-height: 1.8; }
+
+    /* ── Diagram ── */
+    .diagram {
+      margin-top: 20px;
+      padding: 20px;
+      background: #0a1018;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow-x: auto;
+      box-shadow: inset 0 0 30px rgba(74,222,128,.03);
+    }
+    .diagram__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding: 4px 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+    .diagram__label::before {
+      content: '◇';
+      font-size: 10px;
+      color: var(--green);
+      opacity: .7;
+    }
+    .diagram__caption {
+      margin-top: 14px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.6;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 36px 0;
+      border-top: 1px solid var(--border);
+      margin-top: var(--section-gap);
+    }
+    .footer__inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer__inner a {
+      color: var(--text-muted);
+      transition: color .15s;
+    }
+    .footer__inner a:hover {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    /* ── Scroll Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .6s cubic-bezier(.4,0,.2,1), transform .6s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-child {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity .5s cubic-bezier(.4,0,.2,1), transform .5s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal-child.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .toc { display: none; }
+      .toc.is-open { display: block; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; z-index: 300; box-shadow: 8px 0 30px rgba(0,0,0,.5); }
+      .toc__mobile-toggle { display: flex; }
+    }
+    @media (max-width: 768px) {
+      .wrap { padding: 0 16px; }
+      .hero { padding: 56px 0 36px; }
+      .reading-guide, .split, .grid-2 { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .cluster { grid-template-columns: 1fr 52px 1fr; }
+      :root { --section-gap: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Progress Bar -->
+  <div id="progress-bar"></div>
+
+  <div class="page">
+    <!-- ── Sidebar TOC ── -->
+    <nav class="toc" id="toc">
+      <div class="toc__title">Contents</div>
+      <a href="#hero">Overview</a>
+      <a href="#scope">01 시스템 범위와 문서 전제</a>
+      <a href="#boot">02 앱 기동과 초기화 구조</a>
+      <a href="#pages">03 화면 진입 구조</a>
+      <a href="#frontend">04 프론트엔드 조립 구조</a>
+      <a href="#api">05 API 도메인 구조</a>
+      <a href="#runtime">06 운영 흐름과 실행 상태</a>
+      <a href="#data">07 데이터 저장 구조</a>
+      <a href="#pressure">08 확장과 구조 효율화</a>
+      <a href="#to-be">09 다음 단계</a>
+    </nav>
+
+    <button class="toc__mobile-toggle" id="toc-toggle" aria-label="Toggle navigation">&#9776;</button>
+
+    <!-- ── Main Content ── -->
+    <div class="page__body">
+
+      <!-- ── Hero ── -->
+      <section class="hero" id="hero">
+        <div class="wrap">
+          <span class="hero__eyebrow">SYSTEM ARCHITECTURE GUIDE</span>
+          <h1 class="hero__title">카드사 경쟁 인텔리전스</h1>
+          <h2 class="hero__subtitle">시스템 아키텍처 가이드</h2>
+          <p class="hero__desc">이 문서는 현재 시스템이 실제로 어떻게 동작하는지, 카드사별로 달랐던 업무를 어디까지 자동화했는지, 그리고 이후 카드사 확대와 기능 보완을 어떤 구조 위에서 이어갈지 정리한 내부용 아키텍처 가이드입니다.</p>
+          <div class="hero__pills">
+            <span class="pill">공개 랜딩: <code>/entry</code></span>
+            <span class="pill">내부 앱: <code>/</code></span>
+            <span class="pill">운영 패널: <code>/ops</code></span>
+            <span class="pill">현재 카드사 4곳 자동화</span>
+            <span class="pill">핵심 라우트 61+</span>
+            <span class="pill">테스트 수집 349</span>
+            <a class="pill pill--action" href="/history/">작업 히스토리 보기</a>
+          </div>
+          <div class="reading-guide">
+            <div class="reading-guide__card">
+              <strong>📋 실무 관점에서 읽기</strong>
+              <span>무엇이 자동화됐는지, 운영 패널과 브리핑/리포트까지 어떻게 이어지는지 먼저 파악하는 것이 핵심입니다.</span>
+            </div>
+            <div class="reading-guide__card">
+              <strong>🔧 기술 관점에서 읽기</strong>
+              <span>커넥터 계약, 파이프라인, API 도메인, SQLite와 Chroma 저장 구조를 따라가면 전체 그림이 잡힙니다.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 1: 시스템 범위와 문서 전제 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="scope">
+        <div class="wrap">
+          <span class="sec__num">01</span>
+          <h2 class="sec__title">시스템 범위와 문서 전제</h2>
+          <p class="sec__desc">지금 저장소는 공개 랜딩, 내부 실무 대시보드, 운영 패널, 그리고 이를 받치는 자동화 백엔드가 한 저장소 안에 함께 구성된 형태입니다. 하나의 FastAPI 코어가 이 전체를 연결하고 있고, 그 중심에는 카드사별로 다른 흐름을 하나의 자동화 체계로 묶어낸 백엔드가 있습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>app.py</code></span>
+            <span class="ref"><code>database.py</code></span>
+            <span class="ref"><code>modules/connectors/*</code></span>
+          </div>
+
+          <div class="grid-2">
+            <article class="cell"><h4>공개 랜딩</h4><p><code>entry-page/index.html</code> 기반 정적 페이지. FastAPI가 파일과 자산을 서빙합니다.</p></article>
+            <article class="cell"><h4>내부 실무 대시보드</h4><p><code>templates/simple_dashboard.html</code> 와 <code>static/js/dashboard.js</code> 가 중심입니다.</p></article>
+            <article class="cell"><h4>운영 패널</h4><p><code>templates/ops_dashboard.html</code> 와 <code>static/js/ops.js</code> 로 동기화와 작업 상태를 제어합니다.</p></article>
+            <article class="cell"><h4>자동화 백엔드</h4><p><code>app.py</code>, <code>modules/</code>, <code>database.py</code> 가 카드사 수집 · 추출 · 정규화 · 인사이트 · 리포트까지 묶는 코어 역할을 합니다.</p></article>
+          </div>
+
+          <div class="note">
+            <strong>핵심 관점</strong>
+            <p>현재 구조를 이해할 때는 "기능이 무엇이 있나"보다 "서로 다른 카드사 업무를 어디까지 자동화했고, 그 자동화가 어떤 화면과 저장소와 API에 걸쳐 있는가"를 파악하는 것이 핵심입니다.</p>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header">
+              <h3>현재 구조에 이미 반영된 자동화 범위</h3>
+              <p>복잡성의 상당 부분은 카드사별로 다르게 처리해야 하는 작업을 하나의 운영 흐름으로 자동화한 결과입니다.</p>
+            </div>
+            <div class="diagram">
+              <span class="diagram__label">자동화 파이프라인 흐름</span>
+              <div class="mermaid">
+flowchart LR
+  C1["삼성카드"] --> X["connector registry"]
+  C2["신한카드"] --> X
+  C3["현대카드"] --> X
+  C4["KB국민카드"] --> X
+  X --> I["ingest"]
+  I --> E["extract detail"]
+  E --> N["normalize"]
+  N --> H["insight"]
+  H --> J["jobs and status tracking"]
+  J --> D["dashboard and ops"]
+  J --> R["briefing and report"]
+  N --> P["products and disclosures"]
+  P --> G["rag and catalog"]
+              </div>
+              <p class="diagram__caption">4개 카드사의 수집 결과가 하나의 정규화 파이프라인으로 합류하는 전체 흐름</p>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>공통 자동화 계약</h3>
+              <div class="rows">
+                <div class="row"><strong><code>BaseConnector</code></strong><span>모든 카드사 커넥터는 공통 베이스 클래스를 상속하고, 최종적으로 동일한 <code>RawEvent</code> 스키마를 반환합니다.</span></div>
+                <div class="row"><strong><code>CONNECTORS</code> registry</strong><span>삼성카드, 신한카드, 현대카드, KB국민카드를 하나의 registry로 묶고 파이프라인이 회사명 기준으로 순회합니다.</span></div>
+                <div class="row"><strong>URL 정규화</strong><span>공통 유틸에서 상대경로 보정, 추적용 query 제거, 정렬, canonical URL 생성까지 수행해 카드사별 링크 형식을 한 기준으로 맞춥니다.</span></div>
+                <div class="row"><strong>기간/카테고리/위협도</strong><span>각 카드사 원본 텍스트에서 기간 문자열을 공통 포맷으로 정리하고, 키워드 기반 카테고리와 혜택 강도 기반 threat level 추론을 공통 계층에서 처리합니다.</span></div>
+                <div class="row"><strong>후속 파이프라인</strong><span>수집 결과는 다시 <code>extract detail → normalize → generate_hybrid_insight → jobs/status tracking</code> 흐름으로 이어져 개별 카드사 차이를 내부 공통 모델로 흡수합니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>파이프라인에서 자동화되는 운영 포인트</h3>
+              <div class="rows">
+                <div class="row"><strong>회사 단위 ingest</strong><span><code>run_ingest()</code> 가 registry를 순회하면서 카드사별 수집을 실행하고, 회사별 job row와 timeout, 성공/실패 수를 함께 기록합니다.</span></div>
+                <div class="row"><strong>미추출 이벤트 후속 처리</strong><span><code>run_extract_and_enrich()</code> 가 수집 이후의 상세 추출, 정규화, 인사이트 생성을 이벤트 단위로 이어받아 저장합니다.</span></div>
+                <div class="row"><strong>운영 패널 연결</strong><span>자동화 진행 상태는 <code>/api/pipeline/progress</code>, <code>/api/jobs</code>, sync-status 계열 API를 통해 내부 대시보드와 운영 패널에서 바로 소비됩니다.</span></div>
+                <div class="row"><strong>후속 자산 연결</strong><span>정규화 결과는 상품/공시 연결, RAG 문서 탐색, 브리핑/리포트 근거 데이터까지 이어져 카드사별 차이가 화면 단에서는 공통된 제품 경험으로 보이게 됩니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>삼성카드 커넥터</h4>
+              <ul>
+                <li>목록 페이지 DOM을 직접 긁는 대신, 실제 프런트가 호출하는 <code>frontservice/SHPPBE1401S02</code> JSON 계약을 재사용합니다.</li>
+                <li><code>totCt</code>, <code>pageRowsSize</code> 값을 읽어 총 페이지 수를 계산하고, 페이지 번호를 올리며 안정적으로 순회합니다.</li>
+                <li><code>cmsId</code>, <code>cmpId</code>, <code>cmpCriDvC</code>, <code>massCmpDvC</code> 를 조합해 일반 이벤트, mass campaign, premium S Lounge 상세 URL을 분기 생성합니다.</li>
+                <li>즉 삼성은 "렌더된 카드 목록"이 아니라 "실서비스 목록 API 계약"을 직접 흡수해 자동화한 케이스입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>신한카드 커넥터</h4>
+              <ul>
+                <li>단일 소스에 의존하지 않고 <code>evnPgsList01~03.json</code> 정적 JSON, <code>MOBFM829R03.ajax</code> 모바일 AJAX, DOM 파싱을 우선순위 fallback 체인으로 묶습니다.</li>
+                <li>JSON 응답에서는 <code>mobWbEvtNm</code>, <code>evtImgSlTilNm</code>, <code>evtImgRplNm</code> 같은 복수 필드 후보를 흡수해 제목을 표준화합니다.</li>
+                <li>DOM fallback에서는 실제 모바일 이벤트 목록을 열고 여러 차례 scroll 하며 lazy-loaded 항목을 확보한 뒤, 링크/블록 텍스트에서 기간과 제목을 재구성합니다.</li>
+                <li>즉 신한은 "소스가 하나가 아닌 사이트"를 다층 fallback 자동화로 커버한 케이스입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>현대카드 커넥터</h4>
+              <ul>
+                <li>우선 DOM 기반으로 <code>#event_list1 li</code> 를 읽고, <code>#moreDiv .btn-more</code> 버튼을 반복 클릭해 목록을 끝까지 확장합니다.</li>
+                <li>버튼이 더 이상 이벤트 수를 늘리지 않으면 stagnation 조건으로 루프를 종료해, "더보기 기반 목록"을 안정적으로 수집합니다.</li>
+                <li>DOM 수집량이 충분하지 않을 때는 <code>/cpb/ev/apiCPBEV0101_05s.hc</code> 를 직접 호출해 <code>rnum</code>, <code>index</code>, <code>searchWord</code>, <code>evntCtgrVl</code> 기반 페이지네이션을 이어갑니다.</li>
+                <li><code>bnftWebEvntCd</code> 로 상세 URL을 재조립하고, DOM/내부 API를 함께 활용해 자동화 안정성을 높인 케이스입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>KB국민카드 커넥터</h4>
+              <ul>
+                <li>목록 페이지가 <code>javascript:goDetail()</code> 와 <code>doSearchSpider(pageCount)</code> 패턴을 쓰기 때문에, 브라우저 클릭 대신 form POST 기반으로 페이지를 직접 순회합니다.</li>
+                <li><code>pageCount</code> 를 1부터 증가시키며 HTML을 받아오고, 앵커의 javascript 인자에서 <code>eventNum</code> 을 추출해 상세 URL을 재구성합니다.</li>
+                <li>제목은 우선 셀렉터 기반으로 읽고, 실패하면 이미지 <code>alt</code>, 마지막으로 텍스트 블록 정제로 fallback 하며, 기간은 연도 생략 종료일도 보정합니다.</li>
+                <li>즉 KB는 "javascript 링크와 서버 렌더 HTML" 중심 구조를 안정적으로 자동화한 케이스입니다.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>카드사별 차이를 흡수하는 방식</h3>
+              <div class="rows">
+                <div class="row"><strong>삼성카드</strong><span>실서비스 목록 API 계약을 직접 사용해 안정적으로 목록을 가져오고, 세부 파라미터를 조합해 이벤트 상세 URL까지 재구성합니다.</span></div>
+                <div class="row"><strong>신한카드</strong><span>정적 JSON, 모바일 AJAX, DOM fallback을 계층적으로 묶어 한 소스 변경이 전체 수집 실패로 번지지 않게 합니다.</span></div>
+                <div class="row"><strong>현대카드</strong><span>DOM 더보기 반복과 내부 API 직접 호출을 함께 사용해 사용자 화면 기준 목록과 비가시 목록을 모두 자동화합니다.</span></div>
+                <div class="row"><strong>KB국민카드</strong><span>javascript 링크와 form POST 페이지네이션을 해석해 서버 렌더 HTML 구조를 표준 수집 흐름으로 변환합니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>자동화 결과가 이어지는 공통 출력</h3>
+              <div class="rows">
+                <div class="row"><strong><code>RawEvent</code></strong><span>모든 카드사 원본 수집 결과는 URL, 회사명, 제목, 기간, 카테고리, 혜택 정보, raw_text를 가진 공통 구조로 정렬됩니다.</span></div>
+                <div class="row"><strong>이벤트 저장</strong><span>공통 구조는 이후 <code>CardEvent</code> 와 관련 스냅샷/섹션/인사이트 모델로 저장돼 화면과 분석 API의 공통 입력이 됩니다.</span></div>
+                <div class="row"><strong>브리핑과 리포트</strong><span>수집 및 정규화 결과는 회사별 briefing payload, report snapshot, PDF artifact 생성의 근거 데이터로 재사용됩니다.</span></div>
+                <div class="row"><strong>상품 · 공시 · RAG</strong><span>같은 결과가 상품 카탈로그, 공시 payload, launch authority, document search, RAG catalog로 다시 연결됩니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="note">
+            <strong>커넥터 구조 요약</strong>
+            <p><code>modules/connectors/base.py</code> 의 공통 계약이 먼저 있고, 각 카드사 커넥터는 그 위에 "목록을 어디서 읽는가", "상세 URL을 어떻게 복원하는가", "기간과 제목을 어느 단계에서 보정하는가"를 다르게 구현합니다. 현재 As-Is의 중요한 성과는 이 차이를 커넥터 내부로 흡수해, 파이프라인과 화면 계층에서는 네 카드사를 거의 같은 타입처럼 다룰 수 있게 만든 점입니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 2: 앱 기동과 초기화 구조 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="boot">
+        <div class="wrap">
+          <span class="sec__num">02</span>
+          <h2 class="sec__title">앱 기동과 초기화 구조</h2>
+          <p class="sec__desc"><code>app.py</code> 는 단순 라우터 파일이 아닙니다. 앱 생성, 정적 경로 마운트, 템플릿 준비, 브리핑 라우터 포함, 이후 대부분의 페이지/API 선언이 모두 여기서 일어납니다. 현재 자동화 흐름을 한 코어 안에서 운영하기 때문에 이 파일의 역할도 자연스럽게 넓어져 있습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>app.py</code></span>
+            <span class="ref"><code>routers/briefing.py</code></span>
+            <span class="ref"><code>modules/dashboard_snapshot.py</code></span>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header">
+              <h3>기동 순서</h3>
+              <p>현재 구조는 앱 구성과 주요 응답 흐름을 한곳에서 조립하는 중심 파일에 가깝습니다.</p>
+            </div>
+            <div class="diagram">
+              <span class="diagram__label">FastAPI 부팅 시퀀스</span>
+              <div class="mermaid">
+flowchart TB
+  A["process start"] --> B["import app.py"]
+  B --> C["FastAPI()"]
+  C --> D["mount /static"]
+  D --> E["mount /entry-page"]
+  E --> F["mount /image"]
+  F --> G["mount /card-terms"]
+  G --> H["Jinja2Templates('templates')"]
+  H --> I["include briefing_router"]
+  I --> J["register page routes"]
+  J --> K["register API routes"]
+  K --> L["serve requests"]
+              </div>
+              <p class="diagram__caption">단일 프로세스에서 정적 자산, 템플릿, 라우터, API가 순차적으로 조립되는 과정</p>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>정적 마운트와 템플릿 준비</h3>
+              <div class="rows">
+                <div class="row"><strong><code>/static</code></strong><span>대시보드/운영 패널 공용 JS, CSS, favicon</span></div>
+                <div class="row"><strong><code>/entry-page</code></strong><span>공개 랜딩의 CSS/JS/정적 자산</span></div>
+                <div class="row"><strong><code>/image</code></strong><span>이미지 자산</span></div>
+                <div class="row"><strong><code>/card-terms</code></strong><span>약관 PDF와 원본 문서 접근 경로</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>초기화 시점에 조립되는 책임</h3>
+              <div class="rows">
+                <div class="row"><strong><code>app.py</code></strong><span>페이지/API/캐시/락/동기화 시작/응답 조립</span></div>
+                <div class="row"><strong><code>routers/briefing.py</code></strong><span>부분 분리된 유일한 독립 라우터</span></div>
+                <div class="row"><strong><code>modules/*</code></strong><span>브리핑, 파이프라인, 상품, 신호, RAG, 리포트 서비스</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>기동 시점 전역 상태</h4>
+              <ul>
+                <li><code>_COMPANY_BRIEF_CACHE</code>, <code>_QUAL_COMPARISON_CACHE</code>, <code>_WEEKLY_AI_INSIGHT_CACHE</code> 같은 메모리 캐시를 앱 레벨에서 유지합니다.</li>
+                <li><code>_DISCLOSURE_SYNC_LOCK</code>, <code>_LAUNCH_AUTHORITY_SYNC_LOCK</code>, <code>_PRODUCT_SYNC_LOCK</code>, <code>_NAVER_SIGNAL_SYNC_LOCK</code> 로 동기화 중복 실행을 제어합니다.</li>
+                <li>서울 시간대 기준 유틸과 간단 캐시 TTL이 부팅 시 같이 준비됩니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>기동 시점 주요 모듈 의존성</h4>
+              <ul>
+                <li><code>modules.dashboard_snapshot</code> 는 탭별 snapshot payload를 생성하고 메타를 유지합니다.</li>
+                <li><code>modules.launch_authority_source</code>, <code>modules.naver_signals</code>, <code>modules.kosis_stats</code>, <code>modules.naver_news</code> 는 외부 데이터 소스를 붙입니다.</li>
+                <li><code>modules.product_links</code> 는 상품 카탈로그, 문서 검색, PDF 링크, catalog stats를 제공합니다.</li>
+                <li><code>routers.briefing</code> 는 브리핑/리포트 관련 라우트를 앱에 포함시킵니다.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="note">
+            <strong>왜 이 구조가 중요한가</strong>
+            <p>현재 구조에서 FastAPI 앱 생성은 단순 웹서버 기동이 아니라, 캐시 초기화, 동기화 잠금 준비, 정적 자산 노출, 템플릿 엔진 준비, 브리핑 라우터 연결까지 포함한 운영 surface 조립 과정입니다. 따라서 부팅 구조를 읽는 것은 곧 "이 시스템이 무엇을 한 프로세스 안에서 책임지는가"를 읽는 일입니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 3: 화면 진입 구조 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="pages">
+        <div class="wrap">
+          <span class="sec__num">03</span>
+          <h2 class="sec__title">화면 진입 구조</h2>
+          <p class="sec__desc">가장 먼저 잡아야 할 사실은 메인 루트가 공개 랜딩이 아니라 내부 대시보드라는 점입니다. 외부 진입과 내부 진입이 서로 다른 목적에 맞춰 나뉘어 있습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>app.py</code></span>
+            <span class="ref"><code>templates/simple_dashboard.html</code></span>
+            <span class="ref"><code>templates/ops_dashboard.html</code></span>
+            <span class="ref"><code>entry-page/index.html</code></span>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header">
+              <h3>현재 페이지 라우트</h3>
+              <p>페이지 수는 적지만 의미가 강하게 다릅니다. 공개, 내부, 운영이 같은 앱 안에 공존합니다.</p>
+            </div>
+            <div class="diagram">
+              <span class="diagram__label">페이지 라우트 맵</span>
+              <div class="mermaid">
+flowchart LR
+  A["FastAPI pages"] --> B["/ -> simple_dashboard.html"]
+  A --> C["/entry -> FileResponse(entry-page/index.html)"]
+  A --> D["/ops -> ops_dashboard.html"]
+  A --> E["/luxury -> redirect /"]
+  A --> F["/pro -> redirect /"]
+  A --> G["/index -> redirect /"]
+              </div>
+              <p class="diagram__caption">공개/내부/운영 세 가지 목적이 하나의 FastAPI 앱에서 공존하는 구조</p>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>구조적 의미</h3>
+              <p style="font-size:14px;">공개 랜딩은 존재하지만 메인 엔트리가 아닙니다. 그래서 브라우저 루트로 들어오면 외부 소개가 아니라 내부 실무 화면이 열립니다. 이건 배포, 인증, 공유 URL 설계에 모두 영향을 줍니다.</p>
+            </article>
+            <article class="box">
+              <h3>현재 진입면 역할</h3>
+              <div class="rows">
+                <div class="row"><strong>공개용</strong><span><code>/entry</code> + <code>entry-page/</code></span></div>
+                <div class="row"><strong>실무용</strong><span><code>/</code> + <code>simple_dashboard.html</code></span></div>
+                <div class="row"><strong>운영용</strong><span><code>/ops</code> + <code>ops_dashboard.html</code></span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4><code>/</code> 내부 대시보드</h4>
+              <ul>
+                <li><code>simple_dashboard.html</code> 을 렌더링하고, 기본 실무 진입면 역할을 합니다.</li>
+                <li>동시에 report mode preview surface로도 재사용됩니다.</li>
+                <li><code>mode=report</code>, <code>report_type</code>, <code>basis</code> 쿼리로 일간/주간/월간 리포트 화면을 구성합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4><code>/entry</code> 공개 랜딩</h4>
+              <ul>
+                <li><code>entry-page/index.html</code> 을 <code>FileResponse</code> 로 직접 반환합니다.</li>
+                <li>CSS/JS는 <code>/entry-page</code> static mount 아래에서 별도로 로드됩니다.</li>
+                <li>즉 Jinja 기반 페이지가 아니라 순수 정적 랜딩 경로입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4><code>/ops</code> 운영 패널</h4>
+              <ul>
+                <li><code>ops_dashboard.html</code> 을 렌더링하며 파이프라인, 공시, 상품, RAG sync의 제어면 역할을 합니다.</li>
+                <li>조회보다 실행 상태와 진행률, 재시도에 더 초점이 맞춰져 있습니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>snapshot 라우트</h4>
+              <ul>
+                <li><code>/api/dashboard/snapshot/meta</code> 는 snapshot 메타와 탭별 captured_at 정보를 제공합니다.</li>
+                <li><code>/api/dashboard/snapshot/{tab}</code> 는 dashboard/events/products/insights 탭별 payload를 반환합니다.</li>
+                <li><code>/api/dashboard/snapshot/refresh</code> 는 refresh를 트리거해 리포트 스튜디오와 연결됩니다.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>루트 페이지의 report mode 재사용</h3>
+              <div class="rows">
+                <div class="row"><strong>query contract</strong><span><code>mode=report</code> 일 때 같은 템플릿이 리포트 화면처럼 동작하며, <code>report_type</code> 은 daily/weekly/monthly, <code>basis</code> 는 날짜 또는 월 기준값으로 해석됩니다.</span></div>
+                <div class="row"><strong>report studio 연결</strong><span><code>modules.report_studio.build_report_preview_route_url()</code> 는 바로 이 루트 페이지를 리포트 preview surface로 사용하도록 URL을 만듭니다.</span></div>
+                <div class="row"><strong>snapshot 근거</strong><span>report preview와 artifact manifest는 snapshot meta의 captured_at 값을 근거 시각으로 사용합니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>페이지 라우트와 API 라우트의 연결점</h3>
+              <div class="rows">
+                <div class="row"><strong><code>/</code></strong><span>대시보드 화면 렌더링 이후, 실제 데이터는 JS가 API를 호출해 조립합니다.</span></div>
+                <div class="row"><strong><code>/ops</code></strong><span>운영 패널 렌더링 이후, sync/status/retry 실행은 모두 POST/GET API를 통해 이어집니다.</span></div>
+                <div class="row"><strong>snapshot APIs</strong><span>페이지가 직접 호출하지 않아도 리포트와 운영 흐름에서 재사용 가능한 별도 읽기 계층으로 존재합니다.</span></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 4: 프론트엔드 조립 구조 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="frontend">
+        <div class="wrap">
+          <span class="sec__num">04</span>
+          <h2 class="sec__title">프론트엔드 조립 구조</h2>
+          <p class="sec__desc">공개 랜딩은 완전히 정적 세트이고, 내부/운영은 Jinja 템플릿과 전역 스크립트 조합입니다. 프론트는 공개/내부 경험이 나뉘어 있고, 백엔드는 이를 하나의 코어에서 함께 받치고 있습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>entry-page/*</code></span>
+            <span class="ref"><code>templates/simple_dashboard.html</code></span>
+            <span class="ref"><code>static/js/dashboard.js</code></span>
+            <span class="ref"><code>static/js/ops.js</code></span>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header">
+              <h3>프론트 결합선</h3>
+              <p>어떤 화면이 어떤 JS를 쓰고, 그 JS가 어느 API 묶음을 때리는지를 보면 현재 구조가 선명해집니다.</p>
+            </div>
+            <div class="diagram">
+              <span class="diagram__label">프론트엔드 의존성 그래프</span>
+              <div class="mermaid">
+flowchart LR
+  A["entry-page/index.html"] --> A1["entry-page/script.js"]
+  B["templates/simple_dashboard.html"] --> B1["static/js/dashboard.js"]
+  B --> B2["static/js/dashboard_extras.js"]
+  C["templates/ops_dashboard.html"] --> C1["static/js/ops.js"]
+  B1 --> D["events + analytics + products + disclosures + rag"]
+  B2 --> E["report mode + dashboard extras"]
+  C1 --> F["pipeline + jobs + products sync + disclosures sync"]
+              </div>
+              <p class="diagram__caption">각 화면이 어떤 JS를 통해 어떤 API 영역과 연결되는지 보여주는 의존성 맵</p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <article class="cell"><h4><code>entry-page/</code></h4><p>공개 소개용 정적 페이지. HTML/CSS/JS가 완전히 독립입니다.</p></article>
+            <article class="cell"><h4><code>templates/simple_dashboard.html</code></h4><p>내부 대시보드 렌더링. 실제 데이터 시각화와 상세 패널이 여기로 몰립니다.</p></article>
+            <article class="cell"><h4><code>static/js/dashboard.js</code></h4><p>내부 앱의 핵심 프론트 컨트롤러 역할. 여러 API 영역을 직접 연결해 화면을 조립합니다.</p></article>
+            <article class="cell"><h4><code>static/js/ops.js</code></h4><p>운영 패널에서 파이프라인, 동기화, 작업 상태 제어를 담당합니다.</p></article>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>내부 대시보드 템플릿 계약</h3>
+              <div class="rows">
+                <div class="row"><strong><code>simple_dashboard.html</code></strong><span>Tailwind CDN, Chart.js, XLSX, 모달 구조, 섹션 카드, report mode title 분기를 템플릿 수준에서 준비합니다.</span></div>
+                <div class="row"><strong><code>dashboard.js</code></strong><span><code>/api/disclosures</code>, <code>/api/rag/catalog</code>, <code>/api/pipeline/progress</code>, <code>/api/rag/stats</code>, launch authority sync-status 등 여러 API를 호출해 화면을 조립합니다.</span></div>
+                <div class="row"><strong><code>dashboard_extras.js</code></strong><span>리포트 모드와 부가 상호작용, 보조 패널 같은 확장 동작을 별도 스크립트로 분리합니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>브리핑 · 리포트 프런트 연결</h3>
+              <div class="rows">
+                <div class="row"><strong>리포트 미리보기 URL</strong><span><code>report_studio.build_report_preview_route_url()</code> 가 루트 경로에 report query를 붙여 preview URL을 생성합니다.</span></div>
+                <div class="row"><strong>브리핑 preview</strong><span><code>/api/briefing/preview</code> 는 HTMLResponse를 직접 반환하고, 요청 기준 dashboard URL을 다시 해석해 링크를 맞춥니다.</span></div>
+                <div class="row"><strong>snapshot 의존성</strong><span>리포트 manifest는 dashboard snapshot meta와 tab capture 시각을 읽어 preview, artifact, basis timestamp를 연결합니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4><code>dashboard.js</code> 주요 호출면</h4>
+              <ul>
+                <li><code>/api/disclosures?new_only=false</code> 로 최근 상품/공시 목록을 가져옵니다.</li>
+                <li><code>/api/rag/catalog?limit=5000</code> 로 상품 카탈로그를 불러옵니다.</li>
+                <li><code>/api/pipeline/progress</code>, <code>/api/rag/stats</code>, <code>/api/disclosures/stats</code> 로 운영 상태를 같이 노출합니다.</li>
+                <li><code>/api/disclosures/sync-status</code>, <code>/api/products/launch-authority/sync-status</code> 를 호출해 자동화 상태를 사용자 화면에도 보여줍니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4><code>ops.js</code> 주요 호출면</h4>
+              <ul>
+                <li>파이프라인 실행, 작업 재시도, 진행률 폴링, 공시/상품 sync 실행을 담당합니다.</li>
+                <li>즉 운영 패널 프런트는 "분석용 UI"가 아니라 "실행형 오퍼레이터 콘솔"에 가깝습니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4><code>entry-page</code> 프런트 특징</h4>
+              <ul>
+                <li>백엔드 데이터 fetch 의존 없이 독립적으로 동작하는 마케팅/소개용 정적 프런트입니다.</li>
+                <li>운영/분석 UI와 자산 체계가 분리돼 있어 외부 공개용 얼굴 역할을 수행합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>브리핑/리포트 프런트 특징</h4>
+              <ul>
+                <li>브리핑 preview는 API가 HTML을 바로 반환하는 server-rendered 성격입니다.</li>
+                <li>리포트 preview는 루트 페이지를 iframe 기반 preview shell에 넣는 방식이라, 기존 대시보드 surface를 재활용합니다.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 5: API 도메인 구조 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="api">
+        <div class="wrap">
+          <span class="sec__num">05</span>
+          <h2 class="sec__title">API 도메인 구조</h2>
+          <p class="sec__desc">무게 중심은 화면보다 API 계층에 있습니다. 이벤트와 분석만 큰 게 아니라 상품, 공시, RAG, 파이프라인, 운영 연동까지 같은 앱 파일에서 직접 노출됩니다. 이것은 곧 카드사별로 다른 수집과 해석 작업이 API 계층에서 자동화되고 있다는 뜻이기도 합니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>app.py</code></span>
+            <span class="ref"><code>routers/briefing.py</code></span>
+            <span class="ref"><code>modules/product_links.py</code></span>
+            <span class="ref"><code>modules/rag/*</code></span>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header">
+              <h3>도메인별 라우트 분포</h3>
+              <p>이미 하나의 대시보드용 API를 넘어 여러 하위 제품군이 같이 자라고 있다고 보는 편이 정확합니다.</p>
+            </div>
+            <div class="clusters" id="clusters-container">
+              <div class="cluster"><strong>/api/analytics/*</strong><div class="count">19</div><div class="bar" style="--w:100%"></div></div>
+              <div class="cluster"><strong>/api/events/*</strong><div class="count">13</div><div class="bar" style="--w:68%"></div></div>
+              <div class="cluster"><strong>/api/products/*</strong><div class="count">12</div><div class="bar" style="--w:63%"></div></div>
+              <div class="cluster"><strong>/api/rag/*</strong><div class="count">7</div><div class="bar" style="--w:37%"></div></div>
+              <div class="cluster"><strong>/api/disclosures/*</strong><div class="count">4</div><div class="bar" style="--w:21%"></div></div>
+              <div class="cluster"><strong>/api/jobs/*</strong><div class="count">3</div><div class="bar" style="--w:16%"></div></div>
+              <div class="cluster"><strong>/api/pipeline/*</strong><div class="count">3</div><div class="bar" style="--w:16%"></div></div>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>현재 도메인 묶음</h3>
+              <div class="rows">
+                <div class="row"><strong>events</strong><span>리스트, 상세, 리뷰 큐, 추출, 수동 수정, 잠금, 인텔리전스, 스냅샷</span></div>
+                <div class="row"><strong>analytics</strong><span>비교, 갭, 트렌드, 브리핑, 외부 신호, 텍스트 비교</span></div>
+                <div class="row"><strong>products / disclosures</strong><span>카탈로그, launch authority, 공시 stats, sync-status, scrape</span></div>
+                <div class="row"><strong>rag</strong><span>build, reindex, search, catalog, PDF lookup</span></div>
+                <div class="row"><strong>pipeline / jobs</strong><span>ingest, full run, progress, retry, status</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>도메인 구성 특징</h3>
+              <div class="rows">
+                <div class="row"><strong>부분 분리</strong><span>브리핑만 <code>routers/briefing.py</code> 로 빠져 있고 대부분은 <code>app.py</code> 에 남아 있습니다.</span></div>
+                <div class="row"><strong>현재 구성</strong><span>조회 API, 운영 제어 API, 백그라운드 동기화 시작 API가 같은 라우트 계층에서 함께 운영됩니다.</span></div>
+                <div class="row"><strong>공유 경계</strong><span>실무 화면과 운영 패널이 일부 같은 API 도메인을 함께 씁니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>events 영역</h4>
+              <ul>
+                <li>리스트/상세 조회 외에 review queue, extract-detail, batch delete, manual-update, lock, edit-history까지 포함합니다.</li>
+                <li>즉 단순 조회 API가 아니라 사람 개입과 큐레이션 워크플로우를 품은 도메인입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>analytics 영역</h4>
+              <ul>
+                <li>company overview, workspace bridge, objective scoreboard, strategy map, compare matrix, shinhan gap, qualitative comparison이 포함됩니다.</li>
+                <li>주간 AI 인사이트, Naver signals, KOSIS approvals까지 외부 데이터 요약 API도 이 영역에 들어 있습니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>products / disclosures / rag 영역</h4>
+              <ul>
+                <li>상품 카탈로그, launch authority, 공시 payload, document search, PDF route, catalog route, RAG build/reindex/search가 하나의 제품군처럼 연결됩니다.</li>
+                <li>정규화 결과와 문서 저장소가 여기에서 다시 검색/조회 가능한 자산으로 바뀝니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>briefing / reporting / health</h4>
+              <ul>
+                <li><code>routers/briefing.py</code> 는 preview, status, send-now, artifact file response를 제공합니다.</li>
+                <li><code>/health</code> 는 단순 헬스체크를 제공하고, 실제 운영 상태는 jobs/progress/sync-status 계열 API를 통해 더 풍부하게 관찰됩니다.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="note">
+            <strong>API 계층의 설계 원칙</strong>
+            <p>현재 API는 단순 REST 자원 묶음이 아니라, 조회 · 비교 · 운영 제어 · 문서 검색 · 리포트 · 외부 시그널을 함께 제공하는 운영형 surface입니다. 따라서 도메인별 설명을 읽을 때는 "무슨 CRUD가 있나"보다 "이 API가 실무 화면, 운영 패널, 브리핑/리포트 중 어느 흐름에 기여하는가"를 기준으로 보는 편이 정확합니다.</p>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>주간 변화 집계 방식</h3>
+              <div class="rows">
+                <div class="row"><strong>weekly source 범위</strong><span><code>modules.briefing</code> 는 weekly payload 생성 시 신규 이벤트, 종료 이벤트, active 이벤트, 상품 카탈로그, 외부 시그널을 함께 읽어 source set을 만듭니다.</span></div>
+                <div class="row"><strong>상품 변화 판정</strong><span><code>_is_weekly_product_change()</code> 가 launch_date 기준으로 이번 주 범위 안에 들어온 상품을 판정하고, <code>_build_weekly_product_changes()</code> 가 이를 최종 요약 목록으로 추립니다.</span></div>
+                <div class="row"><strong>회사별 narrative</strong><span><code>_build_weekly_company_narratives()</code> 는 카테고리 mix, focus products, product changes, external signal 요약을 합성해 회사별 주간 narrative를 만듭니다.</span></div>
+                <div class="row"><strong>결과 출력</strong><span>weekly briefing payload에는 company stats, category distribution, notable events, product summary, product changes, weekly company narratives가 함께 실립니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>검색 기준과 매칭 기준</h3>
+              <div class="rows">
+                <div class="row"><strong>event → product 매칭</strong><span><code>match_linked_cards()</code> 가 회사 alias, 노이즈 제거, 텍스트 정규화, score threshold를 적용해 자유 텍스트를 canonical product로 고정합니다.</span></div>
+                <div class="row"><strong>catalog 검색</strong><span><code>/api/rag/search</code> 는 merged catalog 기준 lexical search를 수행하고, 제품별 메타데이터와 문자열 힌트를 중심으로 찾습니다.</span></div>
+                <div class="row"><strong>document search</strong><span><code>/api/products/document-search</code> 는 chunk-level semantic search 후 lexical fallback을 걸어 상품 문서 본문에서 근거를 찾습니다.</span></div>
+                <div class="row"><strong>뉴스 검색</strong><span><code>modules.naver_news</code> 는 product/event query variant, dedupe, 발행일 normalization, 제품 출시일 기준 ±3개월 윈도우 판정을 함께 사용합니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>NAVER DataLab</h4>
+              <ul>
+                <li><code>modules.naver_signals</code> 는 <code>NAVER_CLIENT_ID</code>, <code>NAVER_CLIENT_SECRET</code> 기반으로 DataLab search trend를 수집합니다.</li>
+                <li><code>naver_signal_keywords.json</code> 설정과 tiered card group selection policy를 읽어 카드별/테마별 검색어 세트를 구성합니다.</li>
+                <li><code>ExternalSignalSnapshot</code> 과 연계돼 월별/기간별 관심도 비교 surface로 재사용됩니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>NAVER News</h4>
+              <ul>
+                <li><code>modules.naver_news</code> 는 news search API를 사용해 event/product 관련 기사 묶음을 만듭니다.</li>
+                <li>query variant, title/url dedupe, press name 추출, launch-date window 판단, score_event_news_match 로 후처리합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>KOSIS 통계청 API</h4>
+              <ul>
+                <li><code>modules.kosis_stats</code> 는 카드 승인실적 OpenAPI를 호출해 월간 업종별 카드 승인금액을 가져옵니다.</li>
+                <li>기본 파라미터는 월간 기준, 최근 6개월, 표 <code>DT_435001N_001</code> 기준이며 1시간 캐시를 사용합니다.</li>
+                <li>업종 한글 축약과 이벤트 카테고리 매핑까지 함께 수행해 인사이트 탭에서 바로 쓰이는 형태로 변환합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>외부 연동이 실무에 연결되는 방식</h4>
+              <ul>
+                <li>NAVER DataLab은 카드/테마 관심도 변화 근거를 제공합니다.</li>
+                <li>NAVER News는 신규 상품/이벤트 관련 기사 스니펫을 제공합니다.</li>
+                <li>KOSIS는 거시 승인실적 시계열을 제공해 개별 이벤트와 시장 전체 흐름을 같이 읽게 합니다.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 6: 운영 흐름과 실행 상태 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="runtime">
+        <div class="wrap">
+          <span class="sec__num">06</span>
+          <h2 class="sec__title">운영 흐름과 실행 상태</h2>
+          <p class="sec__desc">현재 구조를 원리로 이해하려면 "내부 대시보드를 열었을 때"와 "운영 버튼을 눌렀을 때"를 따로 봐야 합니다. 둘 다 같은 FastAPI 코어를 지나지만 기대하는 책임은 다릅니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>modules/pipeline.py</code></span>
+            <span class="ref"><code>modules/briefing.py</code></span>
+            <span class="ref"><code>modules/report_studio.py</code></span>
+            <span class="ref"><code>modules/dashboard_snapshot.py</code></span>
+          </div>
+
+          <div class="split">
+            <div class="panel">
+              <div class="panel__header"><h3>내부 대시보드 로드 흐름</h3><p>페이지 한 번 열 때 실제론 여러 API 호출과 프론트 상태 조립이 이어집니다.</p></div>
+              <div class="diagram">
+                <span class="diagram__label">대시보드 로드 시퀀스</span>
+                <div class="mermaid">
+sequenceDiagram
+  participant U as Browser
+  participant A as FastAPI
+  participant T as simple_dashboard.html
+  participant J as dashboard.js
+  participant API as /api/*
+  participant DB as SQLite and Chroma
+  U->>A: GET /
+  A->>T: TemplateResponse
+  T-->>U: HTML + script refs
+  U->>J: load dashboard.js
+  J->>API: fetch events, analytics, disclosures, products, rag
+  API->>DB: query and aggregate
+  DB-->>API: rows and stats
+  API-->>J: JSON payloads
+  J-->>U: charts, cards, panels render
+                </div>
+                <p class="diagram__caption">브라우저 진입부터 데이터 렌더링까지의 전체 흐름</p>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel__header"><h3>운영 패널 실행 흐름</h3><p>운영자는 조회보다 제어가 중심입니다. 버튼을 누르면 동기화와 파이프라인 시작점이 됩니다.</p></div>
+              <div class="diagram">
+                <span class="diagram__label">운영 패널 제어 시퀀스</span>
+                <div class="mermaid">
+sequenceDiagram
+  participant U as Operator
+  participant O as ops.js
+  participant A as FastAPI
+  participant M as modules pipeline and sync
+  participant S as SQLite data and Chroma
+  U->>A: GET /ops
+  A-->>U: ops_dashboard.html
+  U->>O: click sync or retry
+  O->>A: POST /api/pipeline/* or /api/products/* or /api/disclosures/*
+  A->>M: start work
+  M->>S: collect and update status
+  O->>A: poll progress
+  A-->>O: progress and counts
+  O-->>U: status view update
+                </div>
+                <p class="diagram__caption">운영자의 제어 명령이 백엔드를 거쳐 상태를 갱신하는 과정</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="note">
+            <strong>운영 구조의 핵심</strong>
+            <p>내부 사용자는 읽기 중심 경험을 기대하고, 운영자는 제어 중심 경험을 기대합니다. 현재는 둘 다 같은 백엔드 응답 계층과 일부 같은 API 도메인을 공유하고 있어서, 향후 카드사 확장 단계에서 사용자 경험과 운영 경험의 경계를 더 선명하게 다듬을 여지가 보입니다.</p>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>ingest와 extract 자동화 상세</h3>
+              <div class="rows">
+                <div class="row"><strong><code>start_ingest_run()</code></strong><span>진행 중 작업 여부를 확인하고 run_id를 발급한 뒤 백그라운드 스레드에서 회사별 ingest를 시작합니다.</span></div>
+                <div class="row"><strong><code>run_ingest()</code></strong><span>registry 순회, company별 job row 생성, timeout 적용, 성공/실패/skip 집계, progress 상태 갱신까지 담당합니다.</span></div>
+                <div class="row"><strong><code>run_extract_and_enrich()</code></strong><span>미추출 이벤트를 읽어 Playwright 상세 추출, 정규화, hybrid insight 생성, insight 저장, event update를 한 흐름으로 수행합니다.</span></div>
+                <div class="row"><strong><code>run_full_pipeline()</code></strong><span>현재 구현상 ingest까지 포함하지 않고 이미 수집된 이벤트에 대한 extract/enrich 배치를 수행하는 경로로 사용됩니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>브리핑 · 리포트 · snapshot 실행 상세</h3>
+              <div class="rows">
+                <div class="row"><strong>브리핑 데이터</strong><span><code>modules.briefing</code> 가 expected companies, notable events, ending soon, company stats, category distribution을 계산해 일간/주간 payload를 만듭니다.</span></div>
+                <div class="row"><strong>브리핑 발송</strong><span><code>/api/briefing/send-now</code> 는 readiness 확인, HTML 렌더링, 수신자 결정, 이메일 발송, briefing log 생성까지 이어집니다.</span></div>
+                <div class="row"><strong>리포트 스튜디오</strong><span><code>modules.report_studio</code> 는 report type, basis, period 범위를 정규화하고 preview route URL과 snapshot manifest를 생성합니다.</span></div>
+                <div class="row"><strong>dashboard snapshot</strong><span><code>modules.dashboard_snapshot</code> 는 dashboard/events/products/insights 탭별 snapshot과 stats, product news groups, company overview를 메모리에 캐시합니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>job tracking 해석</h4>
+              <ul>
+                <li>ingest와 extract는 각각 job row를 만들고 상태를 pending → running → success/failed 로 이동시킵니다.</li>
+                <li>curator lock 같은 skip도 운영 관점에서는 job 상태와 last_error에 명시적으로 기록됩니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>progress 해석</h4>
+              <ul>
+                <li>진행률은 DB 테이블이 아니라 프로세스 메모리 상태에서 관리되고, API는 그 snapshot을 읽어옵니다.</li>
+                <li>즉 현재 구조는 "실시간 운영 상태는 메모리, 장기 감사/이력은 SQLite" 식으로 역할이 나뉩니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>리포트 artifact 해석</h4>
+              <ul>
+                <li>report studio는 basis 정규화 → preview URL 생성 → snapshot manifest 구성 → HTML/PNG/PDF materialize → DB row 보강 순서로 움직입니다.</li>
+                <li>이 흐름 덕분에 동일한 데이터 기준으로 preview, file download, email send를 모두 연결할 수 있습니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>briefing send-now 해석</h4>
+              <ul>
+                <li>payload 계산, readiness 판단, HTML 렌더링, SMTP 전송, DB 로그 기록이 하나의 호출에서 이어집니다.</li>
+                <li>즉 브리핑은 단순 메일 유틸이 아니라 데이터 품질 점검과 발송 운영을 묶은 API입니다.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 7: 데이터 저장 구조 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="data">
+        <div class="wrap">
+          <span class="sec__num">07</span>
+          <h2 class="sec__title">데이터 저장 구조</h2>
+          <p class="sec__desc">저장층은 단일 DB 하나가 아니라, 관계형 상태는 SQLite, 문서와 매니페스트는 <code>data/</code>, 벡터 검색은 Chroma, 산출물과 로그는 <code>output/</code> 와 <code>logs/</code> 로 나뉘어 있습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>database.py</code></span>
+            <span class="ref"><code>modules/product_links.py</code></span>
+            <span class="ref"><code>modules/rag/embedder.py</code></span>
+            <span class="ref"><code>modules/rag/collector.py</code></span>
+          </div>
+
+          <div class="panel">
+            <div class="panel__header"><h3>저장소 지도</h3><p>이 프로젝트는 이벤트 모니터링 앱을 넘어 문서 저장소와 리포트 공장 성격도 같이 갖고 있습니다.</p></div>
+            <div class="diagram">
+              <span class="diagram__label">데이터 저장소 토폴로지</span>
+              <div class="mermaid">
+flowchart TB
+  A["events.db"] --> A1["events"]
+  A --> A2["event_snapshots"]
+  A --> A3["event_sections"]
+  A --> A4["event_insights"]
+  A --> A5["manual edits and curation state"]
+  A --> A6["jobs, briefing logs, reports"]
+  A --> A7["products, launch facts, sync cursors, external signals"]
+  B["data/card_terms"] --> B1["PDF originals"]
+  B --> B2["manifest.json"]
+  B --> B3["product_disclosures.json"]
+  C["data/chroma_db*"] --> C1["active store"]
+  C --> C2["legacy and recovered stores"]
+  D["output/"] --> D1["briefings"]
+  D --> D2["playwright captures"]
+  D --> D3["server logs"]
+  D --> D4["report artifacts"]
+              </div>
+              <p class="diagram__caption">정형 데이터, 문서 원본, 벡터 인덱스, 산출물이 각각의 저장소로 분리된 구조</p>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>관계형 상태</h3>
+              <div class="rows">
+                <div class="row"><strong>이벤트 계열</strong><span>이벤트 본체, 스냅샷, 섹션, 인사이트, 조건 fact, 상품 링크</span></div>
+                <div class="row"><strong>운영 계열</strong><span>jobs, sync cursors, external signals</span></div>
+                <div class="row"><strong>사람 개입 계열</strong><span>manual edits, curation state, briefing logs, reports</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>문서 및 벡터 상태</h3>
+              <div class="rows">
+                <div class="row"><strong>약관/공시 원본</strong><span><code>data/card_terms</code> 와 매니페스트 파일</span></div>
+                <div class="row"><strong>벡터 저장소</strong><span><code>data/chroma_db</code> 와 recovered/legacy 파생 디렉터리</span></div>
+                <div class="row"><strong>산출물</strong><span>브리핑, 리포트, 캡처, 디버그 로그가 <code>output/</code> 아래에 축적</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>주요 SQLite 모델군</h4>
+              <ul>
+                <li><code>CardEvent</code>, <code>EventSnapshot</code>, <code>EventSection</code>, <code>EventInsight</code> 가 이벤트 수집 이후의 정형화 상태를 담당합니다.</li>
+                <li><code>EventProductLink</code>, <code>EventConditionFact</code> 는 상품 및 조건 분석 결과를 붙입니다.</li>
+                <li><code>EventManualEdit</code>, <code>EventCurationState</code> 는 사람 개입 이력을 남깁니다.</li>
+                <li><code>Job</code>, <code>BriefingLog</code>, <code>BriefingReport</code>, <code>Product</code>, <code>ProductLaunchDateFact</code>, <code>SyncCursor</code>, <code>ExternalSignalSnapshot</code> 로 운영 상태를 확장합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>파일 기반 저장소 상세</h4>
+              <ul>
+                <li><code>data/card_terms/manifest.json</code> 과 <code>product_disclosures.json</code> 은 문서 수집과 상품 공시 payload의 기준 파일 역할을 합니다.</li>
+                <li><code>modules/rag/embedder.py</code> 는 <code>data/chroma_db</code> 를 기본 persist dir로 쓰고, <code>chroma_db.active</code> 마커로 활성 경로를 전환할 수 있습니다.</li>
+                <li>recovered/legacy/backup 디렉터리는 이관 · 복구 이력과 운영 히스토리를 파일 시스템에 남깁니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>output 산출물 상세</h4>
+              <ul>
+                <li><code>output/briefings</code> 는 브리핑 관련 산출물을 보관합니다.</li>
+                <li><code>output/playwright</code> 는 캡처 및 렌더링 확인 결과를 남깁니다.</li>
+                <li>루트 output에는 uvicorn 로그, report studio 로그, sync 결과 JSON 등 운영 디버그 자료가 함께 쌓입니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>메모리 캐시와 snapshot 상태</h4>
+              <ul>
+                <li>dashboard snapshot은 DB에만 의존하지 않고 메모리 cache와 background refresh를 통해 탭별 응답 속도를 높입니다.</li>
+                <li>company brief, qualitative comparison, weekly AI insight 같은 응답은 별도 TTL 캐시를 사용해 반복 계산 비용을 줄입니다.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="note">
+            <strong>저장 구조의 설계 원칙</strong>
+            <p>현재 저장 구조는 "모든 것을 DB 하나에 넣는 형태"가 아니라, 정형 상태는 SQLite, 문서 원본은 data 폴더, 검색 인덱스는 Chroma, 산출물과 운영 흔적은 output에 나누어 두는 운영형 배치 구조입니다. 이 분리가 있기 때문에 브리핑, 상품/RAG, 리포트, 공시 sync가 서로 다른 저장 성격을 유지한 채 함께 동작할 수 있습니다.</p>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>상품공시 수집과 출시일 authority</h3>
+              <div class="rows">
+                <div class="row"><strong>신한 상품공시</strong><span>AJAX 목록 API와 개정내용 상세 API를 순차 호출해 출시일, 시행일, 신규출시/개정 여부를 판정합니다.</span></div>
+                <div class="row"><strong>삼성/현대/KB 공시</strong><span>삼성은 Playwright + 목록/상세 호출, 현대는 SSR HTML + PDF 조회 API, KB는 HTML 테이블 파싱으로 출시일과 발급중단일을 읽습니다.</span></div>
+                <div class="row"><strong><code>product_disclosures.json</code></strong><span>카드사별 공시 결과는 먼저 파일 기반 disclosure projection으로 저장됩니다.</span></div>
+                <div class="row"><strong>authority DB</strong><span><code>Product</code> 가 canonical product master, <code>ProductLaunchDateFact</code> 가 source별 launch-date evidence를 저장하고, 선택된 authority는 <code>launch_date_source</code>, <code>launch_date_confidence</code>, <code>launch_date_source_ref</code> 로 남습니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>상품 카탈로그와 공시 저장 방식</h3>
+              <div class="rows">
+                <div class="row"><strong>hybrid merge</strong><span><code>manifest.json</code>, <code>product_disclosures.json</code>, Chroma 내부 catalog, SQLite <code>products</code> 테이블을 순차 합성해 최종 카탈로그를 만듭니다.</span></div>
+                <div class="row"><strong>canonical overlay</strong><span>DB의 launch authority가 파일 · 문서 기반 정보 위에 마지막 overlay 역할을 해, 실무 화면에는 항상 정제된 canonical catalog가 보이게 합니다.</span></div>
+                <div class="row"><strong>event linkage</strong><span>event 텍스트에서 추출된 linked card는 이 canonical catalog와 매칭되어 <code>EventProductLink</code> row로 저장됩니다.</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid-2" style="margin-top:20px;">
+            <article class="cell">
+              <h4>RAG chunking 기준</h4>
+              <ul>
+                <li>collector가 카드사별 약관 PDF를 모아 <code>CardProduct</code> 로 구성하고, summary/benefits_text/raw_text를 붙입니다.</li>
+                <li>streaming indexer는 <code>chunk_card_product()</code> 결과를 버퍼링한 뒤 100개 단위로 Chroma에 저장합니다.</li>
+                <li>chunk metadata에는 <code>company</code>, <code>card_name</code>, <code>product_key</code>, <code>section</code>, <code>chunk_index</code> 가 들어갑니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>임베딩과 Chroma 구성</h4>
+              <ul>
+                <li>임베딩 모델은 Gemini <code>models/gemini-embedding-2-preview</code> 를 사용합니다.</li>
+                <li>Chroma collection 이름은 <code>card_products</code>, distance 공간은 cosine 입니다.</li>
+                <li><code>PersistentClient</code> 는 <code>data/chroma_db</code> 를 기본 persist dir로 사용하고, <code>chroma_db.active</code> 마커가 있으면 활성 경로를 오버라이드합니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>RAG 입력 자산</h4>
+              <ul>
+                <li>입력은 카드사별 상품공시/약관 PDF이며, <code>data/card_terms/&lt;issuer&gt;</code> 에 실제 파일이 저장됩니다.</li>
+                <li>manifest repair, local-only rebuild, new product detection 이 collector 레이어에 포함돼 있습니다.</li>
+              </ul>
+            </article>
+            <article class="cell">
+              <h4>RAG 검색 해석</h4>
+              <ul>
+                <li>semantic document search는 chunk 본문과 metadata를 함께 반환하고, lexical catalog search는 상품 메타와 요약 텍스트를 중심으로 작동합니다.</li>
+                <li>즉 이 프로젝트의 검색은 "상품 메타 검색"과 "문서 청크 검색"이 분리돼 있습니다.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 8: 확장과 구조 효율화 포인트 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="pressure">
+        <div class="wrap">
+          <span class="sec__num">08</span>
+          <h2 class="sec__title">확장과 구조 효율화 포인트</h2>
+          <p class="sec__desc">현재 구조는 이미 많은 기능과 자동화 자산을 담고 있고, 그만큼 향후 확장을 위해 역할과 경계를 더 선명하게 다듬을 포인트도 잘 드러납니다. 앞으로는 카드사를 더 추가하고 기능을 보완해가면서 구조 효율화를 함께 진행하는 방향이 자연스럽습니다.</p>
+          <div class="sec__refs">
+            <span class="ref"><code>modules/connectors/*</code></span>
+            <span class="ref"><code>app.py</code></span>
+            <span class="ref"><code>modules/pipeline.py</code></span>
+            <span class="ref"><code>database.py</code></span>
+          </div>
+
+          <div class="grid-2">
+            <article class="cell"><h4>페이지 경계 포인트</h4><p>공개 랜딩, 내부 실무, 운영 제어가 하나의 앱 설계 위에 올라가 있어 앞으로 사용자별 진입 경계를 더 선명하게 정리할 수 있습니다.</p></article>
+            <article class="cell"><h4>API 경계 포인트</h4><p>조회 API와 운영 트리거 API와 동기화 시작 API가 같은 라우트 계층에서 함께 움직여, 도메인별 재배치 계획을 세우기 좋습니다.</p></article>
+            <article class="cell"><h4>프론트 경계 포인트</h4><p>전역 스크립트가 여러 API 영역을 직접 알고 있어, 이후 화면 책임을 더 모듈화할 방향이 분명하게 보입니다.</p></article>
+            <article class="cell"><h4>데이터 plane 포인트</h4><p>SQLite, 문서 폴더, Chroma, output 산출물이 각각 제 역할을 하고 있어, 향후 운영 기준에 맞춰 저장 책임을 정리하기 좋은 상태입니다.</p></article>
+          </div>
+
+          <div class="note">
+            <strong>확장 관점에서 보면</strong>
+            <p>카드사를 더 붙일수록 커넥터와 정규화가 중심 seam이 되고, 그 결과는 대시보드 필터, sync 상태, 운영 버튼, 리포트 근거, 상품/RAG 검색까지 이어집니다. 그래서 As-Is를 꼼꼼히 보는 이유는 이미 만들어둔 자동화 자산을 잘 살리면서 향후 확장 순서와 개선 계획을 더 정확하게 잡기 위해서입니다.</p>
+          </div>
+
+          <div class="split">
+            <article class="box">
+              <h3>카드사 확대와 함께 보완할 기술 축</h3>
+              <div class="rows">
+                <div class="row"><strong>connector 확장</strong><span>새 카드사를 추가할 때는 registry, 공통 RawEvent 계약, 기간/카테고리/위협도 정규화 규칙이 함께 확장됩니다.</span></div>
+                <div class="row"><strong>운영 상태 표준화</strong><span>sync-status, jobs, progress API를 카드사/상품/공시/RAG 단위로 더 일관되게 확장할 수 있습니다.</span></div>
+                <div class="row"><strong>브리핑 · 리포트 고도화</strong><span>자동화 자산이 늘어날수록 브리핑과 report studio의 근거 데이터도 더 풍부해질 수 있습니다.</span></div>
+              </div>
+            </article>
+            <article class="box">
+              <h3>구조 효율화가 자연스럽게 이어질 지점</h3>
+              <div class="rows">
+                <div class="row"><strong>pages 분리</strong><span>공개/내부/운영 페이지를 사용자 목적별로 더 선명하게 나눌 수 있습니다.</span></div>
+                <div class="row"><strong>domain routers 분리</strong><span>현재 <code>app.py</code> 에 모여 있는 events, analytics, products, disclosures, rag, pipeline을 도메인별 라우터로 옮길 수 있습니다.</span></div>
+                <div class="row"><strong>service/worker 분리</strong><span>자동화 흐름이 이미 뚜렷하기 때문에, 향후에는 service/worker 단위로 추출해도 의미가 잘 유지됩니다.</span></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- Section 9: 다음 단계 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="sec reveal" id="to-be">
+        <div class="wrap">
+          <span class="sec__num">09</span>
+          <h2 class="sec__title">다음 단계</h2>
+          <p class="sec__desc">이 문서의 본론은 현재 구조입니다. 마지막에는 카드사 확대, 기능 보완, 구조 효율화를 어떤 순서로 이어갈지 짧게 정리합니다.</p>
+
+          <div class="panel">
+            <div class="panel__header"><h3>현재 구조에서 다음 단계로</h3><p>핵심은 페이지 경계는 사용자 기준, API 경계는 도메인 기준, 확장 seam은 커넥터와 워커 기준으로 정리해 가는 것입니다.</p></div>
+            <div class="diagram">
+              <span class="diagram__label">To-Be 구조 방향</span>
+              <div class="mermaid">
+flowchart TB
+  L["public landing"] --> P["public pages"]
+  W["workspace"] --> A["workspace pages"]
+  O["ops console"] --> B["ops pages"]
+  P --> API["domain routers"]
+  A --> API
+  B --> API
+  API --> S["services"]
+  S --> WK["workers and sync runners"]
+  WK --> CO["connector registry"]
+  S --> DB["SQLite + Chroma + artifacts"]
+              </div>
+              <p class="diagram__caption">사용자 경험, API 도메인, 서비스/워커가 각각의 경계를 갖는 목표 구조</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Footer ── -->
+      <footer class="footer">
+        <div class="wrap">
+          <div class="footer__inner">
+            <span>카드사 경쟁 인텔리전스 — 시스템 아키텍처 가이드</span>
+            <span>Last updated 2026-03-31</span>
+            <a href="/history/">Project History</a>
+            <a href="/">← Entry Page</a>
+          </div>
+        </div>
+      </footer>
+
+    </div><!-- .page__body -->
+  </div><!-- .page -->
+
+  <!-- ── Mermaid ── -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      securityLevel: "loose",
+      fontFamily: "Inter, sans-serif",
+      themeVariables: {
+        primaryColor: "#0f1a29",
+        primaryTextColor: "#edf4ff",
+        primaryBorderColor: "rgba(90,160,255,.32)",
+        lineColor: "rgba(125,211,252,.64)",
+        secondaryColor: "#0d1725",
+        tertiaryColor: "#0a1320",
+        clusterBkg: "#0b1523",
+        clusterBorder: "rgba(129,140,248,.22)",
+        mainBkg: "#0d1725",
+        nodeTextColor: "#edf4ff"
+      },
+      flowchart: { curve: "basis" },
+      sequence: { actorFontSize: 14, messageFontSize: 13, noteFontSize: 12 }
+    });
+  </script>
+
+  <!-- ── Progress Bar ── -->
+  <script>
+    (function() {
+      var bar = document.getElementById('progress-bar');
+      if (!bar) return;
+      function updateBar() {
+        var scrollTop = window.scrollY || document.documentElement.scrollTop;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        bar.style.width = pct + '%';
+      }
+      window.addEventListener('scroll', updateBar, { passive: true });
+      updateBar();
+    })();
+  </script>
+
+  <!-- ── TOC Mobile Toggle ── -->
+  <script>
+    (function() {
+      var btn = document.getElementById('toc-toggle');
+      var toc = document.getElementById('toc');
+      if (btn && toc) {
+        btn.addEventListener('click', function() {
+          toc.classList.toggle('is-open');
+        });
+        document.addEventListener('click', function(e) {
+          if (toc.classList.contains('is-open') && !toc.contains(e.target) && e.target !== btn) {
+            toc.classList.remove('is-open');
+          }
+        });
+      }
+    })();
+  </script>
+
+  <!-- ── Scroll Reveal (IntersectionObserver) ── -->
+  <script>
+    (function() {
+      var sections = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) {
+        sections.forEach(function(s) { s.classList.add('is-visible'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.06 });
+      sections.forEach(function(s) { observer.observe(s); });
+    })();
+  </script>
+
+  <!-- ── Cluster Bar Animation ── -->
+  <script>
+    (function() {
+      var container = document.getElementById('clusters-container');
+      if (!container || !('IntersectionObserver' in window)) {
+        if (container) {
+          container.querySelectorAll('.bar').forEach(function(b) { b.classList.add('animated'); });
+        }
+        return;
+      }
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.bar').forEach(function(b, i) {
+              setTimeout(function() { b.classList.add('animated'); }, i * 80);
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      observer.observe(container);
+    })();
+  </script>
+
+  <!-- ── Active TOC highlight ── -->
+  <script>
+    (function() {
+      var links = document.querySelectorAll('.toc a');
+      var secs = [];
+      links.forEach(function(a) {
+        var id = a.getAttribute('href');
+        if (id && id.startsWith('#')) {
+          var el = document.querySelector(id);
+          if (el) secs.push({ el: el, link: a });
+        }
+      });
+      if (!secs.length) return;
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          var match = secs.find(function(s) { return s.el === entry.target; });
+          if (match) {
+            if (entry.isIntersecting) {
+              links.forEach(function(l) { l.classList.remove('is-active'); });
+              match.link.classList.add('is-active');
+            }
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      secs.forEach(function(s) { observer.observe(s.el); });
+    })();
+  </script>
+</body>
+</html>
