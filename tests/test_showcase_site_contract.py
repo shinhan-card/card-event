@@ -28,3 +28,12 @@ def test_showcase_architecture_links_history_page():
     assert "작업 히스토리 보기" in html
     assert "Project History" in html
     assert 'href="/history/"' in html
+
+
+def test_showcase_titles_align_with_main_project_name():
+    entry_html = (ROOT / "showcase-site" / "index.html").read_text(encoding="utf-8")
+    architecture_html = (ROOT / "showcase-site" / "architecture" / "index.html").read_text(encoding="utf-8")
+
+    assert "<title>페이먼트그룹 시장 모니터링 인텔리전스 | Vertical AI Platform</title>" in entry_html
+    assert "<title>페이먼트그룹 시장 모니터링 인텔리전스 — 시스템 아키텍처 가이드</title>" in architecture_html
+    assert '<h1 class="hero__title">페이먼트그룹 시장 모니터링 인텔리전스</h1>' in architecture_html

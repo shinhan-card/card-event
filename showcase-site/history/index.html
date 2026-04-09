@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>카드사 경쟁 인텔리전스 — 작업 히스토리</title>
+  <title>페이먼트그룹 시장 모니터링 인텔리전스 — 작업 히스토리</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -196,7 +196,7 @@
   <section class="hero">
     <div class="wrap">
       <span class="eyebrow">Local Source Of Truth</span>
-      <h1>프로젝트 작업 히스토리</h1>
+      <h1>페이먼트그룹 시장 모니터링 인텔리전스 작업 히스토리</h1>
       <p>Git commit, spec/plan 문서, OMX 작업 로그, 파일 생성 시각을 묶어 큰 버전 흐름과 사소한 수정까지 함께 남기는 로컬 기준 작업 아카이브입니다.</p>
       <div class="hero__actions">
         <a class="pill pill--action" href="/architecture/">← 아키텍처 페이지로 돌아가기</a>
@@ -215,9 +215,9 @@
         </div>
       </div>
       <div class="legend">
-        <article class="card"><span class="badge badge--high">근거 충분</span><p class="muted">Git commit, 문서, 로그처럼 바로 확인할 수 있는 자료가 충분한 항목입니다.</p></article>
-        <article class="card"><span class="badge badge--medium">여러 자료로 정리</span><p class="muted">Git만으로는 안 보여도 로그, 문서, 파일 시각을 모아 흐름을 정리한 항목입니다.</p></article>
-        <article class="card"><span class="badge badge--low">추가 확인 필요</span><p class="muted">산출물은 보이지만 맥락이 약해서 나중에 더 확인하거나 메모를 보강하면 좋은 항목입니다.</p></article>
+        <article class="card"><span class="badge badge--high">커밋/문서 확인</span><p class="muted">Git 커밋이나 문서처럼 바로 확인할 수 있는 자료가 분명한 항목입니다.</p></article>
+        <article class="card"><span class="badge badge--medium">로그/문서 기준</span><p class="muted">Git만으로는 안 보여도 작업 로그나 문서를 바탕으로 흐름을 정리한 항목입니다.</p></article>
+        <article class="card"><span class="badge badge--low">파일 기준 추정</span><p class="muted">주로 파일이 만들어진 시각을 바탕으로 정리한 항목이라 나중에 한 번 더 보면 좋습니다.</p></article>
       </div>
     </div>
   </section>
@@ -288,7 +288,7 @@
   <footer class="footer">
     <div class="wrap">
       <div class="footer__inner">
-        <span>카드사 경쟁 인텔리전스 — Local Project History Archive</span>
+        <span>페이먼트그룹 시장 모니터링 인텔리전스 — 작업 히스토리</span>
         <a href="/architecture/">Architecture Guide</a>
       </div>
     </div>
@@ -305,7 +305,7 @@
     let state = { filter: "all", data: null };
 
     const confClass = value => value === "high" ? "badge badge--high" : value === "medium" ? "badge badge--medium" : "badge badge--low";
-    const confLabel = value => value === "high" ? "근거 충분" : value === "medium" ? "여러 자료로 정리" : "추가 확인 필요";
+    const confLabel = value => value === "high" ? "커밋/문서 확인" : value === "medium" ? "로그/문서 기준" : "파일 기준 추정";
     const kindLabel = value => ({
       spec: "설계 문서",
       plan: "구현 계획",
@@ -341,8 +341,8 @@
       const cards = [
         [data.versions.length, "버전 그룹"],
         [data.items.length, "정리된 전체 이력"],
-        [data.items.length - needsReviewCount, "근거가 뚜렷한 이력"],
-        [needsReviewCount, "추가 확인이 필요한 이력"]
+        [data.items.length - needsReviewCount, "커밋/문서 확인 이력"],
+        [needsReviewCount, "로그/파일 기반 이력"]
       ];
       summaryEl.innerHTML = cards.map(([value, label]) => `<article class="card"><strong>${value}</strong><span class="muted">${label}</span></article>`).join("");
     }
@@ -413,7 +413,7 @@
                   </div>
                   <div class="filters">
                     <span class="${confClass(item.confidence)}">${confLabel(item.confidence)}</span>
-                    <span class="badge">${item["is_" + "recon" + "structed"] ? "여러 자료 종합" : "바로 확인 가능"}</span>
+                    <span class="badge">${item["is_" + "recon" + "structed"] ? "로그/문서 기준" : "커밋/문서 기준"}</span>
                   </div>
                 </summary>
                 <div class="item__body">
